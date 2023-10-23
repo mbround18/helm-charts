@@ -1,0 +1,15 @@
+apiVersion: v1
+entries:
+  fvtt-dndbeyond-companion:
+  - apiVersion: v2
+    appVersion: main
+    created: "2023-10-23T03:55:58.317847292Z"
+    description: A Helm chart for Kubernetes
+    digest: f73b2e052600416542341db06a7d3a6e3299dda2b6792afaecf1e5e36570776e
+    icon: https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png
+    name: fvtt-dndbeyond-companion
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/fvtt-dndbeyond-companion-0.0.1/fvtt-dndbeyond-companion-0.0.1.tgz
+    version: 0.0.1
+generated: "2023-10-23T03:55:58.317859292Z"
