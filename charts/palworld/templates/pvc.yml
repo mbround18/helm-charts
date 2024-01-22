@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.pvc.name }}
+  labels:
+      app: {{ include "palworld.name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+          storage: 10Gi
+    storageClassName: {{ .Values.storageClassName | default "longhorn" }}
