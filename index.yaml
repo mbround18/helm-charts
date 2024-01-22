@@ -3,6 +3,17 @@ entries:
   fvtt-dndbeyond-companion:
   - apiVersion: v2
     appVersion: main
+    created: "2024-01-22T22:22:00.59168254Z"
+    description: A Helm chart for Kubernetes
+    digest: 33ef2f886304aaeb44a3d6f21a4e3a131bf4ea8d934ffa73305a47cf3a237efb
+    icon: https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png
+    name: fvtt-dndbeyond-companion
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/fvtt-dndbeyond-companion-0.0.2/fvtt-dndbeyond-companion-0.0.2.tgz
+    version: 0.0.2
+  - apiVersion: v2
+    appVersion: main
     created: "2023-10-23T03:55:58.317847292Z"
     description: A Helm chart for Kubernetes
     digest: f73b2e052600416542341db06a7d3a6e3299dda2b6792afaecf1e5e36570776e
@@ -12,4 +23,15 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/fvtt-dndbeyond-companion-0.0.1/fvtt-dndbeyond-companion-0.0.1.tgz
     version: 0.0.1
-generated: "2023-10-23T03:55:58.317859292Z"
+  palworld:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-01-22T22:22:00.762706439Z"
+    description: A Helm chart for Kubernetes
+    digest: a92b31e7ca15187ca063665f1fc19596d7fa902692e51b9c04329f310c7640a6
+    name: palworld
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/palworld-0.2.0/palworld-0.2.0.tgz
+    version: 0.2.0
+generated: "2024-01-22T22:22:00.762735363Z"
