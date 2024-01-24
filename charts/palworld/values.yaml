@@ -10,6 +10,13 @@ environment: []
 
 storageClassName: ""
 
+backups:
+  enabled: false
+  image: "mbrund18/backup-cron:latest"
+  schedule: "*/5 * * * *"
+  retainNDays: 7
+
+
 image:
   repository: mbround18/palworld-docker
   pullPolicy: Always
