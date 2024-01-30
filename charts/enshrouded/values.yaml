@@ -1,32 +1,48 @@
-# Default values for palworld.
+# Default values for enshrouded.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# The number of replicas to create
 replicaCount: 1
 
+# Environment variables to pass to the application
 environment: []
   # - name: MY_ENV_VAR
-  #   value: my-env-var-value
+#   value: my-env-var-value
 
+# The name of the storage class to use. If not set, the default storage class will be used.
 storageClassName: ""
 
+# Configuration for backups
 backups:
+  # Whether backups are enabled
   enabled: false
+  # The image to use for backups
   image: "mbrund18/backup-cron:latest"
+  # The schedule for backups, in cron format
   schedule: "*/5 * * * *"
-  retainNDays: 7
+  # The number of days to retain backups
+  retentionDays: 7
+  # The number of backup files to keep. If 0, all backup files are kept.
+  filesToKeep: 0
+  # The configuration for the backup PVC
+  pvc:
+    name: backups
+    size: 10Gi
 
-
+# Configuration for the application image
 image:
-  repository: mbround18/palworld-docker
+  repository: mbround18/enshrouded-docker
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 
+# The secrets to use for pulling images
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Configuration for the service account
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -38,26 +54,31 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+# Annotations to add to the pod
 podAnnotations: {}
+# Labels to add to the pod
 podLabels: {}
 
+# The security context for the pod
 podSecurityContext: {}
-  # fsGroup: 2000
+# fsGroup: 2000
 
+# The security context for the container
 securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
-  # runAsUser: 1000
+# runAsUser: 1000
 
+# Configuration for the application endpoint
 endpoint:
   externalIP: ""
-  gamePort: 8211
-  queryPort: 27015
+  gamePort: 15636
+  queryPort: 15637
 
-
+# The resources to allocate for the pod
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -68,8 +89,9 @@ resources: {}
   #   memory: 128Mi
   # requests:
   #   cpu: 100m
-  #   memory: 128Mi
+#   memory: 128Mi
 
+# Configuration for autoscaling
 autoscaling:
   enabled: false
   minReplicas: 1
@@ -77,27 +99,35 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-pvc:
-  name: palworld-server-data
-  size: 10Gi
+# The configuration for the deployment PVC
+deployment:
+  pvc:
+    name: game-data
+    size: 20Gi
 
 # Additional volumes on the output Deployment definition.
 volumes:
   - name: game-data
     persistentVolumeClaim:
-      claimName: palworld-server-data
+      claimName: enshrouded-game-data
+  - name: backups
+    persistentVolumeClaim:
+      claimName: enshrouded-backups
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
   - name: game-data
-    mountPath: "/home/steam/palworld"
+    mountPath: "/home/steam/enshrouded"
     readOnly: false
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+  - name: backups
+    mountPath: "/home/steam/backups"
+    readOnly: true
 
+# The node selector to use for the pod
 nodeSelector: {}
 
+# The tolerations to use for the pod
 tolerations: []
 
+# The affinity to use for the pod
 affinity: {}

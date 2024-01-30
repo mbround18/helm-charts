@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "enshrouded.fullname" . }}
+  labels:
+    {{- include "enshrouded.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  externalIPs:
+    - {{ .Values.endpoint.externalIP }}
+  ports:
+    - port: {{ .Values.endpoint.queryPort }}
+      targetPort: query
+      protocol: UDP
+      name: query
+    - port: {{ .Values.endpoint.gamePort }}
+      targetPort: game
+      protocol: UDP
+      name: game
+  selector:
+    {{- include "enshrouded.selectorLabels" . | nindent 4 }}
