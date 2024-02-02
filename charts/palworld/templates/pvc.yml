@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.pvc.name }}
+  name: {{ .Values.pvcs.saved.name}}
   labels:
       app: {{ include "palworld.name" . }}
   namespace: {{ .Release.Namespace }}
@@ -11,21 +11,37 @@ spec:
         - ReadWriteOnce
     resources:
         requests:
-          storage: {{ .Values.pvc.size }}
+          storage: {{ .Values.pvcs.saved.size }}
     storageClassName: {{ .Values.storageClassName | default "longhorn" }}
-{{/*---*/}}
-{{/*{{}}*/}}
-{{/*apiVersion: v1*/}}
-{{/*kind: PersistentVolumeClaim*/}}
-{{/*metadata:*/}}
-{{/*  name: {{ .Values.pvc.name }}-backups*/}}
-{{/*  labels:*/}}
-{{/*      app: {{ include "palworld.name" . }}*/}}
-{{/*  namespace: {{ .Release.Namespace }}*/}}
-{{/*spec:*/}}
-{{/*    accessModes:*/}}
-{{/*        - ReadWriteOnce*/}}
-{{/*    resources:*/}}
-{{/*        requests:*/}}
-{{/*          storage: {{ .Values.pvc.size }}*/}}
-{{/*    storageClassName: {{ .Values.storageClassName | default "longhorn" }}*/}}
+---
+{{- if .Values.backups.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.pvcs.backups.name }}
+  labels:
+      app: {{ include "palworld.name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+          storage: {{ .Values.pvcs.backups.size }}
+    storageClassName: {{ .Values.storageClassName | default "longhorn" }}
+{{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.pvcs.server.name }}
+  labels:
+      app: {{ include "palworld.name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+          storage: {{ .Values.pvcs.server.size }}
+    storageClassName: {{ .Values.storageClassName | default "longhorn" }}

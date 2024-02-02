@@ -9,13 +9,17 @@ spec:
   externalIPs:
     - {{ .Values.endpoint.externalIP }}
   ports:
-    - port: {{ .Values.endpoint.queryPort }}
-      targetPort: query
-      protocol: UDP
-      name: query
-    - port: {{ .Values.endpoint.gamePort }}
-      targetPort: game
-      protocol: UDP
-      name: game
+    {{ range list "TCP" "UDP" }}
+    {{- $game := printf "%s-%s" "game" . }}
+    {{- $query := printf "%s-%s" "query" . }}
+    - port: {{ $.Values.endpoint.queryPort }}
+      targetPort: {{ lower $query }}
+      protocol: {{ . }}
+      name: {{ lower $query }}
+    - port: {{ $.Values.endpoint.gamePort }}
+      targetPort: {{ lower $game }}
+      protocol: {{ . }}
+      name: {{ lower $game }}
+    {{ end }}
   selector:
     {{- include "enshrouded.selectorLabels" . | nindent 4 }}

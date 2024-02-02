@@ -30,6 +30,10 @@ spec:
       serviceAccountName: {{ include "palworld.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+{{/*      initContainers:*/}}
+{{/*        - name: init-symlink*/}}
+{{/*          image: busybox*/}}
+{{/*          command: ['sh', '-c', 'ln -s /home/steam/palworld/Pal/Saved /home/steam/saved']*/}}
       containers:
         {{- if .Values.backups.enabled }}
         - name: save-backups
@@ -41,18 +45,27 @@ spec:
             - name: INPUT_FOLDER
               value: "/home/steam/palworld/Pal/Saved/"
             - name: OUTPUT_FOLDER
-              value: "/home/steam/palworld/backups/"
+              value: "/home/steam/backups/"
             - name: OUTPUT_USER
               value: "1000"
             - name: OUTPUT_GROUP
               value: "1000"
             - name: RETAIN_N_DAYS
               value: "{{ .Values.backups.retainNDays }}"
+            - name: RETAIN_N_FILES
+              value: "{{ .Values.backups.retainNFiles }}"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
-              {{- toYaml . | nindent 12 }}
+          {{- range .Values.pvcs }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+          {{- toYaml . | nindent 12 }}
           {{- end }}
         {{- end }}
         - name: {{ .Chart.Name }}
@@ -65,22 +78,36 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
-            - name: game
-              containerPort: {{ .Values.endpoint.gamePort }}
-              protocol: UDP
-            - name: query
-              containerPort: {{ .Values.endpoint.queryPort }}
-              protocol: UDP
+            {{ range list "TCP" "UDP" }}
+            {{- $game := printf "%s-%s" "game" . -}}
+            {{- $query := printf "%s-%s" "query" . -}}
+            - name: {{ lower $game }}
+              containerPort: {{ $.Values.endpoint.gamePort }}
+              protocol: {{ . }}
+            - name: {{ lower $query }}
+              containerPort: {{ $.Values.endpoint.queryPort }}
+              protocol: {{ . }}
+            {{ end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
+          {{- range .Values.pvcs }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
           {{- end }}
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
+          {{- with .Values.volumeMounts }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- $combinedVolumes := .Values.volumes }}
+      {{- range .Values.pvcs }}
+      {{- $newVolume := dict "name" .name "persistentVolumeClaim" (dict "claimName" .name) }}
+      {{- $combinedVolumes = append $combinedVolumes $newVolume }}
       {{- end }}
+      volumes:
+        {{- toYaml $combinedVolumes | nindent 8 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
