@@ -49,7 +49,7 @@ jobs:
           override-name: "yq"
 
       - name: Update Chart Version
-        run: .github/scripts/version-checker.sh
+        run: . .github/scripts/version-checker.sh
 
       - name: Run chart-releaser
         if: github.event_name != 'pull_request'
