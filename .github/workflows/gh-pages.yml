@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -46,9 +49,10 @@ jobs:
           override-name: "yq"
 
       - name: Update Chart Version
-        run: .github/scripts/version_checker.sh
+        run: .github/scripts/version-checker.sh
 
       - name: Run chart-releaser
+        if: github.event_name != 'pull_request'
         uses: helm/chart-releaser-action@v1
         with:
           charts_dir: charts
