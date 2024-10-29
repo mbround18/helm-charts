@@ -1,0 +1,45 @@
+namespace:
+  # The name of the Kubernetes namespace where resources will be deployed
+  name: pvc-scaler
+  # Set to true to create the namespace if it doesn't already exist
+  create: true
+
+serviceAccount:
+  # The name of the ServiceAccount to be used by the Deployment
+  name: pvc-scaler
+
+clusterRole:
+  # The name of the ClusterRole to be assigned to the ServiceAccount
+  name: pvc-scaler-role
+
+clusterRoleBinding:
+  # The name of the ClusterRoleBinding that binds the ClusterRole to the ServiceAccount
+  name: pvc-scaler-rolebinding
+
+deployment:
+  # The name of the Kubernetes Deployment
+  name: pvc-scaler
+  # The number of replicas (pods) to be created for the Deployment
+  replicas: 1
+  # The strategy used to replace old pods with new ones (e.g., Recreate or RollingUpdate)
+  strategy: Recreate
+  # The label used to identify resources related to this Deployment
+  appLabel: pvc-scaler
+  container:
+    # The name of the container within the pod
+    name: pvc-scaler
+    # Container image details, split into name and tag for flexibility
+    image:
+      name: mbround18/k8s-pvc-watcher
+      tag: ""
+    # The policy for pulling the container image (Always, IfNotPresent, Never)
+    imagePullPolicy: Always
+    resources:
+      # Resource requests define the minimum amount of resources required by the container
+      requests:
+        memory: 128Mi  # Minimum amount of memory requested for the container
+        cpu: 500m      # Minimum amount of CPU requested for the container
+      # Resource limits define the maximum amount of resources the container can use
+      limits:
+        memory: 256Mi  # Maximum amount of memory the container is allowed to use
+        cpu: 1000m     # Maximum amount of CPU the container is allowed to use

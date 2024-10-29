@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name | default "pvc-scaler" }}
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+spec:
+  strategy:
+    type: {{ .Values.deployment.strategy | default "Recreate" }}
+  replicas: {{ .Values.deployment.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Values.deployment.appLabel | default "pvc-scaler" }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.deployment.appLabel | default "pvc-scaler" }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name | default "pvc-scaler" }}
+      containers:
+        - name: {{ .Values.deployment.container.name | default "pvc-scaler" }}
+          # Define the image variable for better readability and reusability
+          {{- $image := .Values.deployment.container.image.name | default "mbround18/k8s-pvc-watcher" }}
+          {{- $tag := .Values.deployment.container.image.tag | default .Chart.AppVersion }}
+          image: "{{ $image }}:{{ $tag }}"
+          imagePullPolicy: {{ .Values.deployment.container.imagePullPolicy | default "Always" }}
+          resources:
+            requests:
+              memory: {{ .Values.deployment.container.resources.requests.memory | default "128Mi" }}
+              cpu: {{ .Values.deployment.container.resources.requests.cpu | default "500m" }}
+            limits:
+              memory: {{ .Values.deployment.container.resources.limits.memory | default "256Mi" }}
+              cpu: {{ .Values.deployment.container.resources.limits.cpu | default "1000m" }}
