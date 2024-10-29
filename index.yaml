@@ -1,5 +1,16 @@
 apiVersion: v1
 entries:
+  enshrouded:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2024-10-29T22:05:15.797569147Z"
+    description: A Helm chart for Kubernetes
+    digest: 881d4d9bc753eb52639c6a55b1caea8580b37c1207b72d0ee2ea3d0bd5422975
+    name: enshrouded
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.0/enshrouded-0.3.0.tgz
+    version: 0.3.0
   fvtt-dndbeyond-companion:
   - apiVersion: v2
     appVersion: main
@@ -55,4 +66,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/palworld-0.2.0/palworld-0.2.0.tgz
     version: 0.2.0
-generated: "2024-01-24T18:49:09.963364072Z"
+generated: "2024-10-29T22:05:16.000783895Z"
