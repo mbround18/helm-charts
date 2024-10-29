@@ -20,10 +20,20 @@ fi
 
 # Loop through all charts in the charts directory
 for chart in charts/*; do
+  if [ ! -d "$chart" ]; then
+    log "WARNING" "$chart is not a directory, skipping."
+    continue
+  fi
+
   chart_name="$(basename "$chart")"
   CHART_PATH="$chart/Chart.yaml"
   log "INFO" "Processing chart: $chart_name"
   log "INFO" "Chart path: $CHART_PATH"
+
+  if [ ! -f "$CHART_PATH" ]; then
+    log "WARNING" "Chart.yaml not found for $chart_name, skipping."
+    continue
+  fi
 
   CHART_TAG="$(git tag -l "$chart_name-*" | sort -V | tail -n 1)"
 

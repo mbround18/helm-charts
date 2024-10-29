@@ -57,5 +57,6 @@ jobs:
         with:
           charts_dir: charts
           config: cr.yaml
+          skip_existing: true
         env:
           CR_TOKEN: "${{ secrets.GH_TOKEN }}"
