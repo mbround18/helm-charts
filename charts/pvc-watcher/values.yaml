@@ -37,9 +37,9 @@ deployment:
     resources:
       # Resource requests define the minimum amount of resources required by the container
       requests:
-        memory: 128Mi  # Minimum amount of memory requested for the container
-        cpu: 500m      # Minimum amount of CPU requested for the container
+        memory: 128Mi # Minimum amount of memory requested for the container
+        cpu: 500m # Minimum amount of CPU requested for the container
       # Resource limits define the maximum amount of resources the container can use
       limits:
-        memory: 256Mi  # Maximum amount of memory the container is allowed to use
-        cpu: 1000m     # Maximum amount of CPU the container is allowed to use
+        memory: 256Mi # Maximum amount of memory the container is allowed to use
+        cpu: 1000m # Maximum amount of CPU the container is allowed to use
