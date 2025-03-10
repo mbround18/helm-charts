@@ -41,7 +41,7 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Install yq
-        uses: mbround18/gh-reusable/actions/install-cli@v0.0.3
+        uses: mbround18/gh-reusable/actions/install-cli@v0.0.4
         with:
           repository: "mikefarah/yq"
           version: "latest"
