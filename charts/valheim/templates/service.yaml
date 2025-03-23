@@ -4,10 +4,12 @@ metadata:
   name: {{ include "valheim.fullname" . }}
   labels:
     {{- include "valheim.labels" . | nindent 4 }}
+  {{- if hasKey $.Values.service "annotations" }}
+  annotations:
+    {{- toYaml $.Values.service.annotations | nindent 4 }}
+  {{- end }}
 spec:
-  type: NodePort
-  externalIPs:
-    - {{ .Values.endpoint.externalIP }}
+  type: {{ $.Values.service.type | default "NodePort" }}
   ports:
     {{ range list "TCP" "UDP" }}
     {{- $game := printf "%s-%s" "game" . }}

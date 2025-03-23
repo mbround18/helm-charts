@@ -58,6 +58,13 @@ environment:
 # The name of the storage class to use. If not set, the default storage class will be used.
 storageClassName: ""
 
+#NodePort or LoadBalancer
+service:
+  type: NodePort
+  #if you use MetalLB, add the correct annotations here to select i.e. the pool and or the ip
+  #annotations:
+  #  metallb.universe.tf/loadBalancerIPs: 10.174.2.15
+
 # Configuration for backups
 backups:
   # Whether backups are enabled
@@ -120,7 +127,6 @@ securityContext:
 
 # Configuration for the application endpoint
 endpoint:
-  externalIP: ""
   gamePort: 15636
   queryPort: 15637
 
