@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "enshrouded.fullname" . }}
+  name: {{ include "valheim.fullname" . }}
   labels:
-    {{- include "enshrouded.labels" . | nindent 4 }}
+    {{- include "valheim.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "enshrouded.selectorLabels" . | nindent 6 }}
+      {{- include "valheim.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "enshrouded.labels" . | nindent 8 }}
+        {{- include "valheim.labels" . | nindent 8 }}
 	{{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,7 +27,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "enshrouded.serviceAccountName" . }}
+      serviceAccountName: {{ include "valheim.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -39,7 +39,7 @@ spec:
             - name: SCHEDULE
               value: "{{ .Values.backups.schedule }}"
             - name: INPUT_FOLDER
-              value: "/home/steam/enshrouded/savegame"
+              value: "/home/steam/valheim/savegame"
             - name: OUTPUT_FOLDER
               value: "/home/steam/backups/"
             - name: OUTPUT_USER
@@ -80,22 +80,14 @@ spec:
             {{ end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          { { - with .Values.volumeMounts } }
+          {{- with .Values.volumeMounts }}
           volumeMounts:
-          { { - range $mount := . } }
-            - name: { { $mount.name } }
-              mountPath: { { $mount.mountPath } }
-              readOnly: { { $mount.readOnly | default false } }
-          { { - end } }
-          { { - end } }
-      { { - with .Values.volumes } }
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
       volumes:
-      { { - range $volume := . } }
-      - name: { { $volume.name } }
-        persistentVolumeClaim:
-          claimName: { { printf "%s-%s" $.Release.Name $volume.persistentVolumeClaim.claimName | replace "_" "-" } }
-      { { - end } }
-      { { - end } }
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "valheim.fullname" . }}
+  labels:
+    {{- include "valheim.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  externalIPs:
+    - {{ .Values.endpoint.externalIP }}
+  ports:
+    {{ range list "TCP" "UDP" }}
+    {{- $game := printf "%s-%s" "game" . }}
+    {{- $query := printf "%s-%s" "query" . }}
+    - port: {{ $.Values.endpoint.queryPort }}
+      targetPort: {{ lower $query }}
+      protocol: {{ . }}
+      name: {{ lower $query }}
+    - port: {{ $.Values.endpoint.gamePort }}
+      targetPort: {{ lower $game }}
+      protocol: {{ . }}
+      name: {{ lower $game }}
+    {{ end }}
+  selector:
+    {{- include "valheim.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,20 @@
+{{- $pvcs := ternary (list .Values.backups.pvc .Values.deployment.pvc) (list .Values.deployment.pvc) .Values.backups.enabled -}}
+{{- range $pvcs }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-%s" $.Release.Name .name }}
+  labels:
+    app: {{ include "valheim.name" $ }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .size }}
+  {{- if ($.Values.storageClassName) }}
+  storageClassName: {{ $.Values.storageClassName }}
+  {{- end }}
+{{- end }}
