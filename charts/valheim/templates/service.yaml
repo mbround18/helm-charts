@@ -11,17 +11,18 @@ metadata:
 spec:
   type: {{ $.Values.service.type | default "NodePort" }}
   ports:
-    {{ range list "TCP" "UDP" }}
-    {{- $game := printf "%s-%s" "game" . }}
-    {{- $query := printf "%s-%s" "query" . }}
-    - port: {{ $.Values.endpoint.queryPort }}
-      targetPort: {{ lower $query }}
-      protocol: {{ . }}
-      name: {{ lower $query }}
-    - port: {{ $.Values.endpoint.gamePort }}
-      targetPort: {{ lower $game }}
-      protocol: {{ . }}
-      name: {{ lower $game }}
-    {{ end }}
+    {{- $startPort := $.Values.GAMEPORT | int }}
+    {{- range $i := until 3 }}
+    - port: {{ add $startPort $i}}
+      targetPort: {{ add $startPort $i }}
+      protocol: "UDP"
+      name: gameport-{{ $i }}
+    {{- end }}
+    {{- if hasKey $.Values "HTTPPORT" }}
+    - port: {{ $.Values.HTTPPORT }}
+      targetPort: {{ $.Values.HTTPPORT }}
+      protocol: "TCP"
+      name: http
+    {{- end }}
   selector:
     {{- include "valheim.selectorLabels" . | nindent 4 }}

@@ -65,23 +65,6 @@ service:
   #annotations:
   #  metallb.universe.tf/loadBalancerIPs: 10.174.2.15
 
-# Configuration for backups
-backups:
-  # Whether backups are enabled
-  enabled: false
-  # The image to use for backups
-  image: "mbrund18/backup-cron:latest"
-  # The schedule for backups, in cron format
-  schedule: "*/5 * * * *"
-  # The number of days to retain backups
-  retentionDays: 7
-  # The number of backup files to keep. If 0, all backup files are kept.
-  filesToKeep: 0
-  # The configuration for the backup PVC
-  pvc:
-    name: backups
-    size: 10Gi
-
 # Configuration for the application image
 image:
   repository: mbround18/valheim-docker
@@ -124,11 +107,6 @@ securityContext:
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
 # runAsUser: 1000
-
-# Configuration for the application endpoint
-endpoint:
-  gamePort: 15636
-  queryPort: 15637
 
 # The resources to allocate for the pod
 resources:
