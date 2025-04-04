@@ -1,0 +1,30 @@
+{{- if and .Values.istio (hasKey .Values.istio "enabled") .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "foundryvtt.fullname" . }}-gateway
+  labels:
+    app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    {{- range $k, $v := .Values.istio.gateway.selector }}
+    {{ $k }}: {{ $v }}
+    {{- end }}
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - {{ .Values.host }}
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: {{ .Values.istio.gateway.credentialName | quote }}
+      hosts:
+        - {{ .Values.host }}
+{{- end }}

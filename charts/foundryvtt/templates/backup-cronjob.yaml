@@ -1,0 +1,31 @@
+{{- if and .Values.backup (hasKey .Values.backup "enabled") .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "foundryvtt.fullname" . }}-backup-cleanup
+  labels:
+    app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.backup.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup-container
+              image: alpine:latest
+              command: ["/bin/sh", "-c"]
+              args:
+                - >
+                  apk add --no-cache findutils &&
+                  find /foundrydata/Backups -type f -mtime +{{ .Values.backup.olderThanDays }} -delete
+              volumeMounts:
+                - name: backups-volume
+                  mountPath: /foundrydata/Backups
+          volumes:
+            - name: backups-volume
+              persistentVolumeClaim:
+                claimName: {{ include "foundryvtt.fullname" . }}-backups-0
+{{- end }}

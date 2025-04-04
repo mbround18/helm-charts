@@ -1,0 +1,23 @@
+{{- if and .Values.istio (hasKey .Values.istio "enabled") }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "foundryvtt.fullname" . }}-vs
+  labels:
+    app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  hosts:
+    - {{ .Values.host }}
+  gateways:
+    - {{ include "foundryvtt.fullname" . }}-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: {{ include "foundryvtt.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: 80
+{{- end }}

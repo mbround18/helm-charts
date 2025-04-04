@@ -1,0 +1,173 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "foundryvtt.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  serviceName: {{ include "foundryvtt.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      initContainers:
+        - name: foundry-init
+          image: busybox:latest
+          command: ["sh", "-c", "chown -R 1000:1000 /foundrydata"]
+          volumeMounts:
+            - name: app
+              mountPath: /foundryvtt
+            - name: core
+              mountPath: /foundrydata
+            - name: backups
+              mountPath: /foundrydata/Backups
+            - name: config
+              mountPath: /foundrydata/Config
+            - name: data
+              mountPath: /foundrydata/Data
+          {{- /* If you want to auto-chown extra volumes, you could loop over them similarly. */}}
+
+      containers:
+        ########################################################
+        # Main Foundry Container
+        ########################################################
+        - name: foundryvtt
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          ports:
+            - name: web
+              containerPort: 4444
+          env:
+            - name: HOSTNAME
+              value: {{ .Values.host | quote }}
+            - name: SSL_PROXY
+              value: {{ .Values.sslProxy | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: app
+              mountPath: /foundryvtt
+            - name: core
+              mountPath: /foundrydata
+            - name: backups
+              mountPath: /foundrydata/Backups
+            - name: config
+              mountPath: /foundrydata/Config
+            - name: data
+              mountPath: /foundrydata/Data
+          {{- /*
+              If you want to mount extra volumes (like "cache", "custom-logs") in the main container too:
+              For example:
+              - name: cache
+                mountPath: /foundrydata/cache
+          */}}
+
+        ########################################################
+        # Extra Containers
+        ########################################################
+        {{- range .Values.extraContainers }}
+        - name: {{ .name }}
+          image: {{ .image | quote }}
+          {{- if .command }}
+          command: {{ toYaml .command | nindent 10 }}
+          {{- end }}
+          {{- if .args }}
+          args: {{ toYaml .args | nindent 10 }}
+          {{- end }}
+          {{- if .env }}
+          env:
+          {{- range .env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+          {{- end }}
+          {{- end }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+          {{- range .volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+
+  ########################################################
+  # volumeClaimTemplates for Foundry's core volumes
+  ########################################################
+  volumeClaimTemplates:
+    {{- if .Values.volumeClaimTemplates.app.enabled }}
+    - metadata:
+        name: app
+      spec:
+        storageClassName: {{ .Values.volumeClaimTemplates.app.storageClassName | quote }}
+        accessModes: {{ toYaml .Values.volumeClaimTemplates.app.accessModes | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.app.size }}
+    {{- end }}
+    {{- if .Values.volumeClaimTemplates.core.enabled }}
+    - metadata:
+        name: core
+      spec:
+        storageClassName: {{ .Values.volumeClaimTemplates.core.storageClassName | quote }}
+        accessModes: {{ toYaml .Values.volumeClaimTemplates.core.accessModes | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.core.size }}
+    {{- end }}
+    {{- if .Values.volumeClaimTemplates.backups.enabled }}
+    - metadata:
+        name: backups
+      spec:
+        storageClassName: {{ .Values.volumeClaimTemplates.backups.storageClassName | quote }}
+        accessModes: {{ toYaml .Values.volumeClaimTemplates.backups.accessModes | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.backups.size }}
+    {{- end }}
+    {{- if .Values.volumeClaimTemplates.config.enabled }}
+    - metadata:
+        name: config
+      spec:
+        storageClassName: {{ .Values.volumeClaimTemplates.config.storageClassName | quote }}
+        accessModes: {{ toYaml .Values.volumeClaimTemplates.config.accessModes | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.config.size }}
+    {{- end }}
+    {{- if .Values.volumeClaimTemplates.data.enabled }}
+    - metadata:
+        name: data
+      spec:
+        storageClassName: {{ .Values.volumeClaimTemplates.data.storageClassName | quote }}
+        accessModes: {{ toYaml .Values.volumeClaimTemplates.data.accessModes | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.data.size }}
+    {{- end }}
+
+    ########################################################
+    # Additional "extraVolumeClaimTemplates" in a loop
+    ########################################################
+    {{- range .Values.extraVolumeClaimTemplates }}
+    {{- if .enabled }}
+    - metadata:
+        name: {{ .name }}
+      spec:
+        storageClassName: {{ .storageClassName | quote }}
+        accessModes: {{ toYaml .accessModes | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .size }}
+    {{- end }}
+    {{- end }}

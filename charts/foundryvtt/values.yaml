@@ -1,0 +1,80 @@
+replicaCount: 1
+fullnameOverride: "foundryvtt-dnd-boop-ninja"
+
+########################################################
+# Main Foundry container settings
+########################################################
+image:
+  repository: "mbround18/foundryvtt-docker"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+host: "dnd.boop.ninja"
+sslProxy: "false"
+
+resources:
+  limits:
+    cpu: "0.3"
+    memory: "1024Mi"
+  requests:
+    cpu: "0.2"
+    memory: "512Mi"
+
+########################################################
+# Key Foundry volumes
+# (Each results in a volumeClaimTemplate if enabled)
+########################################################
+volumeClaimTemplates:
+  backups:
+    enabled: true
+    storageClassName: "longhorn"
+    size: "10Gi"
+    accessModes: ["ReadWriteMany"]
+  config:
+    enabled: true
+    storageClassName: "longhorn"
+    size: "1Gi"
+    accessModes: ["ReadWriteOnce"]
+  data:
+    enabled: true
+    storageClassName: "longhorn"
+    size: "20Gi"
+    accessModes: ["ReadWriteMany"]
+  core:
+    enabled: true
+    storageClassName: "longhorn"
+    size: "2Gi"
+    accessModes: ["ReadWriteOnce"]
+  app:
+    enabled: true
+    storageClassName: "longhorn"
+    size: "4Gi"
+    accessModes: ["ReadWriteOnce"]
+
+########################################################
+# Extra Persistent Volumes
+########################################################
+# If you need additional volumes (beyond backups/config/data/core/app),
+# define them here. You can mount them in the main Foundry container
+# OR in extra containers, or both.
+extraVolumeClaimTemplates: []
+#  - name: "custom-logs"
+#    enabled: false
+#    storageClassName: "longhorn"
+#    size: "1Gi"
+#    accessModes: ["ReadWriteOnce"]
+
+########################################################
+# Extra Containers
+########################################################
+# Provide a list of additional containers you want in the same Pod,
+# e.g. sidecars for backups, logging, or metrics.
+extraContainers: []
+# - name: fluent-bit
+#   image: "fluent/fluent-bit:latest"
+#   volumeMounts:
+#     - name: custom-logs
+#       mountPath: /logs
+#   env:
+#     - name: FLUENT_ELASTICSEARCH_HOST
+#       value: "elasticsearch.logging.svc.cluster.local"
