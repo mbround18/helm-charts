@@ -1,4 +1,4 @@
-{{- if and .Values.backup (hasKey .Values.backup "enabled") .Values.backup.enabled }}
+{{- if and .Values.backup_cleanup (hasKey .Values.backup_cleanup "enabled") .Values.backup_cleanup.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
-  schedule: "{{ .Values.backup.schedule }}"
+  schedule: {{ .Values.backup_cleanup.schedule | default "0 0 * * *" | quote }}
   jobTemplate:
     spec:
       template:
@@ -20,7 +20,7 @@ spec:
               args:
                 - >
                   apk add --no-cache findutils &&
-                  find /foundrydata/Backups -type f -mtime +{{ .Values.backup.olderThanDays }} -delete
+                  find /foundrydata/Backups -type f -mtime +{{ .Values.backup_cleanup.olderThanDays }} -delete
               volumeMounts:
                 - name: backups-volume
                   mountPath: /foundrydata/Backups

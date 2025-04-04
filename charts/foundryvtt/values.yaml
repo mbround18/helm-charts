@@ -78,3 +78,20 @@ extraContainers: []
 #   env:
 #     - name: FLUENT_ELASTICSEARCH_HOST
 #       value: "elasticsearch.logging.svc.cluster.local"
+
+########################################################
+# Backup settings
+########################################################
+backup_cleanup:
+  enabled: true
+  schedule: "0 2 * * *"
+  olderThanDays: 30
+########################################################
+# Istio settings
+########################################################
+# istio:
+#   enabled: false
+#   gateway:
+#     selector:
+#       istio: ingressgateway
+#     credentialName: "foundryvtt-credential"
