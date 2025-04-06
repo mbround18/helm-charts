@@ -80,22 +80,14 @@ spec:
             {{ end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          { { - with .Values.volumeMounts } }
+          {{- with .Values.volumeMounts }}
           volumeMounts:
-          { { - range $mount := . } }
-            - name: { { $mount.name } }
-              mountPath: { { $mount.mountPath } }
-              readOnly: { { $mount.readOnly | default false } }
-          { { - end } }
-          { { - end } }
-      { { - with .Values.volumes } }
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
       volumes:
-      { { - range $volume := . } }
-      - name: { { $volume.name } }
-        persistentVolumeClaim:
-          claimName: { { printf "%s-%s" $.Release.Name $volume.persistentVolumeClaim.claimName | replace "_" "-" } }
-      { { - end } }
-      { { - end } }
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
