@@ -2,12 +2,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "valheim.fullname" . }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "valheim.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "valheim.selectorLabels" . | nindent 6 }}
@@ -34,7 +37,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.environment }}
           env:
@@ -54,14 +57,26 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+            - name: {{ .Values.deployment.pvc.name }}
+              mountPath: "/home/steam/valheim"
+              readOnly: false
+            - name: {{ .Values.saves.pvc.name }}
+              mountPath: "/home/steam/.config/unity3d/IronGate/Valheim"
+              readOnly: false
+            - name: {{ .Values.backup.pvc.name }}
+              mountPath: "/home/steam/backups"
+              readOnly: false
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        - name: {{ .Values.deployment.pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.deployment.pvc.name }}
+        - name: {{ .Values.saves.pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.saves.pvc.name }}
+        - name: {{ .Values.backup.pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.backup.pvc.name }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

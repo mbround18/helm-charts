@@ -1,19 +1,19 @@
-{{- $pvcs := ternary (list .Values.backups.pvc .Values.deployment.pvc) (list .Values.deployment.pvc) .Values.backups.enabled -}}
-{{- range $pvcs }}
+{{- $pvcs := list .Values.deployment.pvc .Values.saves.pvc .Values.backup.pvc}}
+{{- range $idx, $pvc := $pvcs}}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ printf "%s-%s" $.Release.Name .name }}
+  name: {{ $.Release.Name }}-{{ $pvc.name }}
   labels:
-    app: {{ include "valheim.name" $ }}
+    {{- include "valheim.labels" $ | nindent 4 }}
   namespace: {{ $.Release.Namespace }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .size }}
+      storage: {{ $.Values.deployment.pvc.size }}
   {{- if ($.Values.storageClassName) }}
   storageClassName: {{ $.Values.storageClassName }}
   {{- end }}
