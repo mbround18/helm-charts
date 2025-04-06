@@ -5,9 +5,12 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
 spec:
   rules:
-    - host: {{ .Values.host }}
+    - host: {{ .Values.network.host }}
       http:
         paths:
           - path: /
@@ -17,3 +20,9 @@ spec:
                 name: {{ include "foundryvtt.fullname" . }}
                 port:
                   number: 80
+  {{- if .Values.network.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.network.host }}
+      secretName: {{ .Values.network.tls.credentialName }}
+  {{- end }}

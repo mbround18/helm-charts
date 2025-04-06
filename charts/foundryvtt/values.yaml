@@ -9,8 +9,13 @@ image:
   tag: "latest"
   pullPolicy: IfNotPresent
 
-host: "dnd.boop.ninja"
-sslProxy: "false"
+sslProxy: false
+
+network:
+  host: "dnd.boop.ninja"
+  tls:
+    enabled: true
+    credentialName: foundry-tls
 
 resources:
   limits:

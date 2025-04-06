@@ -47,9 +47,15 @@ spec:
               containerPort: 4444
           env:
             - name: HOSTNAME
-              value: {{ .Values.host | quote }}
+              value: {{ .Values.network.host | quote }}
             - name: SSL_PROXY
               value: {{ .Values.sslProxy | quote }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: web
+            initialDelaySeconds: 30
+            periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:

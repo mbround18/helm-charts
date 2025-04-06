@@ -17,14 +17,17 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - {{ .Values.host }}
+        - {{ .Values.network.host }}
+    {{- if .Values.network.tls.enabled }}
     - port:
         number: 443
         name: https
         protocol: HTTPS
       tls:
         mode: SIMPLE
-        credentialName: {{ .Values.istio.gateway.credentialName | quote }}
+        credentialName: {{ .Values.network.tls.credentialName | quote }}
       hosts:
-        - {{ .Values.host }}
+        - {{ .Values.network.host }}
+    {{- end }}
+
 {{- end }}

@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   hosts:
-    - {{ .Values.host }}
+   - {{ .Values.network.host }}
   gateways:
     - {{ include "foundryvtt.fullname" . }}-gateway
   http:
