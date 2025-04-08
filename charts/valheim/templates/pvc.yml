@@ -13,7 +13,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ $.Values.deployment.pvc.size }}
+      storage: {{ $pvc.size }}
   {{- if ($.Values.storageClassName) }}
   storageClassName: {{ $.Values.storageClassName }}
   {{- end }}
