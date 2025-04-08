@@ -1,0 +1,20 @@
+{{- $pvcs := list .Values.deployment.pvc .Values.saves.pvc .Values.backup.pvc}}
+{{- range $idx, $pvc := $pvcs}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $.Release.Name }}-{{ $pvc.name }}
+  labels:
+    {{- include "valheim.labels" $ | nindent 4 }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $pvc.size }}
+  {{- if ($.Values.storageClassName) }}
+  storageClassName: {{ $.Values.storageClassName }}
+  {{- end }}
+{{- end }}

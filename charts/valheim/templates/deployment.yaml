@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "valheim.fullname" . }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "valheim.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "valheim.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "valheim.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "valheim.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.environment }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            {{- $startPort := $.Values.GAMEPORT | int }}
+            {{- range $i := until 3 }}
+            - containerPort: {{ add $startPort $i }}
+              protocol: "UDP"
+              name: gameport-{{ $i }}
+            {{- end }}
+            {{- if hasKey $.Values "HTTPPORT" }}
+            - containerPort: {{ $.Values.HTTPPORT }}
+              protocol: "TCP"
+              name: http
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.deployment.pvc.name }}
+              mountPath: "/home/steam/valheim"
+              readOnly: false
+            - name: {{ .Values.saves.pvc.name }}
+              mountPath: "/home/steam/.config/unity3d/IronGate/Valheim"
+              readOnly: false
+            - name: {{ .Values.backup.pvc.name }}
+              mountPath: "/home/steam/backups"
+              readOnly: false
+      volumes:
+        - name: {{ .Values.deployment.pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.deployment.pvc.name }}
+        - name: {{ .Values.saves.pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.saves.pvc.name }}
+        - name: {{ .Values.backup.pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.backup.pvc.name }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
