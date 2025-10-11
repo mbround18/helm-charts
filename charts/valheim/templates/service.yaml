@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "valheim.fullname" . }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "valheim.labels" . | nindent 4 }}
+  {{- if hasKey $.Values.service "annotations" }}
+  annotations:
+    {{- toYaml $.Values.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $.Values.service.type | default "NodePort" }}
+  ports:
+    {{- $startPort := $.Values.GAMEPORT | int }}
+    {{- range $i := until 3 }}
+    - port: {{ add $startPort $i}}
+      targetPort: {{ add $startPort $i }}
+      {{- if eq $.Values.service.type "NodePort" }}
+      nodePort: {{ add $.Values.service.nodePortGame $i}}
+      {{- end }}
+      protocol: "UDP"
+      name: gameport-{{ $i }}
+    {{- end }}
+    {{- if hasKey $.Values "HTTPPORT" }}
+    - port: {{ $.Values.HTTPPORT }}
+      targetPort: {{ $.Values.HTTPPORT }}
+      protocol: "TCP"
+      name: http
+    {{- end }}
+  selector:
+    {{- include "valheim.selectorLabels" . | nindent 4 }}
