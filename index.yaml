@@ -66,4 +66,15 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/palworld-0.2.0/palworld-0.2.0.tgz
     version: 0.2.0
-generated: "2024-10-29T22:05:16.000783895Z"
+  valheim:
+  - apiVersion: v2
+    appVersion: 3.1.0
+    created: "2025-10-11T21:25:00.904520406Z"
+    description: A Helm chart for Kubernetes
+    digest: 779749b735cbc2b27a68d51650ede57c64adb6f4424f0808b1218ff54c84a3e2
+    name: valheim
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.0/valheim-0.4.0.tgz
+    version: 0.4.0
+generated: "2025-10-11T21:25:00.904530254Z"
