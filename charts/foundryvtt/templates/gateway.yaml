@@ -4,8 +4,7 @@ kind: Gateway
 metadata:
   name: {{ include "foundryvtt.fullname" . }}-gateway
   labels:
-    app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "foundryvtt.labels" . | nindent 4 }}
 spec:
   selector:
     {{- range $k, $v := .Values.istio.gateway.selector }}

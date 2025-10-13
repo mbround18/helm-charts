@@ -1,0 +1,18 @@
+{{- if and .Values.pdb .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "foundryvtt.fullname" . }}
+  labels:
+    {{- include "foundryvtt.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "foundryvtt.selectorLabels" . | nindent 6 }}
+  {{- with .Values.pdb.minAvailable }}
+  minAvailable: {{ . }}
+  {{- end }}
+  {{- with .Values.pdb.maxUnavailable }}
+  maxUnavailable: {{ . }}
+  {{- end }}
+{{- end }}

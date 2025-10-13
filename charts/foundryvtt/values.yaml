@@ -17,6 +17,19 @@ network:
     enabled: true
     credentialName: foundry-tls
 
+ingress:
+  annotations: {}
+  className: ""
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 80
+
+imagePullSecrets: []
+priorityClassName: ""
+terminationGracePeriodSeconds: 30
+
 resources:
   limits:
     cpu: "0.3"
@@ -24,6 +37,69 @@ resources:
   requests:
     cpu: "0.2"
     memory: "512Mi"
+
+########################################################
+# Pod security and service account
+########################################################
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop: ["ALL"]
+
+podAnnotations: {}
+commonLabels: {}
+
+nodeSelector: {}
+affinity: {}
+tolerations: []
+
+env: []
+
+initImage:
+  repository: busybox
+  tag: "1.36"
+cleanupImage:
+  repository: alpine
+  tag: "3.19"
+
+updateStrategy: {}
+
+pdb:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 0
+
+########################################################
+# Probes
+########################################################
+probes:
+  liveness:
+    enabled: true
+    path: "/"
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    enabled: true
+    path: "/"
+    initialDelaySeconds: 10
+    periodSeconds: 10
 
 ########################################################
 # Key Foundry volumes

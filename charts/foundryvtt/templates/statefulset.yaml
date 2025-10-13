@@ -3,24 +3,48 @@ kind: StatefulSet
 metadata:
   name: {{ include "foundryvtt.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "foundryvtt.labels" . | nindent 4 }}
 spec:
   serviceName: {{ include "foundryvtt.fullname" . }}
   replicas: {{ .Values.replicaCount }}
+  {{- with .Values.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "foundryvtt.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "foundryvtt.selectorLabels" . | nindent 8 }}
+        {{- with .Values.commonLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
+      serviceAccountName: {{ include "foundryvtt.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy | quote }}
+        seccompProfile:
+          type: {{ .Values.podSecurityContext.seccompProfile.type }}
+      {{- end }}
       initContainers:
         - name: foundry-init
-          image: busybox:latest
+          image: "{{ .Values.initImage.repository }}:{{ .Values.initImage.tag }}"
           command: ["sh", "-c", "chown -R 1000:1000 /foundrydata"]
           volumeMounts:
             - name: app
@@ -50,12 +74,36 @@ spec:
               value: {{ .Values.network.host | quote }}
             - name: SSL_PROXY
               value: {{ .Values.sslProxy | quote }}
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
-              path: /
+              path: {{ .Values.probes.liveness.path }}
               port: web
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: web
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop: {{ toYaml .Values.securityContext.capabilities.drop | nindent 14 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
@@ -69,6 +117,14 @@ spec:
               mountPath: /foundrydata/Config
             - name: data
               mountPath: /foundrydata/Data
+          {{- if .Values.extraVolumeClaimTemplates }}
+          {{- range .Values.extraVolumeClaimTemplates }}
+          {{- if .enabled }}
+            - name: {{ .name }}
+              mountPath: /foundrydata/{{ .name }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
           {{- /*
               If you want to mount extra volumes (like "cache", "custom-logs") in the main container too:
               For example:
@@ -106,6 +162,19 @@ spec:
           {{- end }}
           {{- end }}
         {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
 
   ########################################################
   # volumeClaimTemplates for Foundry's core volumes

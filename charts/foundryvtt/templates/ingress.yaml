@@ -3,12 +3,17 @@ kind: Ingress
 metadata:
   name: {{ include "foundryvtt.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "foundryvtt.labels" . | nindent 4 }}
   annotations:
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{- end }}
   rules:
     - host: {{ .Values.network.host }}
       http:
