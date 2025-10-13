@@ -2,15 +2,7 @@
 import sys
 import os
 from typing import List
-
-try:
-    import yaml
-except ImportError:
-    print(
-        "PyYAML is required. Install dependencies with 'uv sync' or run via 'uv run'.",
-        file=sys.stderr,
-    )
-    raise
+import yaml
 
 
 def find_yaml_files(root: str) -> List[str]:
