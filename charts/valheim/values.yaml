@@ -1,0 +1,163 @@
+# Default values for valheim.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# The number of replicas to create
+replicaCount: 1
+
+# Gamesettings, PUID should no be changed
+PUID: &containerpid "111"
+GUID: &containergid "1000"
+#
+GAMEPORT: &gameport "2456"
+HTTPPORT: &httpport "8080"
+
+# Environment variables to pass to the application, see https://github.com/mbround18/valheim-docker for possible values
+environment:
+  - name: "AUTO_BACKUP"
+    value: "1"
+  - name: "AUTO_BACKUP_DAYS_TO_LIVE"
+    value: "7"
+  - name: "AUTO_BACKUP_ON_SHUTDOWN"
+    value: "1"
+  - name: "AUTO_BACKUP_ON_UPDATE"
+    value: "1"
+  - name: "AUTO_BACKUP_REMOVE_OLD"
+    value: "1"
+  - name: "AUTO_BACKUP_SCHEDULE"
+    value: "*/15 * * * *"
+  - name: "AUTO_UPDATE"
+    value: "1"
+  - name: "AUTO_UPDATE_PAUSE_WITH_PLAYERS"
+    value: "1"
+  - name: "AUTO_UPDATE_SCHEDULE"
+    value: "12 * * * *"
+  - name: "ENABLE_CROSSPLAY"
+    value: "0"
+  - name: "GUID"
+    value: *containergid
+  - name: "HTTP_PORT"
+    value: *httpport
+  - name: "NAME"
+    value: "Valheim Docker"
+  - name: "PASSWORD"
+    value: "Strong! Password @ Here"
+  - name: "PORT"
+    value: *gameport
+  - name: "PUBLIC"
+    value: "1"
+  - name: "PUID"
+    value: *containerpid
+  - name: "TZ"
+    value: "America/Chicago"
+  - name: "UPDATE_ON_STARTUP"
+    value: "1"
+  - name: "WORLD"
+    value: "Dedicated"
+
+# The name of the storage class to use. If not set, the default storage class will be used.
+storageClassName: ""
+
+#NodePort or LoadBalancer
+service:
+  type: LoadBalancer
+  #this is ignored if type is not NodePort (Range: 30000-32767 - make sure your starting port is at least 3 ports below 32767)
+  nodePortGame: 31232
+  # if you use MetalLB, add the correct annotations here to select i.e. the pool and or the ip
+  # hint: the annotations changed in recent versions of metallb from metallb.universe.tf to metallb.io
+  # if the ipaddresspool in use has `autoassign: true` you can specify the ip you want to assign, without autoassign you also need to specify the name
+  # leaving out the annotations and assuming autoassign: true you get the next free ip from an available pool
+  annotations:
+    metallb.io/loadBalancerIPs: 10.100.14.175
+  #  metallb.io/address-pool: mypool
+
+# Configuration for the application image
+image:
+  registry: docker.io
+  repository: mbround18/valheim
+  pullPolicy: Always
+  # Overrides the image tag, default is the chart appVersion.
+  tag: ""
+
+# The secrets to use for pulling images
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Configuration for the service account
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# Annotations to add to the pod
+podAnnotations: {}
+# Labels to add to the pod
+podLabels: {}
+
+# The security context for the pod
+podSecurityContext: {}
+# fsGroup: 2000
+
+# The security context for the container
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+# runAsUser: 1000
+
+# The resources to allocate for the pod
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+#   memory: 128Mi
+
+# Configuration for autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# The configuration for the deployment PVC
+deployment:
+  pvc:
+    name: data
+    size: 10Gi
+
+saves:
+  pvc:
+    name: saves
+    size: 10Gi
+
+backup:
+  pvc:
+    name: backups
+    size: 10Gi
+
+# The node selector to use for the pod
+nodeSelector: {}
+
+# The tolerations to use for the pod
+tolerations: []
+
+# The affinity to use for the pod
+affinity: {}
