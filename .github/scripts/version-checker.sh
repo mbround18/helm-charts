@@ -51,7 +51,8 @@ for chart in charts/*; do
   log "INFO" "Last tag commit: $LAST_TAG_COMMIT"
 
   # Check if there have been changes since the last tag commit
-  CHANGED="$(git diff --name-only "$LAST_TAG_COMMIT"..HEAD -- "$CHART_PATH")"
+  # Detect any changes within the chart directory since the last release
+  CHANGED="$(git diff --name-only "$LAST_TAG_COMMIT"..HEAD -- "$chart")"
   if [ -z "$CHANGED" ]; then
     log "INFO" "No changes found for $chart_name since last release, skipping version bump."
     if [ "$DRY_RUN" == true ]; then
@@ -71,8 +72,13 @@ for chart in charts/*; do
     pr_number="$(echo "$commit_message" | grep -oE '#[0-9]+' | tr -d '#')"
     if [ -n "$pr_number" ]; then
       log "INFO" "Detected PR reference: #$pr_number"
-      pr_labels="$(gh pr view "$pr_number" --json labels --jq '.labels[].name')"
-      log "INFO" "PR labels: $pr_labels"
+      if command -v gh >/dev/null 2>&1; then
+        pr_labels="$(gh pr view "$pr_number" --json labels --jq '.labels[].name' 2>/dev/null || true)"
+        log "INFO" "PR labels: $pr_labels"
+      else
+        pr_labels=""
+        log "WARNING" "GitHub CLI (gh) not available; defaulting to patch bump when labels are needed."
+      fi
       if echo "$pr_labels" | grep -q "major"; then
         bump_type="major"
         log "INFO" "Major version label detected, setting bump type to major."
@@ -86,7 +92,7 @@ for chart in charts/*; do
     else
       log "INFO" "No PR reference found in commit message, defaulting to patch."
     fi
-  done < <(git log --format="%H" "$LAST_TAG_COMMIT"..HEAD -- "$CHART_PATH")
+  done < <(git log --format="%H" "$LAST_TAG_COMMIT"..HEAD -- "$chart")
 
   log "INFO" "Determined bump type: $bump_type"
 
@@ -111,22 +117,39 @@ for chart in charts/*; do
   esac
   new_version="${parts[0]}.${parts[1]}.${parts[2]}"
 
+  # Read the current version in Chart.yaml
+  CURRENT_VERSION="$(yq eval '.version' "$CHART_PATH")"
+  log "INFO" "Current Chart.yaml version: $CURRENT_VERSION"
+
   if [ "$DRY_RUN" == true ]; then
     echo "- Chart: $chart_name - Bump type: $bump_type - New version: $new_version" >> "$SUMMARY_FILE"
   else
-    # Update the chart version
-    log "INFO" "Updating chart version in $CHART_PATH to $new_version"
-    yq eval -i ".version = \"$new_version\"" "$CHART_PATH"
+    if [ "$CURRENT_VERSION" == "$new_version" ]; then
+      log "INFO" "$chart_name already at target version ($new_version), skipping update."
+    else
+      # Update the chart version
+      log "INFO" "Updating chart version in $CHART_PATH to $new_version"
+      yq eval -i ".version = \"$new_version\"" "$CHART_PATH"
 
-    log "INFO" "Staging changes for $chart_name"
-    git add "$CHART_PATH"
-    git commit -m "[skip ci] Robot commit: Bumping chart version for $chart_name to $new_version"
-    log "INFO" "Version bump commit created for $chart_name"
+      # Only commit if file actually changed
+      if git diff --quiet -- "$CHART_PATH"; then
+        log "INFO" "No changes detected in $CHART_PATH after update, skipping commit."
+      else
+        log "INFO" "Staging changes for $chart_name"
+        git add "$CHART_PATH"
+        git commit -m "[skip ci] Robot commit: Bumping chart version for $chart_name to $new_version" || {
+          log "WARNING" "Git commit failed (possibly no changes); continuing."
+        }
+        log "INFO" "Version bump commit created for $chart_name"
+      fi
+    fi
   fi
 done
 
 if [ "$DRY_RUN" == false ]; then
   # Push changes to the remote repository
   log "INFO" "Pushing changes to remote..."
-  git push origin "$GITHUB_REF"
+  # Normalize ref (e.g., refs/heads/main) to branch name
+  BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+  git push origin "HEAD:${BRANCH_NAME}"
 fi

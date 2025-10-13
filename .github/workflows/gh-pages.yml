@@ -48,8 +48,25 @@ jobs:
           asset: "yq_linux_amd64"
           override-name: "yq"
 
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Lint charts
+        run: make lint
+
+      - name: Template and validate YAML (uv)
+        run: make test
+
       - name: Update Chart Version
-        run: . .github/scripts/version-checker.sh
+        run: uv run tools/version_checker.py
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Run chart-releaser
         if: github.event_name != 'pull_request'
