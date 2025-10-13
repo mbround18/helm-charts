@@ -3,6 +3,16 @@ entries:
   enshrouded:
   - apiVersion: v2
     appVersion: latest
+    created: "2025-10-13T20:47:26.755707213Z"
+    description: A Helm chart for Kubernetes
+    digest: 384e5a93f16cb81460018a16cb408a995b7398d4ce3e4fd885801a9bf4ad0ffb
+    name: enshrouded
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.1/enshrouded-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
+    appVersion: latest
     created: "2024-10-29T22:05:15.797569147Z"
     description: A Helm chart for Kubernetes
     digest: 881d4d9bc753eb52639c6a55b1caea8580b37c1207b72d0ee2ea3d0bd5422975
@@ -12,6 +22,24 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.0/enshrouded-0.3.0.tgz
     version: 0.3.0
   foundryvtt:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2025-10-13T20:47:26.868400742Z"
+    description: A Helm chart for Foundry Virtual Tabletop
+    digest: 116e2faf4da415069f44fa3caeb095f199bb347c26f41c88901f8b3a46f498d3
+    home: https://foundryvtt.com/
+    keywords:
+    - foundry
+    - foundryvtt
+    - tabletop
+    - gaming
+    maintainers:
+    - name: mbround18
+    name: foundryvtt
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.1.1/foundryvtt-0.1.1.tgz
+    version: 0.1.1
   - apiVersion: v2
     appVersion: "1.0"
     created: "2025-10-13T19:56:10.894441508Z"
@@ -59,6 +87,16 @@ entries:
   palworld:
   - apiVersion: v2
     appVersion: latest
+    created: "2025-10-13T20:47:27.123159037Z"
+    description: A Helm chart for Kubernetes
+    digest: 63c9bc2733ae4135bce92d11e3e67aece573c4aafbf0d66ea5a0351170b36d33
+    name: palworld
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/palworld-0.3.1/palworld-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
+    appVersion: latest
     created: "2024-01-24T18:49:09.963347471Z"
     description: A Helm chart for Kubernetes
     digest: ead02e4e97ba6483dafb55a2c186bef70bd890f9cb0263979e88f6f91a207673
@@ -88,4 +126,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.0/valheim-0.4.0.tgz
     version: 0.4.0
-generated: "2025-10-13T19:56:11.103065748Z"
+generated: "2025-10-13T20:47:27.259019317Z"
