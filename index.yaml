@@ -11,6 +11,17 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.0/enshrouded-0.3.0.tgz
     version: 0.3.0
+  foundryvtt:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2025-10-13T19:56:10.894441508Z"
+    description: A Helm chart for Foundry Virtual Tabletop
+    digest: 88dc1b4b916ca3ded41a657c975d3533698f223d04a35810663b4f222505bd14
+    name: foundryvtt
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.1.0/foundryvtt-0.1.0.tgz
+    version: 0.1.0
   fvtt-dndbeyond-companion:
   - apiVersion: v2
     appVersion: main
@@ -77,4 +88,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.0/valheim-0.4.0.tgz
     version: 0.4.0
-generated: "2025-10-11T21:25:00.904530254Z"
+generated: "2025-10-13T19:56:11.103065748Z"
