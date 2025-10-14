@@ -210,7 +210,17 @@ def main() -> int:
         bump = determine_bump(commits, chart_dir, owner_repo, token)
         log("INFO", f"Determined bump type: {bump}")
 
-        new_version = bump_version(latest_ver, bump)
+        # Determine base version to bump from: max(current Chart.yaml, latest tag)
+        current_version = load_chart_version(chart_yaml)
+        log("INFO", f"Current Chart.yaml version: {current_version}")
+        latest_tuple = parse_semver(latest_ver) or (0, 0, 0)
+        current_tuple = parse_semver(current_version or "0.0.0") or (0, 0, 0)
+        base_version = (current_version or latest_ver)
+        if current_tuple < latest_tuple:
+            base_version = latest_ver
+        if base_version != latest_ver:
+            log("INFO", f"Using current Chart.yaml as base for bump: {base_version}")
+        new_version = bump_version(base_version, bump)
 
         if dry_run:
             if summary_file:
@@ -218,10 +228,9 @@ def main() -> int:
                     sf.write(f"- Chart: {chart_name} - Bump type: {bump} - New version: {new_version}\n")
             continue
 
-        current_version = load_chart_version(chart_yaml)
-        log("INFO", f"Current Chart.yaml version: {current_version}")
-        if current_version == new_version:
-            log("INFO", f"{chart_name} already at target version ({new_version}), skipping update.")
+        # Skip downgrade or no-op
+        if current_version and (parse_semver(current_version) or (0, 0, 0)) >= (parse_semver(new_version) or (0, 0, 0)):
+            log("INFO", f"{chart_name} already at version {current_version} >= target {new_version}, skipping update.")
             continue
 
         log("INFO", f"Updating chart version in {chart_yaml} to {new_version}")

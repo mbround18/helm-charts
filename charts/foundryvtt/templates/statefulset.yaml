@@ -45,7 +45,7 @@ spec:
       initContainers:
         - name: foundry-init
           image: "{{ .Values.initImage.repository }}:{{ .Values.initImage.tag }}"
-          command: ["sh", "-c", "chown -R 1000:1000 /foundrydata"]
+          command: ["sh", "-c", "chown -R 1000:1000 /foundrydata /foundryvtt"]
           volumeMounts:
             - name: app
               mountPath: /foundryvtt
@@ -117,6 +117,10 @@ spec:
               mountPath: /foundrydata/Config
             - name: data
               mountPath: /foundrydata/Data
+          {{- if and .Values.securityContext.enabled .Values.securityContext.readOnlyRootFilesystem }}
+            - name: tmp
+              mountPath: /tmp
+          {{- end }}
           {{- if .Values.extraVolumeClaimTemplates }}
           {{- range .Values.extraVolumeClaimTemplates }}
           {{- if .enabled }}
@@ -174,6 +178,12 @@ spec:
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if and .Values.securityContext.enabled .Values.securityContext.readOnlyRootFilesystem }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
       {{- end }}
 
   ########################################################
