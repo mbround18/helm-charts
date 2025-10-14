@@ -24,6 +24,24 @@ entries:
   foundryvtt:
   - apiVersion: v2
     appVersion: "1.0"
+    created: "2025-10-14T21:34:50.184043499Z"
+    description: A Helm chart for Foundry Virtual Tabletop
+    digest: 5f5fed3c0f43417a8c9be86ab90e7375910e9e40cd3687b01da40de02bee634e
+    home: https://foundryvtt.com/
+    keywords:
+    - foundry
+    - foundryvtt
+    - tabletop
+    - gaming
+    maintainers:
+    - name: mbround18
+    name: foundryvtt
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.2.1/foundryvtt-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
+    appVersion: "1.0"
     created: "2025-10-14T21:30:14.435669998Z"
     description: A Helm chart for Foundry Virtual Tabletop
     digest: 9524499bf5c8116f564af55c17944dcea61d7469a80fb8a0144a129632a5d0a7
@@ -144,4 +162,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.0/valheim-0.4.0.tgz
     version: 0.4.0
-generated: "2025-10-14T21:30:14.80310012Z"
+generated: "2025-10-14T21:34:50.543702864Z"
