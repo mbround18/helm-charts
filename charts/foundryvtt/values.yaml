@@ -74,7 +74,7 @@ env: []
 
 initImage:
   repository: busybox
-  tag: "1.36"
+  tag: "1.37"
 cleanupImage:
   repository: alpine
   tag: "3.19"
