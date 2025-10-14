@@ -77,7 +77,7 @@ initImage:
   tag: "1.37"
 cleanupImage:
   repository: alpine
-  tag: "3.19"
+  tag: "3.22"
 
 updateStrategy: {}
 
