@@ -78,22 +78,6 @@ spec:
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
-          {{- if .Values.probes.liveness.enabled }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: web
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
-          {{- end }}
-          {{- if .Values.probes.readiness.enabled }}
-          readinessProbe:
-            httpGet:
-              path: /
-              port: web
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
-          {{- end }}
           {{- if .Values.securityContext.enabled }}
           securityContext:
             runAsUser: {{ .Values.securityContext.runAsUser }}
