@@ -1,0 +1,243 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "infisical.fullname" . }}
+  labels:
+    {{- include "infisical.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "infisical.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "infisical.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "infisical.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "infisical.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automount }}
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy }}
+        seccompProfile:
+          type: {{ .Values.podSecurityContext.seccompProfile.type }}
+      {{- if .Values.init.enabled }}
+      initContainers:
+        - name: init-ca-certs
+          image: {{ .Values.init.image }}:{{ .Values.init.tag }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              update-ca-certificates || true
+              chown -R 10001:10001 /etc/ssl/certs || true
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: etc-ssl-certs
+              mountPath: /etc/ssl/certs
+        - name: init-passwd
+          image: {{ .Values.init.image }}:{{ .Values.init.tag }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              mkdir -p /work
+              if [ -f /etc/passwd ]; then
+                cp /etc/passwd /work/passwd
+              else
+                echo 'root:x:0:0:root:/root:/bin/sh' > /work/passwd
+              fi
+              if ! grep -q '^appuser:x:10001:10001:' /work/passwd; then
+                echo 'appuser:x:10001:10001::/home/appuser:/bin/sh' >> /work/passwd
+              fi
+              if [ -f /etc/group ]; then
+                cp /etc/group /work/group
+              else
+                echo 'root:x:0:' > /work/group
+              fi
+              if ! grep -q '^appuser:x:10001:' /work/group; then
+                echo 'appuser:x:10001:' >> /work/group
+              fi
+              chown 10001:10001 /work/passwd /work/group || true
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: etc-passwd
+              mountPath: /work
+      {{- end }}
+      containers:
+        - name: infisical
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: HOST
+              value: {{ .Values.env.host | quote }}
+            - name: NODE_ENV
+              value: {{ .Values.env.nodeEnv | quote }}
+            - name: SHOULD_USE_DATADOG_TRACER
+              value: {{ ternary "true" "false" .Values.env.ddTraceEnabled | quote }}
+            - name: NODE_OPTIONS
+              value: {{ .Values.env.nodeOptions | quote }}
+            - name: HOME
+              value: {{ .Values.env.home | quote }}
+            - name: DB_CONNECTION_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.dbConnectionSecret }}
+                  key: {{ .Values.secrets.dbConnectionKey }}
+            - name: DD_TRACE_ENABLED
+              value: {{ ternary "true" "false" .Values.env.ddTraceEnabled | quote }}
+          {{- if and (not .Values.redis.enabled) .Values.redis.external.enabled }}
+            {{- if and .Values.redis.external.urlSecret .Values.redis.external.urlKey }}
+            - name: {{ .Values.redis.external.envVarName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.external.urlSecret }}
+                  key: {{ .Values.redis.external.urlKey }}
+            {{- else if .Values.redis.external.host }}
+            - name: REDIS_HOST
+              value: {{ .Values.redis.external.host | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.redis.external.port | quote }}
+            {{- if and .Values.redis.external.passwordSecret .Values.redis.external.passwordKey }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.external.passwordSecret }}
+                  key: {{ .Values.redis.external.passwordKey }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if and (not .Values.postgres.enabled) .Values.postgres.external.enabled }}
+            - name: DB_CONNECTION_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.external.connectionSecret }}
+                  key: {{ .Values.postgres.external.connectionKey }}
+          {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.envFromSecret }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop: {{ toYaml .Values.securityContext.capabilities.drop | nindent 14 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 2
+          startupProbe:
+            httpGet:
+              path: /api/status
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 2
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: etc-ssl-certs
+              mountPath: /etc/ssl/certs
+            - name: home
+              mountPath: /home/appuser
+            - name: etc-passwd
+              mountPath: /etc/passwd
+              subPath: passwd
+            - name: etc-passwd
+              mountPath: /etc/group
+              subPath: group
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: etc-ssl-certs
+          emptyDir: {}
+        - name: etc-passwd
+          emptyDir: {}
+        - name: home
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "infisical.fullname" . }}
+  labels:
+    {{- include "infisical.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "infisical.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: 8080
+      protocol: TCP
+  type: {{ .Values.service.type }}
+{{- if and .Values.ingress.enabled (not .Values.istio.enabled) }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "infisical.fullname" . }}
+  labels:
+    {{- include "infisical.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "infisical.fullname" $ }}
+                port:
+                  number: {{ $.Values.service.port }}
+          {{- end }}
+    {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- toYaml .Values.ingress.tls | nindent 4 }}
+  {{- end }}
+{{- end }}

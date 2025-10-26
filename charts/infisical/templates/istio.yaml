@@ -1,0 +1,50 @@
+{{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "infisical.fullname" . }}-gateway
+  annotations:
+    {{- toYaml .Values.istio.externalDNS.annotations | nindent 4 }}
+spec:
+  selector:
+    {{- range $k, $v := .Values.istio.gateway.selector }}
+    {{ $k }}: {{ $v }}
+    {{- end }}
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - {{ .Values.istio.host }}
+    {{- if .Values.istio.gateway.tls.enabled }}
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: {{ .Values.istio.gateway.tls.credentialName | quote }}
+      hosts:
+        - {{ .Values.istio.host }}
+    {{- end }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "infisical.fullname" . }}-vs
+spec:
+  hosts:
+    - {{ .Values.istio.host }}
+  gateways:
+    - {{ include "infisical.fullname" . }}-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: {{ include "infisical.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.service.port }}
+{{- end }}
