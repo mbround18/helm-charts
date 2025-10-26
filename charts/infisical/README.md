@@ -32,7 +32,7 @@ kind: ConfigMap
 metadata:
   name: infisical-config
 data:
-  hostAPI: https://you-domain.tld/api
+  hostAPI: https://your-domain.tld/api
 YAML
 ```
 
