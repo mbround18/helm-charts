@@ -1,0 +1,13 @@
+apiVersion: v2
+name: infisical
+description: Infisical app with optional Redis and Postgres
+type: application
+version: 0.1.0
+appVersion: "0.152.0"
+home: https://infisical.com/
+keywords:
+  - infisical
+  - secrets
+  - kv
+maintainers:
+  - name: mbround18
