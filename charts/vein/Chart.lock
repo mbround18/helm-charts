@@ -1,0 +1,6 @@
+dependencies:
+- name: game-tools
+  repository: file://../game-tools
+  version: 0.1.0
+digest: sha256:830a77ba934231e8637e6b1488b0acbc9aa82ac0ada8101a13a06aca8bc0d2ba
+generated: "2025-11-02T11:19:13.353131359-08:00"

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: game-tools
+description: Shared helper subchart for game server deployments
+type: library
+version: 0.1.0

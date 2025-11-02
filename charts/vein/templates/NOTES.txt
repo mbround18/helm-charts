@@ -1,0 +1,21 @@
+1. Get the NodePort information:
+
+{{- $serviceName := include "vein.fullname" . }}
+export NODE_IP=$(kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}")
+export SERVER_PORT=$(kubectl get svc {{ $serviceName }} -o jsonpath="{.spec.ports[?(@.name=='server')].nodePort}")
+export QUERY_PORT=$(kubectl get svc {{ $serviceName }} -o jsonpath="{.spec.ports[?(@.name=='query')].nodePort}")
+
+2. Connect to your Vein server:
+
+Server Address: $NODE_IP:$SERVER_PORT
+Query Port: $QUERY_PORT
+
+3. View server logs:
+
+kubectl logs -f statefulset/{{ $serviceName }}
+
+4. Access the server console:
+
+kubectl exec -it {{ $serviceName }}-0 -- bash
+
+Note: The server stores data in a persistent volume at /home/steam/vein

@@ -1,0 +1,99 @@
+image:
+  repository: mbround18/vein-docker
+  tag: v0.0.1
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+resources:
+  requests:
+    cpu: 2000m
+    memory: 4Gi
+  limits:
+    cpu: 4000m
+    memory: 12Gi
+
+env:
+  STEAM_USERNAME: "anonymous"
+  STEAM_PASSWORD: ""
+  APP_ID: "2131400"
+  INSTALL_DIR: "/home/steam/vein"
+  SERVER_NAME: "Vein Server"
+  MAX_PLAYERS: "16"
+  SERVER_PORT: "7777"
+  QUERY_PORT: "27015"
+  SERVER_PUBLIC: "true"
+  BIND_ADDR: "0.0.0.0"
+  HEARTBEAT_INTERVAL: "5.0"
+  ADMIN_STEAM_IDS: ""
+  SUPERADMIN_STEAM_IDS: ""
+  STEAM_GSLT: ""
+  UPDATE_ON_START: "true"
+  VALIDATE: "false"
+  INI_ENABLE: "true"
+
+existingSecret:
+  name: ""
+  keys:
+    serverPassword: SERVER_PASSWORD
+    adminPassword: ADMIN_PASSWORD
+
+service:
+  type: NodePort
+  bindToNode: true
+  ports:
+    server:
+      port: 7777
+      targetPort: 7777
+      protocol: UDP
+      nodePort: null
+    query:
+      port: 27015
+      targetPort: 27015
+      protocol: UDP
+      nodePort: null
+    aux:
+      port: 27016
+      targetPort: 27016
+      protocol: UDP
+      nodePort: null
+
+storage:
+  game:
+    enabled: true
+    storageClassName: longhorn
+    size: 20Gi
+    accessMode: ReadWriteOnce
+  saves:
+    enabled: true
+    storageClassName: longhorn
+    size: 5Gi
+    accessMode: ReadWriteOnce
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
