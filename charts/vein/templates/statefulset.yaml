@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "vein.fullname" . }}
+  labels:
+    {{- include "vein.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "vein.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vein.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "vein.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "vein.serviceAccountName" . }}
+      {{- if .Values.service.bindToNode }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.storage.saves.enabled }}
+      initContainers:
+      - name: create-symlink
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          mkdir -p /home/steam/vein/Vein/Saved
+          ln -sfn /home/steam/saves /home/steam/vein/Vein/Saved/SaveGames
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: game-data
+          mountPath: /home/steam/vein
+        - name: saves-data
+          mountPath: /home/steam/saves
+      {{- end }}
+      containers:
+      - name: vein
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        ports:
+        - name: server
+          containerPort: {{ .Values.env.SERVER_PORT }}
+          protocol: UDP
+        - name: query
+          containerPort: {{ .Values.env.QUERY_PORT }}
+          protocol: UDP
+        - name: aux
+          containerPort: 27016
+          protocol: UDP
+        env:
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- if .Values.existingSecret.name }}
+        - name: SERVER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecret.name }}
+              key: {{ .Values.existingSecret.keys.serverPassword }}
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecret.name }}
+              key: {{ .Values.existingSecret.keys.adminPassword }}
+        {{- end }}
+        volumeMounts:
+        {{- if .Values.storage.game.enabled }}
+        - name: game-data
+          mountPath: /home/steam/vein
+        {{- end }}
+        {{- if .Values.storage.saves.enabled }}
+        - name: saves-data
+          mountPath: /home/steam/saves
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  {{- if .Values.storage.game.enabled }}
+  - metadata:
+      name: game-data
+    spec:
+      accessModes:
+        - {{ .Values.storage.game.accessMode }}
+      storageClassName: {{ .Values.storage.game.storageClassName }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.game.size }}
+  {{- end }}
+  {{- if .Values.storage.saves.enabled }}
+  - metadata:
+      name: saves-data
+    spec:
+      accessModes:
+        - {{ .Values.storage.saves.accessMode }}
+      storageClassName: {{ .Values.storage.saves.storageClassName }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.saves.size }}
+  {{- end }}

@@ -1,0 +1,16 @@
+{{- if not .Values.service.bindToNode }}
+{{- $ports := list -}}
+{{- range $name, $config := .Values.service.ports }}
+{{- $nodePort := $config.nodePort -}}
+{{- if and (not $nodePort) $.Values.service.nodePorts.preservePortMapping }}
+{{- if eq $name "aux" }}
+{{- $queryNodePort := $.Values.service.ports.query.nodePort | default 0 | int -}}
+{{- if gt $queryNodePort 0 }}
+{{- $nodePort = add $queryNodePort 1 -}}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $ports = append $ports (dict "name" $name "port" $config.port "targetPort" $config.targetPort "protocol" $config.protocol "nodePort" $nodePort) }}
+{{- end }}
+{{- include "game-tools.service.nodeport" (dict "serviceName" (include "vein.fullname" .) "ports" $ports "selectorLabels" (include "vein.selectorLabels" .) "labels" (include "vein.labels" .) "context" .) }}
+{{- end }}
