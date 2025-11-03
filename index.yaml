@@ -3,6 +3,16 @@ entries:
   enshrouded:
   - apiVersion: v2
     appVersion: latest
+    created: "2025-11-03T21:47:44.560542507Z"
+    description: A Helm chart for Kubernetes
+    digest: f0ef8a948618ff82f861a46b7c58e36fea779ff9c0117ed7546a960f148fda69
+    name: enshrouded
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.2/enshrouded-0.3.2.tgz
+    version: 0.3.2
+  - apiVersion: v2
+    appVersion: latest
     created: "2025-10-13T20:47:26.755707213Z"
     description: A Helm chart for Kubernetes
     digest: 384e5a93f16cb81460018a16cb408a995b7398d4ce3e4fd885801a9bf4ad0ffb
@@ -22,6 +32,24 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.0/enshrouded-0.3.0.tgz
     version: 0.3.0
   foundryvtt:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2025-11-03T21:47:44.664113728Z"
+    description: A Helm chart for Foundry Virtual Tabletop
+    digest: 04c942c0d8cac3dd81bf099fa6d65c3163bccdb521f78bde4ae1d7af9f8ba115
+    home: https://foundryvtt.com/
+    keywords:
+    - foundry
+    - foundryvtt
+    - tabletop
+    - gaming
+    maintainers:
+    - name: mbround18
+    name: foundryvtt
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.2.4/foundryvtt-0.2.4.tgz
+    version: 0.2.4
   - apiVersion: v2
     appVersion: "1.0"
     created: "2025-10-31T19:04:34.66113074Z"
@@ -156,7 +184,27 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/fvtt-dndbeyond-companion-0.0.1/fvtt-dndbeyond-companion-0.0.1.tgz
     version: 0.0.1
+  game-tools:
+  - apiVersion: v2
+    created: "2025-11-03T21:47:44.899202625Z"
+    description: Shared helper subchart for game server deployments
+    digest: 9859d3bcff2356febd6b7847cb53ba386d1746c7c1c134ec8ece703cb7d96034
+    name: game-tools
+    type: library
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/game-tools-0.1.0/game-tools-0.1.0.tgz
+    version: 0.1.0
   palworld:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2025-11-03T21:47:45.028712562Z"
+    description: A Helm chart for Kubernetes
+    digest: 46ab735019d6d9ffeda88f9d81794da5c6eae0aad5faec9ba83f0775e290ccb1
+    name: palworld
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/palworld-0.3.2/palworld-0.3.2.tgz
+    version: 0.3.2
   - apiVersion: v2
     appVersion: latest
     created: "2025-10-13T20:47:27.123159037Z"
@@ -190,6 +238,16 @@ entries:
   valheim:
   - apiVersion: v2
     appVersion: 3.1.0
+    created: "2025-11-03T21:47:45.204092466Z"
+    description: A Helm chart for Kubernetes
+    digest: 4fb3907726465183d96a360ccf20b690e2cbe032029c232d401b9b743ba40ef3
+    name: valheim
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.1/valheim-0.4.1.tgz
+    version: 0.4.1
+  - apiVersion: v2
+    appVersion: 3.1.0
     created: "2025-10-11T21:25:00.904520406Z"
     description: A Helm chart for Kubernetes
     digest: 779749b735cbc2b27a68d51650ede57c64adb6f4424f0808b1218ff54c84a3e2
@@ -198,4 +256,28 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.0/valheim-0.4.0.tgz
     version: 0.4.0
-generated: "2025-10-31T19:04:35.161027538Z"
+  vein:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2025-11-03T21:47:45.32738843Z"
+    dependencies:
+    - name: game-tools
+      repository: file://../game-tools
+      version: 0.1.0
+    description: A Helm chart for Vein dedicated game server
+    digest: cb091647770dde0fd2bdcdcb5ad9335992c712a080354983110579dfb6835647
+    home: https://github.com/mbround18/vein-docker
+    keywords:
+    - vein
+    - game-server
+    - valheim-inspired
+    maintainers:
+    - name: mbruno
+    name: vein
+    sources:
+    - https://github.com/mbround18/vein-docker
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.0/vein-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-11-03T21:47:45.327445717Z"
