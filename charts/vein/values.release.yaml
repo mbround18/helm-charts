@@ -1,0 +1,12 @@
+env:
+  ADMIN_STEAM_IDS: 76561198071622110
+  SERVER_NAME: MBs Server
+  SUPERADMIN_STEAM_IDS: 76561198028400660
+  VALIDATE: false
+  AUTOSAVE_INTERVAL: "300"
+image:
+  pullPolicy: Always
+
+resources:
+  limits:
+    memory: "18Gi"
