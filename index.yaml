@@ -258,6 +258,29 @@ entries:
     version: 0.4.0
   vein:
   - apiVersion: v2
+    appVersion: v0.0.2
+    created: "2025-11-04T16:52:13.011643537Z"
+    dependencies:
+    - name: game-tools
+      repository: file://../game-tools
+      version: 0.1.0
+    description: A Helm chart for Vein dedicated game server
+    digest: cebeb91c19fc2f98079c09bb7d3a3144b3be207c6863048ec92f07208ad869ec
+    home: https://github.com/mbround18/vein-docker
+    keywords:
+    - vein
+    - game-server
+    - valheim-inspired
+    maintainers:
+    - name: mbruno
+    name: vein
+    sources:
+    - https://github.com/mbround18/vein-docker
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.1/vein-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
     appVersion: latest
     created: "2025-11-03T21:47:45.32738843Z"
     dependencies:
@@ -280,4 +303,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.0/vein-0.1.0.tgz
     version: 0.1.0
-generated: "2025-11-03T21:47:45.327445717Z"
+generated: "2025-11-04T16:52:13.011693369Z"
