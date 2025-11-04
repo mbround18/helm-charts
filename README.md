@@ -1,5 +1,7 @@
 # Helm Charts Repository
 
+[![Helm Validation](https://github.com/mbround18/helm-charts/actions/workflows/helm.yml/badge.svg)](https://github.com/mbround18/helm-charts/actions/workflows/helm.yml)
+
 Welcome to our Helm Charts Repository, hosted with ❤️ by GitHub Pages. This repository contains a collection of Helm charts for various applications, ready to be deployed in your Kubernetes cluster with ease and efficiency.
 
 ## Getting Started
