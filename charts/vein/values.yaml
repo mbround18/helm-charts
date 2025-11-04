@@ -1,6 +1,6 @@
 image:
   repository: mbround18/vein-docker
-  tag: v0.0.1
+  tag: v0.0.2
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -35,7 +35,7 @@ resources:
     memory: 4Gi
   limits:
     cpu: 4000m
-    memory: 12Gi
+    memory: 18Gi
 
 env:
   STEAM_USERNAME: "anonymous"
@@ -86,12 +86,12 @@ storage:
   game:
     enabled: true
     storageClassName: longhorn
-    size: 20Gi
+    size: 25Gi
     accessMode: ReadWriteOnce
   saves:
     enabled: true
     storageClassName: longhorn
-    size: 5Gi
+    size: 20Gi
     accessMode: ReadWriteOnce
 
 nodeSelector: {}
