@@ -1,6 +1,6 @@
 image:
   repository: mbround18/vein-docker
-  tag: v0.0.2
+  tag: v0.0.3
   pullPolicy: IfNotPresent
 
 replicaCount: 1
