@@ -34,6 +34,24 @@ entries:
   foundryvtt:
   - apiVersion: v2
     appVersion: "1.0"
+    created: "2025-11-04T18:24:47.010072225Z"
+    description: A Helm chart for Foundry Virtual Tabletop
+    digest: 21ac0bf3696be67c4faff7ec481c605aa8083b1a05b5ed5d6b417cbe750f624e
+    home: https://foundryvtt.com/
+    keywords:
+    - foundry
+    - foundryvtt
+    - tabletop
+    - gaming
+    maintainers:
+    - name: mbround18
+    name: foundryvtt
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.2.5/foundryvtt-0.2.5.tgz
+    version: 0.2.5
+  - apiVersion: v2
+    appVersion: "1.0"
     created: "2025-11-03T21:47:44.664113728Z"
     description: A Helm chart for Foundry Virtual Tabletop
     digest: 04c942c0d8cac3dd81bf099fa6d65c3163bccdb521f78bde4ae1d7af9f8ba115
@@ -259,6 +277,29 @@ entries:
   vein:
   - apiVersion: v2
     appVersion: v0.0.3
+    created: "2025-11-04T18:24:47.214231629Z"
+    dependencies:
+    - name: game-tools
+      repository: file://../game-tools
+      version: 0.1.0
+    description: A Helm chart for Vein dedicated game server
+    digest: d2f976dc1ebd859053a3aefb335d5712d10cf7dd2faad4ee3ddd15ada5b09391
+    home: https://github.com/mbround18/vein-docker
+    keywords:
+    - vein
+    - game-server
+    - valheim-inspired
+    maintainers:
+    - name: mbruno
+    name: vein
+    sources:
+    - https://github.com/mbround18/vein-docker
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.5/vein-0.1.5.tgz
+    version: 0.1.5
+  - apiVersion: v2
+    appVersion: v0.0.3
     created: "2025-11-04T16:53:27.936064384Z"
     dependencies:
     - name: game-tools
@@ -326,4 +367,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.0/vein-0.1.0.tgz
     version: 0.1.0
-generated: "2025-11-04T16:53:27.936105953Z"
+generated: "2025-11-04T18:24:47.21433399Z"
