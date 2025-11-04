@@ -2,8 +2,8 @@ apiVersion: v2
 name: vein
 description: A Helm chart for Vein dedicated game server
 type: application
-version: 0.1.3
-appVersion: "v0.0.3"
+version: 0.1.4
+appVersion: v0.0.3
 keywords:
 - vein
 - game-server
