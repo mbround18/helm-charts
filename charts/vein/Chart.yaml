@@ -3,7 +3,7 @@ name: vein
 description: A Helm chart for Vein dedicated game server
 type: application
 version: 0.1.0
-appVersion: "latest"
+appVersion: "v0.0.2"
 keywords:
   - vein
   - game-server
