@@ -1,0 +1,30 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "infisical.fullname" . }}
+  labels:
+    {{- include "infisical.labels" . | nindent 4 }}
+rules:
+  {{- if .Values.rbac.rules }}
+  {{- toYaml .Values.rbac.rules | nindent 2 }}
+  {{- else }}
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get"]
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "infisical.fullname" . }}
+  labels:
+    {{- include "infisical.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ default (include "infisical.fullname" .) .Values.serviceAccount.name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "infisical.fullname" . }}
+{{- end }}

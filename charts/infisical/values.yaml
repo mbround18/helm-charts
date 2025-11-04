@@ -1,0 +1,143 @@
+fullnameOverride: ""
+namespaceOverride: "infisical"
+
+namespace:
+  create: false
+  # When empty, defaults to the Helm release namespace.
+  name: ""
+  labels: {}
+  annotations: {}
+
+image:
+  repository: infisical/infisical
+  tag: v0.152.0
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: kv.boop.ninja
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 768Mi
+  limits:
+    cpu: 500m
+    memory: 2Gi
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+
+podSecurityContext:
+  fsGroup: 10001
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+env:
+  host: "0.0.0.0"
+  nodeEnv: production
+  ddTraceEnabled: false
+  nodeOptions: "--max-old-space-size=1024"
+  home: "/home/appuser"
+
+secrets:
+  dbConnectionSecret: infisical-db
+  dbConnectionKey: connection-uri
+  envFromSecret: infisical-secrets
+
+init:
+  enabled: true
+  image: infisical/infisical
+  tag: v0.152.0
+
+istio:
+  enabled: true
+  host: kv.boop.ninja
+  gateway:
+    selector:
+      istio: ingress
+    tls:
+      enabled: true
+      credentialName: cloudflare-client-tls
+  externalDNS:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: kv.boop.ninja
+      external-dns.alpha.kubernetes.io/ttl: "300"
+
+redis:
+  enabled: true
+  image: redis:8-alpine
+  passwordSecret: infisical-redis
+  passwordKey: password
+  injectIntoApp: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  external:
+    enabled: false
+    # Option A: provide a URL via secret (e.g., redis://:password@host:6379)
+    urlSecret: ""
+    urlKey: ""
+    envVarName: REDIS_URL
+    # Option B: host/port with optional password secret
+    host: ""
+    port: 6379
+    passwordSecret: ""
+    passwordKey: ""
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  storageClassName: longhorn
+  storageSize: 10Gi
+  dbName: infisical
+  usernameSecret: infisical-db
+  usernameKey: username
+  passwordSecret: infisical-db
+  passwordKey: password
+  external:
+    enabled: false
+    connectionSecret: ""
+    connectionKey: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automount: false
+
+rbac:
+  create: false
+  # Provide Kubernetes PolicyRules; empty by default
+  rules: []
