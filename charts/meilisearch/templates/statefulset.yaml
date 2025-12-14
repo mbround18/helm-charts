@@ -17,7 +17,10 @@ spec:
       labels:
         {{- include "meilisearch.selectorLabels" . | nindent 8 }}
       annotations:
+        # ArgoCD generates with helm template piped to kubectl apply, this is needed for helm but not argo
+        {{- if not (hasKey .Values.global.secret.annotations "argocd.argoproj.io/resource-ignore") }}
         checksum/secret-master-key: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
     spec:
       containers:
         - name: meilisearch

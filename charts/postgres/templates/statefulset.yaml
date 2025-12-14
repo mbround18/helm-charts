@@ -15,7 +15,10 @@ spec:
   template:
     metadata:
       annotations:
+        # ArgoCD generates with helm template piped to kubectl apply, this is needed for helm but not argo
+        {{- if not (hasKey .Values.global.secret.annotations "argocd.argoproj.io/resource-ignore") }}
         checksum/superuser-secret: {{ include (print $.Template.BasePath "/postgres-superuser-secret.yaml") . | sha256sum }}
+        {{- end }}
       labels:
         app: postgres
     spec:
