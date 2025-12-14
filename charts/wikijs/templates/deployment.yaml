@@ -6,7 +6,7 @@ metadata:
   labels:
     app: wikijs
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "33"
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
