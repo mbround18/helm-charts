@@ -41,13 +41,6 @@ To search for charts in this repository:
 helm search repo mbround18
 ```
 
-## Available Charts
-
-- **Palworld**: Palworld server.
-- _Add more charts as necessary._
-
-For more information on each chart, please refer to the individual chart's README within the repository.
-
 ## Contributing
 
 We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to submit contributions, report issues, and make suggestions.
