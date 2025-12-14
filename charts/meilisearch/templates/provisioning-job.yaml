@@ -58,12 +58,19 @@ spec:
                 sleep 2
               done
 
-              # Check if key already exists in secret
-              if [ -n "$MEILI_API_KEY" ]; then
-                echo "API Key already exists in secret."
-                # Optional: Verify if it's valid in Meilisearch, if not, regenerate?
-                # For now, assume if it's in secret, it's good or we manually fix it.
-                exit 0
+              # Check if key already exists in secret and is not empty
+              if [ -n "$MEILI_API_KEY" ] && [ "$MEILI_API_KEY" != "" ]; then
+                echo "Validating existing API Key..."
+                # Test the key by hitting the health endpoint
+                HEALTH=$(curl -s -X GET "$MEILI_HOST/health" \
+                  -H "Authorization: Bearer $MEILI_API_KEY")
+                
+                if echo "$HEALTH" | jq -e '.status == "available"' > /dev/null 2>&1; then
+                  echo "API Key is valid."
+                  exit 0
+                else
+                  echo "API Key validation failed. Regenerating..."
+                fi
               fi
 
               echo "Generating new API Key..."
