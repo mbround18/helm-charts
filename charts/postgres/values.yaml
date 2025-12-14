@@ -1,3 +1,6 @@
+global:
+  secret:
+    annotations: {}
 persistence:
   enabled: true
   accessMode: ReadWriteOnce
