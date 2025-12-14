@@ -1,0 +1,13 @@
+{{- if .Values.provisioning.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "meilisearch.fullname" . }}-provisioner-scripts
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+data:
+  {{ (.Files.Glob "../resources/*").AsConfig | indent 2 }}
+{{- end }}
