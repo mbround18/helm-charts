@@ -12,6 +12,6 @@ Add this key to your Wiki.js Meilisearch module configuration.
 Meilisearch master key is stored in '{{ .Values.meilisearch.auth.masterKeySecret }}'.
 
 Ingress:
-- Istio: {{ if .Values.ingress.istio.enabled }}Enabled{{ else }}Disabled{{ end }}
+- Istio: {{ if .Values.istio-ingress.enabled }}Enabled{{ else }}Disabled{{ end }}
 - Host: {{ index .Values.ingress.hosts 0 }}
 {{- end }}

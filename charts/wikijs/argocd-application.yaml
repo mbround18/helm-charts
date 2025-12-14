@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wikijs
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    namespace: wikijs
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: git@github.com:mbround18/helm-charts.git
+    targetRevision: feat/wikijs-postgres-meilisearch
+    path: charts/wikijs
+    directory:
+      recurse: false
+    helm:
+      values: |
+        # Inline values injected by Argo CD
+        replicaCount: 1
+
+        ingress:
+          enabled: false
+          hosts:
+            - wiki.boop.ninja
+
+        istio-ingress:
+          enabled: true
+          virtualService:
+            enabled: true
+            hosts:
+              - "wiki.boop.ninja"
+            route:
+              host: wikijs
+              port: 3000
+          gateway:
+            enabled: true
+            selector:
+              app: istio-ingressgateway
+            servers:
+              - port:
+                  number: 80
+                  protocol: HTTP
+                  name: http
+                hosts:
+                  - "wiki.boop.ninja"
+          tls:
+            enabled: false
+
+        postgres:
+          enabled: true
+          postgresql:
+            db: wikijs
+            user: wikijs
+            passwordSecret: postgres-password
+
+        meilisearch:
+          enabled: false
+  sources: []
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
