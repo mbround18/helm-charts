@@ -1,0 +1,80 @@
+{{- if .Values.provisioning.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "meilisearch.fullname" . }}-provisioner
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  template:
+    spec:
+      serviceAccountName: {{ include "meilisearch.fullname" . }}-provisioner
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-meilisearch
+          image: curlimages/curl:8.4.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -s http://{{ include "meilisearch.fullname" . }}:{{ .Values.service.port }}/health; do
+                echo "Waiting for Meilisearch to be ready..."
+                sleep 5
+              done
+      containers:
+        - name: provisioner
+          image: python:3.14-slim-trixie
+          env:
+            - name: MEILI_HOST
+              value: "http://{{ include "meilisearch.fullname" . }}:{{ .Values.service.port }}"
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.masterKeySecret }}
+                  key: master-key
+            - name: MEILI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.provisioning.indexSecret }}
+                  key: api-key
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SECRET_NAME
+              value: {{ .Values.provisioning.indexSecret }}
+            - name: API_KEY_DESCRIPTION
+              value: "{{ .Values.provisioning.apiKeyDescription }}"
+            - name: API_KEY_INDEXES
+              value: "{{ .Values.provisioning.apiKeyIndexes | join "," }}"
+            - name: API_KEY_ACTIONS
+              value: "{{ .Values.provisioning.apiKeyActions | join "," }}"
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              
+              # Install uv
+              pip install uv --quiet
+              
+              # Create temp directory and copy files
+              mkdir -p /tmp/provisioner
+              cp /scripts/main.py /tmp/provisioner/
+              cp /scripts/pyproject.toml /tmp/provisioner/
+              cd /tmp/provisioner
+
+              # Use uv to install and run
+              uv run main.py
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "meilisearch.fullname" . }}-provisioner-scripts
+            defaultMode: 0755
+{{- end }}

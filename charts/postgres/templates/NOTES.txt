@@ -1,0 +1,12 @@
+Postgres is deployed with the following settings:
+
+- Database: {{ .Values.postgresql.db }}
+- User: {{ .Values.postgresql.user }}
+- Password: stored in secret '{{ .Values.postgresql.passwordSecret }}'
+- HA: {{ if .Values.ha.enabled }}Enabled (3 replicas){{ else }}Disabled (1 replica){{ end }}
+
+To retrieve the password:
+
+  kubectl get secret {{ .Values.postgresql.passwordSecret }} -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d
+
+Use these credentials in your Wiki.js config.

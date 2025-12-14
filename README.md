@@ -158,61 +158,7 @@ helm install valheim mbround18/valheim \
   --set env.SERVER_NAME="Valhalla"
 ```
 
-#### **[Vein](charts/vein/)**
-
-**Status:** Production Ready | **Version:** 0.1.4 | [📖 Detailed README](charts/vein/README.md)
-
-Deploy a Vein survival horror dedicated server with optimized resource allocation.
-
-- **Features:** Dual-PVC architecture, host network mode, Steam GSLT support
-- **Resources:** ~12GB RAM, 4 CPU cores (memory-intensive!)
-- **Use Case:** Survival horror multiplayer with persistent worlds
-- **⚠️ Note:** High memory requirements - ensure adequate resources
-
-```bash
-helm install vein mbround18/vein \
-  --namespace vein \
-  --create-namespace \
-  --set existingSecret.name=vein-passwords
-```
-
-#### **[Enshrouded](charts/enshrouded/)**
-
-**Status:** Production Ready | **Version:** 0.3.2
-
-Survival action RPG server with base building and crafting.
-
-- **Features:** Persistent storage, configurable player limits
-- **Resources:** ~4GB RAM, 2 CPU cores recommended
-- **Use Case:** Co-op survival RPG servers
-
-```bash
-helm install enshrouded mbround18/enshrouded \
-  --namespace enshrouded \
-  --create-namespace
-```
-
-#### **[FoundryVTT](charts/foundryvtt/)**
-
-**Status:** Beta | **Version:** 0.2.4
-
-Virtual tabletop platform for running TTRPGs online.
-
-- **Features:** Persistent data storage, ingress support
-- **Resources:** ~2GB RAM, 1 CPU core
-- **Use Case:** D&D, Pathfinder, and other tabletop games
-- **⚠️ Note:** Requires FoundryVTT license key
-
-```bash
-helm install foundry mbround18/foundryvtt \
-  --namespace foundry \
-  --create-namespace \
-  --set ingress.enabled=true
-```
-
-### Utility & Tools
-
-#### **[game-tools](charts/game-tools/)** (Library Chart)
+## Contributing
 
 **Status:** Stable | **Version:** 0.1.0 | [📖 Detailed README](charts/game-tools/README.md)
 

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wikijs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: wikijs
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: web
+      name: web
+  selector:
+    app: wikijs

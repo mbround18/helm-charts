@@ -1,0 +1,49 @@
+{{- if and .Values.enabled .Values.virtualService.enabled }}
+{{- if .Values.virtualServiceOverride }}
+# Custom VirtualService (via override)
+{{ toYaml .Values.virtualServiceOverride }}
+{{- else }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "istio-ingress.vsName" . }}
+  namespace: {{ include "istio-ingress.namespace" . }}
+  labels:
+    {{- include "istio-ingress.labels" . | nindent 4 }}
+  {{- if .Values.externalDns.enabled }}
+  annotations:
+    {{- toYaml .Values.externalDns.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.virtualService.hosts }}
+  hosts:
+    {{- range .Values.virtualService.hosts }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- end }}
+  {{- if or .Values.virtualService.gateways (and .Values.helpers.useLocalGateway .Values.gateway.enabled) }}
+  gateways:
+    {{- if .Values.virtualService.gateways }}
+    {{- toYaml .Values.virtualService.gateways | nindent 4 }}
+    {{- else if and .Values.helpers.useLocalGateway .Values.gateway.enabled }}
+    - {{ include "istio-ingress.gatewayName" . }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.virtualService.http }}
+  http:
+    {{- toYaml .Values.virtualService.http | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.tls }}
+  tls:
+    {{- toYaml .Values.virtualService.tls | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.tcp }}
+  tcp:
+    {{- toYaml .Values.virtualService.tcp | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.exportTo }}
+  exportTo:
+    {{- toYaml .Values.virtualService.exportTo | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

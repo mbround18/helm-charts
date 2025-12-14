@@ -1,0 +1,69 @@
+{{- if and .Values.enabled .Values.gateway.enabled }}
+{{- if .Values.gatewayOverride }}
+# Custom Gateway (via override)
+{{ toYaml .Values.gatewayOverride }}
+{{- else }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "istio-ingress.gatewayName" . }}
+  namespace: {{ include "istio-ingress.namespace" . }}
+  labels:
+    {{- include "istio-ingress.labels" . | nindent 4 }}
+  {{- if .Values.externalDns.enabled }}
+  annotations:
+    {{- toYaml .Values.externalDns.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    {{- toYaml .Values.gateway.selector | nindent 4 }}
+  servers:
+    {{- range $index, $server := .Values.gateway.servers }}
+    - name: {{ $server.port.name | default (printf "server-%d" $index) }}
+      port:
+        number: {{ $server.port.number | required "port.number is required" }}
+        protocol: {{ $server.port.protocol | default "HTTP" }}
+        name: {{ $server.port.name | default (printf "port-%d" $server.port.number) }}
+      hosts:
+        {{- toYaml $server.hosts | nindent 8 }}
+      {{- with $.Values.tls }}
+      {{- if and .enabled (eq $server.port.protocol "HTTPS") }}
+      tls:
+        mode: {{ .mode }}
+        {{- if or (and .credentialName) (and .serverCertificate) }}
+        {{- if .credentialName }}
+        credentialName: {{ .credentialName }}
+        {{- end }}
+        {{- if and .serverCertificate .privateKey }}
+        serverCertificate: {{ .serverCertificate }}
+        privateKey: {{ .privateKey }}
+        {{- end }}
+        {{- end }}
+        {{- if .httpsRedirect }}
+        httpsRedirect: {{ .httpsRedirect }}
+        {{- end }}
+        {{- if .minProtocolVersion }}
+        minProtocolVersion: {{ .minProtocolVersion }}
+        {{- end }}
+        {{- if .maxProtocolVersion }}
+        maxProtocolVersion: {{ .maxProtocolVersion }}
+        {{- end }}
+        {{- if .cipherSuites }}
+        cipherSuites:
+          {{- toYaml .cipherSuites | nindent 10 }}
+        {{- end }}
+        {{- if and .mode (or (eq .mode "MUTUAL") (eq .mode "OPTIONAL_MUTUAL")) }}
+        {{- if or .caCertificates .caCertCredentialName }}
+        {{- if .caCertCredentialName }}
+        caCertCredentialName: {{ .caCertCredentialName }}
+        {{- end }}
+        {{- if .caCertificates }}
+        caCertificates: {{ .caCertificates }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}

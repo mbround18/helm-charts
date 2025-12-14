@@ -1,0 +1,6 @@
+[project]
+name = "meilisearch-provisioner"
+version = "0.1.0"
+description = "Meilisearch API Key Provisioner"
+requires-python = ">=3.14"
+dependencies = ["meilisearch", "rich", "kubernetes"]

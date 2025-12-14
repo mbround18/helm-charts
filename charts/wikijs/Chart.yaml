@@ -1,0 +1,17 @@
+apiVersion: v2
+name: wikijs
+description: Wiki.js Helm chart with Meilisearch and Postgres integration
+version: 0.2.0
+appVersion: "2.5"
+dependencies:
+  - name: postgres
+    version: 0.1.0
+    repository: file://../postgres
+  - name: istio-ingress
+    version: 0.1.0
+    repository: file://../istio-ingress
+    condition: istio-ingress.enabled
+  - name: meilisearch
+    version: 0.1.0
+    repository: file://../meilisearch
+    condition: meilisearch.enabled

@@ -1,0 +1,42 @@
+{{- if and .Values.ingress.enabled (not (index .Values "istio-ingress" "enabled")) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "meilisearch.fullname" . }}
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+  {{- if .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        {{- if .Values.ingress.hosts }}
+        {{- toYaml .Values.ingress.hosts | nindent 10 }}
+        {{- else }}
+        - {{ .Values.ingress.domain | quote }}
+        {{- end }}
+      {{- if .Values.ingress.tls.secretName }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+      {{- end }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingress.hosts }}
+    {{- range .Values.ingress.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          {{- include "meilisearch.ingressPaths" $ | nindent 10 }}
+    {{- end }}
+    {{- else }}
+    - host: {{ .Values.ingress.domain | quote }}
+      http:
+        paths:
+          {{- include "meilisearch.ingressPaths" . | nindent 10 }}
+    {{- end }}
+{{- end }}

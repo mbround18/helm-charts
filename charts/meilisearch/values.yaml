@@ -1,0 +1,93 @@
+global:
+  secret:
+    annotations: {}
+
+image:
+  repository: getmeili/meilisearch
+  tag: v1.11.1
+  pullPolicy: IfNotPresent
+
+# Optional Meilisearch UI sidecar
+ui:
+  enabled: false
+  image:
+    repository: riccoxie/meilisearch-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  # Base path for the UI (e.g., /manage)
+  basePath: "/manage"
+  # Service port for the UI
+  port: 24900
+  # Enable ingress for UI
+  ingress:
+    enabled: false
+  resources: {}
+
+resources: {}
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+service:
+  type: ClusterIP
+  port: 7700
+  # UI service port (only if ui.enabled)
+  uiPort: 24900
+
+ingress:
+  enabled: false
+  # Standard Kubernetes Ingress (fallback if istio not enabled)
+  className: ""
+  # Default domain if not specified
+  domain: "meilisearch.example.com"
+  # Custom hosts (overrides default domain)
+  hosts: []
+  # Annotations
+  annotations: {}
+  # TLS configuration
+  tls:
+    enabled: false
+    secretName: ""
+
+# Istio Ingress (istio-ingress subchart)
+istio-ingress:
+  enabled: false
+  virtualService:
+    enabled: true
+    hosts:
+      - "meilisearch.example.com"
+    # http routes are dynamically generated based on ui.enabled
+    # see templates/00-merge-istio-routes.yaml
+  gateway:
+    enabled: true
+    selector:
+      istio: ingress
+    servers:
+      - port:
+          number: 80
+          protocol: HTTP
+          name: http
+        hosts:
+          - "*"
+  # TLS configuration (optional - enable for HTTPS)
+  tls:
+    enabled: false
+    mode: SIMPLE
+    credentialName: ""
+    httpsRedirect: false
+
+auth:
+  masterKeySecret: meilisearch-master-key
+
+provisioning:
+  enabled: false
+  # The secret where the generated API key will be stored
+  indexSecret: meilisearch-api-key
+  # Key description in Meilisearch
+  apiKeyDescription: "Provisioned API Key"
+  # Actions allowed for this key
+  apiKeyActions: ["*"]
+  # Indexes allowed for this key
+  apiKeyIndexes: ["*"]

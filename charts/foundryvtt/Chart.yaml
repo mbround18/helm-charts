@@ -6,9 +6,9 @@ version: 0.2.5
 appVersion: '1.0'
 home: https://foundryvtt.com/
 keywords:
-- foundry
-- foundryvtt
-- tabletop
-- gaming
+  - foundry
+  - foundryvtt
+  - tabletop
+  - gaming
 maintainers:
-- name: mbround18
+  - name: mbround18

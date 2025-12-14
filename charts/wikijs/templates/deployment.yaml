@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wikijs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: wikijs
+  annotations:
+    argocd.argoproj.io/sync-wave: "33"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: wikijs
+  template:
+    metadata:
+      labels:
+        app: wikijs
+    spec:
+      initContainers:
+        - name: wait-for-database
+          image: alpine:3.22
+          env:
+            - name: PGUSER
+              value: {{ .Values.postgres.user | default "wikijs" }}
+            - name: DB_NAME
+              value: {{ .Values.postgres.db | default "wikijs" }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.postgresql.passwordSecret }}
+                  key: POSTGRES_PASSWORD
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache postgresql-client
+              until pg_isready -h {{ .Values.postgres.host | default "postgres" }} -p {{ .Values.postgres.port | default "5432" }} -U "$PGUSER"; do
+                echo "Waiting for PostgreSQL to be ready as $PGUSER..."
+                sleep 5
+              done
+              until psql -h {{ .Values.postgres.host | default "postgres" }} -p {{ .Values.postgres.port | default "5432" }} -U "$PGUSER" -d "$DB_NAME" -c 'SELECT 1;' >/dev/null 2>&1; do
+                echo "Waiting for PostgreSQL to accept connections..."
+                sleep 5
+              done
+        {{- if .Values.meilisearch.enabled }}
+        - name: wait-for-meilisearch
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache curl
+              until curl -s http://{{ .Release.Name }}-meilisearch:7700/health; do
+                echo "Waiting for Meilisearch to be ready..."
+                sleep 5
+              done
+        - name: create-wikijs-modules-dir
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /wiki/server/modules/search/meilisearch && chown -R 1000:1000 /wiki/server/modules
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: meilisearch-module
+              mountPath: /wiki/server/modules/search/meilisearch
+        - name: wikijs-init
+          image: "{{ .Values.meilisearch.copyImage.repository }}:{{ .Values.meilisearch.copyImage.tag }}"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          resources: {}
+          volumeMounts:
+            - name: meilisearch-module
+              mountPath: /wiki/server/modules/search/meilisearch
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+        {{- end }}
+      volumes:
+        {{- if .Values.meilisearch.enabled }}
+        - name: meilisearch-module
+          emptyDir: {}
+        {{- end }}
+        - name: wikijs-config
+          configMap:
+            name: wikijs-config
+      containers:
+        - name: wikijs
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- if .Values.meilisearch.enabled }}
+            - name: MEILISEARCH_URL
+              value: {{ if .Values.meilisearch.enabled }}"http://{{ .Release.Name }}-meilisearch:7700"{{ else }}""{{ end }}
+            - name: MEILISEARCH_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.meilisearch.provisioning.indexSecret }}
+                  key: api-key
+            {{- end }}
+            - name: DB_TYPE
+              value: postgres
+            - name: DB_HOST
+              value: {{ .Values.postgres.host | default "postgres" }}.{{ .Release.Namespace }}.svc.cluster.local
+            - name: DB_PORT
+              value: "{{ .Values.postgres.port | default "5432" }}"
+            - name: DB_NAME
+              value: {{ .Values.postgres.db | default "wikijs" }}
+            - name: DB_USER
+              value: {{ .Values.postgres.user | default "wikijs" }}
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.postgresql.passwordSecret }}
+                  key: POSTGRES_PASSWORD
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.postgresql.passwordSecret }}
+                  key: POSTGRES_PASSWORD
+            - name: HA_ACTIVE 
+              value: "1"
+          ports:
+            - containerPort: 3000
+              name: web
+          livenessProbe:
+            httpGet:
+              path: /
+              port: web
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: web
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.meilisearch.enabled }}
+            - name: meilisearch-module
+              mountPath: /wiki/server/modules/search/meilisearch
+            {{- end }}
+            - name: wikijs-config
+              mountPath: /wiki/config.yml
+              subPath: config.yml
