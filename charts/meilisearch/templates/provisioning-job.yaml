@@ -58,20 +58,17 @@ spec:
             - sh
             - -c
             - |
-              set -e
-              # Install uv and dependencies
-              apt-get update && apt-get install -y curl
-              curl -LsSf https://astral.sh/uv/install.sh | sh
-              export PATH="$HOME/.cargo/bin:$PATH"
+              set -e    
               
               # Create temp directory and copy files
               mkdir -p /tmp/provisioner
               cp /scripts/main.py /tmp/provisioner/
               cp /scripts/pyproject.toml /tmp/provisioner/
               cd /tmp/provisioner
+
+              python -m pip install .
               
-              # Run provisioner
-              uv run main.py
+              python main.py
           volumeMounts:
             - name: scripts
               mountPath: /scripts
