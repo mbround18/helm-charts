@@ -34,6 +34,24 @@ entries:
   foundryvtt:
   - apiVersion: v2
     appVersion: "1.0"
+    created: "2025-12-14T22:49:18.137902597Z"
+    description: A Helm chart for Foundry Virtual Tabletop
+    digest: 34e3b6b1406cda8e468240089f6921a66c856b3018d6553bae62d74b4bfc0d5c
+    home: https://foundryvtt.com/
+    keywords:
+    - foundry
+    - foundryvtt
+    - tabletop
+    - gaming
+    maintainers:
+    - name: mbround18
+    name: foundryvtt
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.2.6/foundryvtt-0.2.6.tgz
+    version: 0.2.6
+  - apiVersion: v2
+    appVersion: "1.0"
     created: "2025-11-04T18:24:47.010072225Z"
     description: A Helm chart for Foundry Virtual Tabletop
     digest: 21ac0bf3696be67c4faff7ec481c605aa8083b1a05b5ed5d6b417cbe750f624e
@@ -212,6 +230,34 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/game-tools-0.1.0/game-tools-0.1.0.tgz
     version: 0.1.0
+  istio-ingress:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-12-14T22:49:18.234915146Z"
+    description: A flexible Istio ingress subchart for managing Gateway and VirtualService
+      resources
+    digest: 210ea3dd235d9ba372bc6d43adc255c942a298fc4d8d4f425946a5f9717a7a99
+    name: istio-ingress
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/istio-ingress-0.1.0/istio-ingress-0.1.0.tgz
+    version: 0.1.0
+  meilisearch:
+  - apiVersion: v2
+    appVersion: v1.11.1
+    created: "2025-12-14T22:49:18.340613109Z"
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: file://../istio-ingress
+      version: 0.1.0
+    description: A Helm chart for Meilisearch
+    digest: cc7e1c23c4732aabfdc55aeb52cba2e494ee540a57cc8fa75e304a526e1e499d
+    name: meilisearch
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/meilisearch-0.1.0/meilisearch-0.1.0.tgz
+    version: 0.1.0
   palworld:
   - apiVersion: v2
     appVersion: latest
@@ -253,6 +299,16 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/palworld-0.2.0/palworld-0.2.0.tgz
     version: 0.2.0
+  postgres:
+  - apiVersion: v2
+    appVersion: "15.5"
+    created: "2025-12-14T22:49:18.418874835Z"
+    description: PostgreSQL Helm chart with HA and secret management
+    digest: fb794e46695f0a28ddc26a0c9c22df318d092b1257b9a6ea499db78071f9c2aa
+    name: postgres
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/postgres-0.1.0/postgres-0.1.0.tgz
+    version: 0.1.0
   valheim:
   - apiVersion: v2
     appVersion: 3.1.0
@@ -275,6 +331,29 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.0/valheim-0.4.0.tgz
     version: 0.4.0
   vein:
+  - apiVersion: v2
+    appVersion: v0.0.3
+    created: "2025-12-14T22:49:18.521774085Z"
+    dependencies:
+    - name: game-tools
+      repository: file://../game-tools
+      version: 0.1.0
+    description: A Helm chart for Vein dedicated game server
+    digest: 3c9bc4a106fb12986a9ea67d15520315fcf355322e7dbd43856a6d68b73a160a
+    home: https://github.com/mbround18/vein-docker
+    keywords:
+    - vein
+    - game-server
+    - valheim-inspired
+    maintainers:
+    - name: mbruno
+    name: vein
+    sources:
+    - https://github.com/mbround18/vein-docker
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.6/vein-0.1.6.tgz
+    version: 0.1.6
   - apiVersion: v2
     appVersion: v0.0.3
     created: "2025-11-04T18:24:47.214231629Z"
@@ -367,4 +446,26 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.0/vein-0.1.0.tgz
     version: 0.1.0
-generated: "2025-11-04T18:24:47.21433399Z"
+  wikijs:
+  - apiVersion: v2
+    appVersion: "2.5"
+    created: "2025-12-14T22:49:18.622144285Z"
+    dependencies:
+    - name: postgres
+      repository: file://../postgres
+      version: 0.1.0
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: file://../istio-ingress
+      version: 0.1.0
+    - condition: meilisearch.enabled
+      name: meilisearch
+      repository: file://../meilisearch
+      version: 0.1.0
+    description: Wiki.js Helm chart with Meilisearch and Postgres integration
+    digest: d923305d38a3400484a68be9eb268c9faad9a65b3c672e0ca09f6ed1bf6c6d0d
+    name: wikijs
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
+    version: 0.2.0
+generated: "2025-12-14T22:49:18.622203797Z"
