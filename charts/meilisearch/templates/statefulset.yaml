@@ -16,6 +16,8 @@ spec:
     metadata:
       labels:
         {{- include "meilisearch.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/secret-master-key: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
       containers:
         - name: meilisearch
