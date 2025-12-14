@@ -1,4 +1,4 @@
-.PHONY: deploy build setup test
+.PHONY: deploy build setup test dump
 
 # Configuration
 RELEASE_NAME ?= meilisearch
@@ -43,3 +43,10 @@ test: setup
 		done; \
 	fi
 	@echo "All template tests passed!"
+
+dump: setup
+	@echo "Dumping compiled manifests to $(DIR)/$(BUILD_DIR)..."
+	@cd $(DIR) && rm -rf $(BUILD_DIR) && mkdir -p $(BUILD_DIR)
+	@cd $(DIR) && helm template $(RELEASE_NAME) . | awk 'BEGIN {count=0} /^---$$/ {if (NR>1) {count++}} {print > "$(BUILD_DIR)/manifest-" sprintf("%02d", count) ".yaml"}'
+	@echo "Manifests dumped to $(DIR)/$(BUILD_DIR)/"
+	@ls -1 $(DIR)/$(BUILD_DIR)/manifest-*.yaml | wc -l | xargs echo "Total manifests:"

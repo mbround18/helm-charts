@@ -10,7 +10,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 data:
     main.py: |
-{{ .Files.Get "./resources/main.py" | indent 6 }}
+{{ .Files.Get "resources/main.py" | indent 6 }}
     pyproject.toml: |
-{{ .Files.Get "./resources/pyproject.toml" | indent 6 }}
+{{ .Files.Get "resources/pyproject.toml" | indent 6 }}
 {{- end }}
