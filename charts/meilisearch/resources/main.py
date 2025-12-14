@@ -52,6 +52,12 @@ def validate_master_key(client: Client) -> bool:
         is_valid = health.get("status") == "available"
         if is_valid:
             console.print("[green]✓ Master key is valid[/green]")
+            # Also try to list keys to verify permissions
+            try:
+                client.get_keys()
+                console.print("[green]✓ Master key has permission to manage keys[/green]")
+            except Exception as key_err:
+                console.print(f"[yellow]⚠ Warning: Master key cannot list keys: {key_err}[/yellow]")
         else:
             console.print("[red]✗ Master key validation failed[/red]")
         return is_valid
