@@ -8,5 +8,3 @@ dependencies = ["pyyaml>=6.0.3", "ruff>=0.14.9"]
 
 [tool.uv.workspace]
 members = ["charts/meilisearch/resources"]
-
-# tempt fate with a change again
