@@ -5,6 +5,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app: wikijs
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -35,8 +37,8 @@ spec:
                 echo "Waiting for PostgreSQL to be ready as $PGUSER..."
                 sleep 5
               done
-              until psql -h {{ .Values.postgres.host | default "postgres" }} -p {{ .Values.postgres.port | default "5432" }} -U "$PGUSER" -d {{ .Values.postgres.db | default "wikijs" }} -c 'SELECT 1;' >/dev/null 2>&1; do
-                echo "Waiting for database connection as $PGUSER..."
+              until psql -h {{ .Values.postgres.host | default "postgres" }} -p {{ .Values.postgres.port | default "5432" }} -U "$PGUSER" -c 'SELECT 1;' >/dev/null 2>&1; do
+                echo "Waiting for PostgreSQL to accept connections..."
                 sleep 5
               done
         {{- if .Values.meilisearch.enabled }}
