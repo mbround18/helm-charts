@@ -93,8 +93,9 @@ def create_api_key(
                 }
             )
 
-        key = response.key
-        if key:
+        # Response is a Key object with a .key attribute (str)
+        key = response.key  # type: ignore[attr-defined]
+        if key and isinstance(key, str) and len(key) > 0:
             console.print(f"[green]✓ API key created: {key[:20]}...[/green]")
             return key
         else:

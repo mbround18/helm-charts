@@ -22,6 +22,8 @@ dump:
 	done
 
 test: dump
+	@echo "Checking Python syntax..."
+	@find . -name "*.py" -not -path "./.venv/*" -not -path "./.*" | xargs -I {} python3 -m py_compile {}
 	@echo "Validating templated YAML with Python (uv)"
 	@uv run tools/validate_yaml.py ./tmp
 
