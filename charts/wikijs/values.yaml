@@ -29,7 +29,7 @@ istio-ingress:
   gateway:
     enabled: true
     selector:
-      app: istio-ingressgateway
+      istio: ingress
     servers:
       - port:
           number: 80

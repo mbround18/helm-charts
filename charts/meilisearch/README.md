@@ -103,7 +103,8 @@ istio-ingress:
       - "meilisearch.example.com"
   gateway:
     selector:
-      app: istio-ingressgateway
+      istio: ingress
+
     servers:
       - port:
           number: 80
@@ -197,7 +198,7 @@ istio-ingress:
       - "search.example.com"
   gateway:
     selector:
-      app: istio-ingressgateway
+      istio: ingress
 
 provisioning:
   enabled: true

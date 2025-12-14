@@ -116,7 +116,8 @@ istio-ingress:
       - wiki.example.com
   gateway:
     selector:
-      app: istio-ingressgateway
+      istio: ingress
+
     servers:
       - port:
           number: 80

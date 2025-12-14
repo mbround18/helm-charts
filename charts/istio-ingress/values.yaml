@@ -12,7 +12,7 @@ gateway:
 
   # Pod selector for the Istio ingress gateway
   selector:
-    app: istio-ingressgateway
+    istio: ingress
 
   # Gateway servers - can be overridden completely or merged
   servers:

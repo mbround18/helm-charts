@@ -23,7 +23,8 @@ istio-ingress:
   gateway:
     enabled: true
     selector:
-      app: istio-ingressgateway
+      istio: ingress
+
   virtualService:
     enabled: true
     hosts:
@@ -170,18 +171,18 @@ See [values.yaml](values.yaml) for all available configuration options.
 
 ### Key Configuration Options
 
-| Option                    | Description                                               | Default                     |
-| ------------------------- | --------------------------------------------------------- | --------------------------- |
-| `enabled`                 | Enable the entire subchart                                | `true`                      |
-| `gateway.enabled`         | Enable Gateway creation                                   | `true`                      |
-| `gateway.selector`        | Pod selector for ingress gateway                          | `app: istio-ingressgateway` |
-| `virtualService.enabled`  | Enable VirtualService creation                            | `true`                      |
-| `virtualService.hosts`    | Hosts for the VirtualService                              | `[""]`                      |
-| `tls.enabled`             | Enable TLS configuration                                  | `false`                     |
-| `tls.mode`                | TLS mode (SIMPLE, MUTUAL, AUTO_PASSTHROUGH, ISTIO_MUTUAL) | `SIMPLE`                    |
-| `tls.credentialName`      | Kubernetes secret name with TLS certs                     | `""`                        |
-| `externalDns.enabled`     | Enable external-dns annotations                           | `false`                     |
-| `helpers.useLocalGateway` | Auto-link VirtualService to local gateway                 | `true`                      |
+| Option                    | Description                                               | Default          |
+| ------------------------- | --------------------------------------------------------- | ---------------- |
+| `enabled`                 | Enable the entire subchart                                | `true`           |
+| `gateway.enabled`         | Enable Gateway creation                                   | `true`           |
+| `gateway.selector`        | Pod selector for ingress gateway                          | `istio: ingress` |
+| `virtualService.enabled`  | Enable VirtualService creation                            | `true`           |
+| `virtualService.hosts`    | Hosts for the VirtualService                              | `[""]`           |
+| `tls.enabled`             | Enable TLS configuration                                  | `false`          |
+| `tls.mode`                | TLS mode (SIMPLE, MUTUAL, AUTO_PASSTHROUGH, ISTIO_MUTUAL) | `SIMPLE`         |
+| `tls.credentialName`      | Kubernetes secret name with TLS certs                     | `""`             |
+| `externalDns.enabled`     | Enable external-dns annotations                           | `false`          |
+| `helpers.useLocalGateway` | Auto-link VirtualService to local gateway                 | `true`           |
 
 ## Notes
 
