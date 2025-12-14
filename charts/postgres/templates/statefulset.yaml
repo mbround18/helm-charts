@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres
+  replicas: {{ if .Values.ha.enabled }}3{{ else }}1{{ end }}
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      initContainers:
+        - name: ensure-postgres-password-secret
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              apk add --no-cache curl
+              curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.2/bin/linux/amd64/kubectl
+              chmod +x kubectl
+              mv kubectl /usr/local/bin/
+              SECRET_NAME="{{ .Values.postgresql.passwordSecret }}"
+              NAMESPACE="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)"
+              until kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" >/dev/null 2>&1 && \
+                [ "$(kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" -o jsonpath='{.data.POSTGRES_PASSWORD}')" != "" ]; do
+                echo "Waiting for secret $SECRET_NAME with POSTGRES_PASSWORD..."
+                sleep 2
+              done
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: data
+              mountPath: /tmp
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.db }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.superuser | default "postgres" }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.superuserPasswordSecret }}
+                  key: POSTGRES_PASSWORD
+            - name: APP_USER
+              value: {{ .Values.postgresql.user }}
+            - name: APP_DB
+              value: {{ .Values.postgresql.db }}
+            - name: APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.passwordSecret }}
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: {{ .Values.authMethod | default "scram-sha-256" }}
+          ports:
+            - containerPort: 5432
+              name: postgres
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U {{ .Values.postgresql.superuser | default "postgres" }} -d {{ .Values.postgresql.db }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U {{ .Values.postgresql.superuser | default "postgres" }} -d {{ .Values.postgresql.db }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+        - name: init-scripts
+          configMap:
+            name: postgres-init-scripts

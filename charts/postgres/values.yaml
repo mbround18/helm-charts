@@ -1,0 +1,22 @@
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+authMethod: scram-sha-256
+image:
+  repository: postgres
+  tag: "18"
+  pullPolicy: IfNotPresent
+ha:
+  enabled: false
+postgresql:
+  db: wikijs
+  user: wikijs
+  passwordSecret: postgres-password
+  # Superuser configuration
+  superuser: postgres
+  superuserPasswordSecret: postgres-superuser-password
+resources: {}
+service:
+  type: ClusterIP
+  port: 5432

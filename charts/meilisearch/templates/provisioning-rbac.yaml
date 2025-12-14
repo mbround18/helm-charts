@@ -1,0 +1,27 @@
+{{- if .Values.provisioning.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "meilisearch.fullname" . }}-provisioner
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "meilisearch.fullname" . }}-provisioner
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "meilisearch.fullname" . }}-provisioner
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "meilisearch.fullname" . }}-provisioner
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,109 @@
+# Istio Ingress Subchart Configuration
+
+# Enable/disable the entire subchart
+enabled: true
+
+# Gateway configuration
+gateway:
+  enabled: true
+  # Generate gateway name from app label if not specified
+  name: ""
+  namespace: ""
+  
+  # Pod selector for the Istio ingress gateway
+  selector:
+    app: istio-ingressgateway
+  
+  # Gateway servers - can be overridden completely or merged
+  servers:
+    - port:
+        number: 80
+        protocol: HTTP
+        name: http
+      hosts:
+        - "*"
+
+# VirtualService configuration
+virtualService:
+  enabled: true
+  # Generate name from parent chart if not specified
+  name: ""
+  namespace: ""
+  
+  # Hosts for the VirtualService
+  hosts:
+    - ""
+  
+  # Gateway references (auto-filled if using local gateway)
+  gateways: []
+  
+  # HTTP routes - can be extended with custom routes
+  http: []
+    # Example:
+    # - name: "api-route"
+    #   match:
+    #     - uri:
+    #         prefix: "/api"
+    #   route:
+    #     - destination:
+    #         host: api.default.svc.cluster.local
+    #         port:
+    #           number: 8080
+  
+  # TLS routes (for passthrough/SNI routing)
+  tls: []
+  
+  # TCP routes
+  tcp: []
+  
+  # Export to other namespaces
+  exportTo: []
+
+# TLS configuration
+tls:
+  enabled: false
+  mode: SIMPLE  # SIMPLE, MUTUAL, AUTO_PASSTHROUGH, ISTIO_MUTUAL
+  
+  # For Kubernetes: secret name with tls.crt and tls.key
+  credentialName: ""
+  
+  # For file paths (non-Kubernetes)
+  serverCertificate: ""
+  privateKey: ""
+  
+  # HTTPS redirect
+  httpsRedirect: false
+  
+  # Optional: CA certificate for MUTUAL mode
+  caCertificates: ""
+  caCertCredentialName: ""
+  
+  # TLS settings
+  minProtocolVersion: TLSV1_2
+  maxProtocolVersion: ""
+  cipherSuites: []
+
+# DNS annotations (external-dns integration)
+externalDns:
+  enabled: false
+  # Annotations to add for DNS
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ""
+    external-dns.alpha.kubernetes.io/ttl: "3600"
+
+# Helpers
+helpers:
+  # If true, will automatically construct gateway reference from local gateway
+  useLocalGateway: true
+  
+  # If true, will append VirtualService routes instead of replacing
+  mergeRoutes: false
+
+# Override mode: "virtualservice" (default) or "gateway"
+resourceType: "virtualservice"
+
+# Allow complete override of Gateway spec
+gatewayOverride: {}
+
+# Allow complete override of VirtualService spec
+virtualServiceOverride: {}

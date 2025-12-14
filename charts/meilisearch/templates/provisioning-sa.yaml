@@ -1,0 +1,8 @@
+{{- if .Values.provisioning.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "meilisearch.fullname" . }}-provisioner
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,22 @@
+{{- /*
+Dynamically build Istio VirtualService routes for Wiki.js using the istio-ingress subchart.
+This runs before the istio-ingress templates (00- prefix).
+*/ -}}
+{{- if (index .Values "istio-ingress" "enabled") -}}
+  {{- $istioCfg := index .Values "istio-ingress" -}}
+  {{- $namespace := .Release.Namespace -}}
+  {{- $targetHost := printf "%s.%s.svc.cluster.local" (default "wikijs" $istioCfg.virtualService.route.host) $namespace -}}
+  {{- $targetPort := default 3000 $istioCfg.virtualService.route.port -}}
+  {{- $route := dict
+    "name" "wikijs-web"
+    "match" (list (dict "uri" (dict "prefix" "/")))
+    "route" (list (dict
+      "destination" (dict
+        "host" $targetHost
+        "port" (dict "number" $targetPort)
+      )
+    ))
+  -}}
+  {{- /* Merge routes into istio-ingress virtualService */ -}}
+  {{- $_ := set $istioCfg.virtualService "http" (list $route) -}}
+{{- end -}}

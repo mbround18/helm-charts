@@ -1,0 +1,17 @@
+{{- if .Values.meilisearch.enabled }}
+Meilisearch integration is enabled.
+
+The Wiki.js API key for Meilisearch index 'wikijs' is stored in the secret '{{ .Values.meilisearch.provisioning.indexSecret }}'.
+
+To use this key in the Wiki.js UI, retrieve it with:
+
+  kubectl get secret {{ .Values.meilisearch.provisioning.indexSecret }} -o jsonpath='{.data.api-key}' | base64 -d
+
+Add this key to your Wiki.js Meilisearch module configuration.
+
+Meilisearch master key is stored in '{{ .Values.meilisearch.auth.masterKeySecret }}'.
+
+Ingress:
+- Istio: {{ if .Values.ingress.istio.enabled }}Enabled{{ else }}Disabled{{ end }}
+- Host: {{ index .Values.ingress.hosts 0 }}
+{{- end }}

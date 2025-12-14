@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "meilisearch.fullname" . }}
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "meilisearch.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "meilisearch.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "meilisearch.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: meilisearch
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.masterKeySecret }}
+                  key: master-key
+          ports:
+            - containerPort: 7700
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /meili_data
+        {{- if .Values.ui.enabled }}
+        - name: meilisearch-ui
+          image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag }}"
+          imagePullPolicy: {{ .Values.ui.image.pullPolicy }}
+          env:
+            - name: BASE_PATH
+              value: {{ .Values.ui.basePath | quote }}
+          ports:
+            - containerPort: {{ .Values.ui.port }}
+              name: ui
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.ui.basePath }}
+              port: ui
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.ui.basePath }}
+              port: ui
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.ui.resources | nindent 12 }}
+        {{- end }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "meilisearch.fullname" . }}-data

@@ -1,0 +1,86 @@
+replicaCount: 1
+image:
+  repository: ghcr.io/requarks/wiki
+  tag: 2.5.308
+  pullPolicy: IfNotPresent
+resources: {}
+service:
+  type: ClusterIP
+  port: 3000
+ingress:
+  enabled: false
+  hosts:
+    - wikijs.local
+  # Kubernetes Ingress only; Istio is configured via the istio-ingress subchart below
+istio-ingress:
+  enabled: false
+  virtualService:
+    enabled: true
+    hosts:
+      - "wikijs.local"
+    route:
+      # The host and port targets are set dynamically in templates/00-merge-istio-routes.yaml
+      host: wikijs
+      port: 3000
+  gateway:
+    enabled: true
+    selector:
+      app: istio-ingressgateway
+    servers:
+      - port:
+          number: 80
+          protocol: HTTP
+          name: http
+        hosts:
+          - "*"
+  tls:
+    enabled: false
+    mode: SIMPLE
+    credentialName: ""
+    httpsRedirect: false
+meilisearch:
+  # Dependency is available but disabled by default. Uncomment to enable and override.
+  # enabled: true
+  enabled: false
+  image:
+    repository: getmeili/meilisearch
+    tag: v1.11.1
+    pullPolicy: IfNotPresent
+  copyImage:
+    repository: mbround18/wikijs-meilisearch-module
+    tag: sha-7ae9ce1
+    pullPolicy: IfNotPresent
+  resources: {}
+  persistence:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: 10Gi
+  service:
+    type: ClusterIP
+    port: 7700
+  auth:
+    masterKeySecret: meilisearch-master-key
+  provisioning:
+    enabled: true
+    indexSecret: meilisearch-wikijs-data
+    apiKeyDescription: "Wiki.js API Key"
+    apiKeyActions: ["*"]
+    apiKeyIndexes: ["*"]
+
+postgres:
+  enabled: true
+  authMethod: scram-sha-256
+  ha:
+    enabled: false
+  image:
+    repository: postgres
+    tag: "18"
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: 10Gi
+  postgresql:
+    db: wikijs
+    user: wikijs
+    passwordSecret: postgres-password

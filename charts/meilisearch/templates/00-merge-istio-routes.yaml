@@ -1,0 +1,39 @@
+{{- /*
+Initialize istio-ingress routes dynamically based on UI configuration.
+This must be rendered first (00- prefix) before the istio-ingress subchart.
+*/ -}}
+{{- if (index .Values "istio-ingress" "enabled") -}}
+  {{- $istioCfg := index .Values "istio-ingress" -}}
+  {{- $routes := list -}}
+  {{- $namespace := .Release.Namespace -}}
+  
+  {{- /* API route (always present) */ -}}
+  {{- $apiRoute := dict
+    "name" "meilisearch-api"
+    "route" (list (dict
+      "destination" (dict
+        "host" (printf "meilisearch.%s.svc.cluster.local" $namespace)
+        "port" (dict "number" 7700)
+      )
+    ))
+  -}}
+  {{- $routes = append $routes $apiRoute -}}
+  
+  {{- /* UI route (if enabled) */ -}}
+  {{- if .Values.ui.enabled -}}
+    {{- $uiRoute := dict
+      "name" "meilisearch-ui"
+      "match" (list (dict "uri" (dict "prefix" .Values.ui.basePath)))
+      "route" (list (dict
+        "destination" (dict
+          "host" (printf "meilisearch-ui.%s.svc.cluster.local" $namespace)
+          "port" (dict "number" 24900)
+        )
+      ))
+    -}}
+    {{- $routes = append $routes $uiRoute -}}
+  {{- end -}}
+  
+  {{- /* Merge routes into istio-ingress */ -}}
+  {{- $_ := set $istioCfg.virtualService "http" $routes -}}
+{{- end -}}

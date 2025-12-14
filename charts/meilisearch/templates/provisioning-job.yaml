@@ -1,0 +1,95 @@
+{{- if .Values.provisioning.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "meilisearch.fullname" . }}-provisioner
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    spec:
+      serviceAccountName: {{ include "meilisearch.fullname" . }}-provisioner
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-meilisearch
+          image: curlimages/curl:8.4.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -s http://{{ include "meilisearch.fullname" . }}:{{ .Values.service.port }}/health; do
+                echo "Waiting for Meilisearch to be ready..."
+                sleep 5
+              done
+      containers:
+        - name: provisioner
+          image: alpine:3.22
+          env:
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.masterKeySecret }}
+                  key: master-key
+            - name: MEILI_API_KEY
+              valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.provisioning.indexSecret }}
+                    key: api-key
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              apk add --no-cache curl jq bash
+              # Install kubectl
+              KUBECTL_VERSION="v1.29.3"
+              curl -LO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+              install -m 755 kubectl /usr/local/bin/kubectl
+              
+              MEILI_HOST="http://{{ include "meilisearch.fullname" . }}:{{ .Values.service.port }}"
+              
+              # Wait for Meilisearch to be healthy
+              until curl -s $MEILI_HOST/health; do
+                echo "Waiting for Meilisearch..."
+                sleep 2
+              done
+
+              # Check if key already exists in secret
+              if [ -n "$MEILI_API_KEY" ]; then
+                echo "API Key already exists in secret."
+                # Optional: Verify if it's valid in Meilisearch, if not, regenerate?
+                # For now, assume if it's in secret, it's good or we manually fix it.
+                exit 0
+              fi
+
+              echo "Generating new API Key..."
+              # Create key in Meilisearch
+              RESPONSE=$(curl -s -X POST "$MEILI_HOST/keys" \
+                -H "Authorization: Bearer $MEILI_MASTER_KEY" \
+                -H "Content-Type: application/json" \
+                --data-binary @- <<EOF
+              {
+                "description": "{{ .Values.provisioning.apiKeyDescription }}",
+                "actions": {{ .Values.provisioning.apiKeyActions | toJson }},
+                "indexes": {{ .Values.provisioning.apiKeyIndexes | toJson }},
+                "expiresAt": null
+              }
+              EOF
+              )
+
+              KEY=$(echo $RESPONSE | jq -r .key)
+
+              if [ "$KEY" == "null" ]; then
+                echo "Failed to generate key: $RESPONSE"
+                exit 1
+              fi
+
+              echo "Key generated. Updating secret..."
+              kubectl patch secret {{ .Values.provisioning.indexSecret }} \
+                -p "{\"stringData\":{\"api-key\": \"$KEY\"}}"
+
+              echo "Done."
+{{- end }}
