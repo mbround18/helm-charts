@@ -23,6 +23,8 @@ spec:
           env:
             - name: PGUSER
               value: {{ .Values.postgres.user | default "wikijs" }}
+            - name: DB_NAME
+              value: {{ .Values.postgres.db | default "wikijs" }}
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
@@ -37,7 +39,7 @@ spec:
                 echo "Waiting for PostgreSQL to be ready as $PGUSER..."
                 sleep 5
               done
-              until psql -h {{ .Values.postgres.host | default "postgres" }} -p {{ .Values.postgres.port | default "5432" }} -U "$PGUSER" -c 'SELECT 1;' >/dev/null 2>&1; do
+              until psql -h {{ .Values.postgres.host | default "postgres" }} -p {{ .Values.postgres.port | default "5432" }} -U "$PGUSER" -d "$DB_NAME" -c 'SELECT 1;' >/dev/null 2>&1; do
                 echo "Waiting for PostgreSQL to accept connections..."
                 sleep 5
               done
