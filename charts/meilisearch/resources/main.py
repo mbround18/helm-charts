@@ -82,6 +82,13 @@ def create_api_key(
     """Create a new API key in Meilisearch using master key."""
     try:
         with console.status("[bold cyan]Creating API key..."):
+            # Debug: Verify master key is still valid before creating
+            debug_client = Client(url, master_key)
+            debug_health = debug_client.health()
+            if debug_health.get("status") != "available":
+                console.print("[red]✗ Master key became invalid before creating[/red]")
+                return None
+
             client = Client(url, master_key)
             response = client.create_key(
                 options={
@@ -103,6 +110,10 @@ def create_api_key(
             return None
     except Exception as e:
         console.print(f"[red]✗ Failed to create API key: {e}[/red]")
+        # Print full error details for debugging
+        import traceback
+
+        console.print(f"[yellow]Debug trace: {traceback.format_exc()}[/yellow]")
         return None
 
 
