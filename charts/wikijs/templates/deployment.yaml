@@ -39,10 +39,6 @@ spec:
                 echo "Waiting for PostgreSQL to be ready as $PGUSER..."
                 sleep 5
               done
-              until psql -h {{ .Values.postgres.host | default "postgres" }} -p {{ .Values.postgres.port | default "5432" }} -U "$PGUSER" -d "$DB_NAME" -c 'SELECT 1;' >/dev/null 2>&1; do
-                echo "Waiting for PostgreSQL to accept connections..."
-                sleep 5
-              done
         {{- if .Values.meilisearch.enabled }}
         - name: wait-for-meilisearch
           image: alpine:3.22
