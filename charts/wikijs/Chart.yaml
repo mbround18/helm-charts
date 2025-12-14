@@ -15,4 +15,3 @@ dependencies:
     version: 0.1.0
     repository: file://../meilisearch
     condition: meilisearch.enabled
-

@@ -3,23 +3,27 @@
 ## ✅ What's Working Together
 
 ### 1. **Flexible Ingress System**
+
 - **Kubernetes Ingress** (nginx, traefik, etc.)
 - **Istio Ingress** via istio-ingress subchart
 - Both support automatic UI path routing
 
 ### 2. **Optional UI Sidecar**
+
 - Runs alongside Meilisearch in same Pod
 - Configurable base path (default: `/manage`)
 - Health checks included
 - Separate service for routing
 
 ### 3. **Dynamic Route Generation**
+
 - API routes always included
 - UI routes added only when `ui.enabled: true`
 - Works for both Kubernetes and Istio ingress
 - No YAML duplication via template helpers
 
 ### 4. **Smart Defaults**
+
 - Master key from Kubernetes Secret
 - Optional API key provisioning
 - Persistent storage configured
@@ -53,26 +57,29 @@ VirtualService (dynamically generated routes)
 ## 🎯 Key Features
 
 ### No Duplication
+
 - `_helpers.tpl`: Reusable helper templates
   - `meilisearch.istioHttpRoutes`: Generates Istio routes
   - `meilisearch.ingressPaths`: Generates K8s paths
 - `00-merge-istio-routes.yaml`: Merges routes into istio-ingress values
 
 ### Conditional UI Support
+
 ```yaml
 ui:
-  enabled: true              # Deploy UI sidecar
+  enabled: true # Deploy UI sidecar
   ingress:
-    enabled: true           # For K8s Ingress only
-  basePath: "/manage"       # Customizable path
+    enabled: true # For K8s Ingress only
+  basePath: "/manage" # Customizable path
 
 istio-ingress:
-  enabled: true             # Auto-includes UI routes
+  enabled: true # Auto-includes UI routes
 ```
 
 ### Multiple Deployment Patterns
 
 **Pattern 1: API Only**
+
 ```yaml
 ui:
   enabled: false
@@ -83,6 +90,7 @@ istio-ingress:
 ```
 
 **Pattern 2: API + UI with Kubernetes Ingress**
+
 ```yaml
 ui:
   enabled: true
@@ -95,6 +103,7 @@ istio-ingress:
 ```
 
 **Pattern 3: API + UI with Istio**
+
 ```yaml
 ui:
   enabled: true
@@ -126,6 +135,7 @@ charts/meilisearch/
 ## 🚀 Quick Deploy Examples
 
 ### Deploy with UI + Istio
+
 ```bash
 helm install meilisearch ./charts/meilisearch \
   --set ui.enabled=true \
@@ -133,6 +143,7 @@ helm install meilisearch ./charts/meilisearch \
 ```
 
 ### Deploy with UI + Nginx Ingress
+
 ```bash
 helm install meilisearch ./charts/meilisearch \
   --set ui.enabled=true \
@@ -141,6 +152,7 @@ helm install meilisearch ./charts/meilisearch \
 ```
 
 ### Deploy API-only
+
 ```bash
 helm install meilisearch ./charts/meilisearch
 ```

@@ -41,25 +41,25 @@ helm install meilisearch ./charts/meilisearch \
 
 ### Core Settings
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `image.repository` | Meilisearch image | `getmeili/meilisearch` |
-| `image.tag` | Image tag | `v1.11.1` |
-| `resources` | Pod resource requests/limits | `{}` |
-| `persistence.enabled` | Enable persistent storage | `true` |
-| `persistence.size` | PVC size | `10Gi` |
+| Parameter             | Description                  | Default                |
+| --------------------- | ---------------------------- | ---------------------- |
+| `image.repository`    | Meilisearch image            | `getmeili/meilisearch` |
+| `image.tag`           | Image tag                    | `v1.11.1`              |
+| `resources`           | Pod resource requests/limits | `{}`                   |
+| `persistence.enabled` | Enable persistent storage    | `true`                 |
+| `persistence.size`    | PVC size                     | `10Gi`                 |
 
 ### UI Configuration
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `ui.enabled` | Deploy UI sidecar | `false` |
-| `ui.image.repository` | UI image | `riccoxie/meilisearch-ui` |
-| `ui.image.tag` | UI image tag | `latest` |
-| `ui.basePath` | UI URL path | `/manage` |
-| `ui.port` | UI container port | `24900` |
-| `ui.ingress.enabled` | Include UI in standard Ingress | `false` |
-| `ui.resources` | UI resource requests/limits | `{}` |
+| Parameter             | Description                    | Default                   |
+| --------------------- | ------------------------------ | ------------------------- |
+| `ui.enabled`          | Deploy UI sidecar              | `false`                   |
+| `ui.image.repository` | UI image                       | `riccoxie/meilisearch-ui` |
+| `ui.image.tag`        | UI image tag                   | `latest`                  |
+| `ui.basePath`         | UI URL path                    | `/manage`                 |
+| `ui.port`             | UI container port              | `24900`                   |
+| `ui.ingress.enabled`  | Include UI in standard Ingress | `false`                   |
+| `ui.resources`        | UI resource requests/limits    | `{}`                      |
 
 ### Kubernetes Ingress
 
@@ -68,7 +68,7 @@ Enable standard Kubernetes Ingress (not Istio):
 ```yaml
 ingress:
   enabled: true
-  className: nginx  # or other ingress controller
+  className: nginx # or other ingress controller
   domain: "meilisearch.example.com"
   tls:
     enabled: true
@@ -79,10 +79,11 @@ ingress:
 ui:
   enabled: true
   ingress:
-    enabled: true  # Include UI in ingress
+    enabled: true # Include UI in ingress
 ```
 
 **Result:**
+
 - API accessible at: `https://meilisearch.example.com/`
 - UI accessible at: `https://meilisearch.example.com/manage`
 
@@ -113,6 +114,7 @@ istio-ingress:
 ```
 
 **Result:**
+
 - API route: `meilisearch.example.com/` → `meilisearch:7700`
 - UI route: `meilisearch.example.com/manage` → `meilisearch-ui:24900`
 
@@ -226,12 +228,12 @@ provisioning:
 
 ### Ingress Options
 
-| Option | Standard Ingress | Istio Ingress |
-|--------|------------------|---------------|
-| Path-based routing | ✅ | ✅ |
-| UI support | ✅ (if `ui.ingress.enabled`) | ✅ (automatic) |
-| TLS termination | ✅ | ✅ |
-| SNI routing | ❌ | ✅ |
+| Option             | Standard Ingress             | Istio Ingress  |
+| ------------------ | ---------------------------- | -------------- |
+| Path-based routing | ✅                           | ✅             |
+| UI support         | ✅ (if `ui.ingress.enabled`) | ✅ (automatic) |
+| TLS termination    | ✅                           | ✅             |
+| SNI routing        | ❌                           | ✅             |
 
 ### Dynamic Configuration
 
@@ -246,11 +248,12 @@ The chart uses template helpers to avoid duplication:
 ### UI not accessible via Ingress
 
 Make sure both flags are enabled:
+
 ```yaml
 ui:
   enabled: true
   ingress:
-    enabled: true  # Required for standard Ingress
+    enabled: true # Required for standard Ingress
 ```
 
 For Istio, just enable `ui.enabled` and `istio-ingress.enabled`.
@@ -258,6 +261,7 @@ For Istio, just enable `ui.enabled` and `istio-ingress.enabled`.
 ### Istio routes not applied
 
 Check that the routes were merged:
+
 ```bash
 kubectl get virtualservice <release>-vs -o yaml | grep meilisearch-ui
 ```
@@ -265,6 +269,7 @@ kubectl get virtualservice <release>-vs -o yaml | grep meilisearch-ui
 ### Master key not found
 
 Ensure the secret exists:
+
 ```bash
 kubectl get secret meilisearch-master-key
 ```
@@ -272,6 +277,7 @@ kubectl get secret meilisearch-master-key
 ### API key provisioning fails
 
 Check the provisioning job logs:
+
 ```bash
 kubectl logs -f job/<release>-meilisearch-provisioning
 ```

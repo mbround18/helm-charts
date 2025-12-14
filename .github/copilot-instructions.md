@@ -141,6 +141,43 @@ Charts support optional `storageClassName` parameter (e.g., `palworld`, `postgre
 
 Multi-node applications (PostgreSQL, Meilisearch) use **StatefulSets**, not Deployments. Preserve pod naming guarantees (`meilisearch-0`, `postgres-0`) in service discovery and init scripts.
 
+### Resource Ordering with Helm Hooks and Argo Sync Waves
+
+**Critical for multi-dependent resources**: Always implement resource ordering to ensure prerequisites exist before dependents.
+
+**Pattern**: Combine Helm hooks (template-level) with Argo CD sync waves (deployment-level):
+
+1. **Helm Hooks** (in template metadata annotations):
+
+   ```yaml
+   annotations:
+     helm.sh/hook: pre-install,pre-upgrade # When to execute
+     helm.sh/hook-weight: "-10" # Order within hook phase (-10 first, +10 last)
+     helm.sh/resource-policy: keep # Preserve on uninstall
+   ```
+
+2. **Argo Sync Waves** (for GitOps ordering):
+   ```yaml
+   annotations:
+     argocd.argoproj.io/sync-wave: "0" # Wave execution order (0, 1, 2...)
+   ```
+
+**Implementation pattern** (example: PostgreSQL passwords → StatefulSet → init Job):
+
+- **Wave 0** (weight -10): Secrets (passwords, keys)
+  - `postgres-password-secret.yaml`
+  - `meilisearch-master-key` secret
+- **Wave 1** (weight 0): Workloads (StatefulSets, Deployments)
+  - `postgres-statefulset.yaml`
+  - `meilisearch-statefulset.yaml`
+- **Wave 2** (weight 5, hook: post-install): Jobs (provisioning, init)
+  - `provisioning-job.yaml`
+  - `password-sync-job.yaml`
+
+**When to add**: Every Secret, ConfigMap, Job, or Deployment that depends on prior resources. **Always add sync wave annotations**—default (wave 0) creates ordering ambiguity.
+
+**See**: charts/postgres (password-secret.yaml, statefulset.yaml) and charts/meilisearch (secret.yaml, provisioning-job.yaml) for reference implementations.
+
 ## Common Gotchas
 
 1. **Library charts in build**: If `Chart.yaml` has `type: library`, it's skipped by `make dump` and `make build`—intended behavior for dependency-only charts.

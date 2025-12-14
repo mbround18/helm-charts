@@ -9,11 +9,11 @@ gateway:
   # Generate gateway name from app label if not specified
   name: ""
   namespace: ""
-  
+
   # Pod selector for the Istio ingress gateway
   selector:
     app: istio-ingressgateway
-  
+
   # Gateway servers - can be overridden completely or merged
   servers:
     - port:
@@ -29,14 +29,14 @@ virtualService:
   # Generate name from parent chart if not specified
   name: ""
   namespace: ""
-  
+
   # Hosts for the VirtualService
   hosts:
     - ""
-  
+
   # Gateway references (auto-filled if using local gateway)
   gateways: []
-  
+
   # HTTP routes - can be extended with custom routes
   http: []
     # Example:
@@ -49,35 +49,35 @@ virtualService:
     #         host: api.default.svc.cluster.local
     #         port:
     #           number: 8080
-  
+
   # TLS routes (for passthrough/SNI routing)
   tls: []
-  
+
   # TCP routes
   tcp: []
-  
+
   # Export to other namespaces
   exportTo: []
 
 # TLS configuration
 tls:
   enabled: false
-  mode: SIMPLE  # SIMPLE, MUTUAL, AUTO_PASSTHROUGH, ISTIO_MUTUAL
-  
+  mode: SIMPLE # SIMPLE, MUTUAL, AUTO_PASSTHROUGH, ISTIO_MUTUAL
+
   # For Kubernetes: secret name with tls.crt and tls.key
   credentialName: ""
-  
+
   # For file paths (non-Kubernetes)
   serverCertificate: ""
   privateKey: ""
-  
+
   # HTTPS redirect
   httpsRedirect: false
-  
+
   # Optional: CA certificate for MUTUAL mode
   caCertificates: ""
   caCertCredentialName: ""
-  
+
   # TLS settings
   minProtocolVersion: TLSV1_2
   maxProtocolVersion: ""
@@ -95,7 +95,7 @@ externalDns:
 helpers:
   # If true, will automatically construct gateway reference from local gateway
   useLocalGateway: true
-  
+
   # If true, will append VirtualService routes instead of replacing
   mergeRoutes: false
 

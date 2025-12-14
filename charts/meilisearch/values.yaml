@@ -87,4 +87,3 @@ provisioning:
   apiKeyActions: ["*"]
   # Indexes allowed for this key
   apiKeyIndexes: ["*"]
-
