@@ -9,7 +9,7 @@ import os
 import sys
 import time
 
-import meilisearch
+from meilisearch import Client  # type: ignore[attr-defined]
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from rich.console import Console
@@ -28,11 +28,12 @@ def get_env(var: str, default: str | None = None) -> str:
     return value if value else default  # type: ignore[return-value]
 
 
-def wait_for_meilisearch(client: meilisearch.Client, max_retries: int = 30) -> bool:
+def wait_for_meilisearch(url: str, master_key: str, max_retries: int = 30) -> bool:
     """Wait for Meilisearch to be ready."""
     with console.status("[bold cyan]Waiting for Meilisearch to be ready..."):
         for attempt in range(max_retries):
             try:
+                client = Client(url, master_key)
                 health = client.health()
                 if health.get("status") == "available":
                     console.print("[green]✓ Meilisearch is ready[/green]")
@@ -45,26 +46,43 @@ def wait_for_meilisearch(client: meilisearch.Client, max_retries: int = 30) -> b
     return False
 
 
-def validate_api_key(client: meilisearch.Client, api_key: str) -> bool:
+def validate_master_key(url: str, master_key: str) -> bool:
+    """Validate the master key by testing it against Meilisearch."""
+    try:
+        client = Client(url, master_key)
+        health = client.health()
+        is_valid = health.get("status") == "available"
+        if is_valid:
+            console.print("[green]✓ Master key is valid[/green]")
+        else:
+            console.print("[red]✗ Master key validation failed[/red]")
+        return is_valid
+    except Exception as e:
+        console.print(f"[red]✗ Master key validation failed: {e}[/red]")
+        return False
+
+
+def validate_api_key(url: str, api_key: str) -> bool:
     """Validate an API key by testing it against Meilisearch."""
     try:
-        test_client = meilisearch.Client(client.config.url, api_key)
+        test_client = Client(url, api_key)
         health = test_client.health()
         return health.get("status") == "available"
     except Exception:
-        console.print("[yellow]API Key validation failed[/yellow]")
         return False
 
 
 def create_api_key(
-    client: meilisearch.Client,
+    url: str,
+    master_key: str,
     description: str,
     indexes: list[str],
     actions: list[str],
 ) -> str | None:
-    """Create a new API key in Meilisearch."""
+    """Create a new API key in Meilisearch using master key."""
     try:
         with console.status("[bold cyan]Creating API key..."):
+            client = Client(url, master_key)
             response = client.create_key(
                 options={
                     "name": description,
@@ -145,18 +163,21 @@ def main():
     console.print(config_table)
     console.print()
 
-    # Initialize client
-    client = meilisearch.Client(meili_host, meili_master_key)
-
     # Wait for Meilisearch
-    if not wait_for_meilisearch(client):
+    if not wait_for_meilisearch(meili_host, meili_master_key):
         console.print("[red]Error: Meilisearch is not responding[/red]")
+        sys.exit(1)
+
+    # Validate master key
+    console.print("[cyan]Validating master key...[/cyan]")
+    if not validate_master_key(meili_host, meili_master_key):
+        console.print("[red]Error: Master key is invalid[/red]")
         sys.exit(1)
 
     # Check for existing key
     if api_key_value:
         console.print("[cyan]Validating existing API key...[/cyan]")
-        if validate_api_key(client, api_key_value):
+        if validate_api_key(meili_host, api_key_value):
             console.print("[green]✓ Existing API key is valid[/green]")
             console.print("[bold green]✓ Provisioning complete![/bold green]")
             return
@@ -165,7 +186,9 @@ def main():
 
     # Generate new key
     console.print("[cyan]No valid API key found. Creating new one...[/cyan]")
-    new_key = create_api_key(client, key_description, key_indexes, key_actions)
+    new_key = create_api_key(
+        meili_host, meili_master_key, key_description, key_indexes, key_actions
+    )
 
     if not new_key:
         console.print("[red]Error: Failed to create API key[/red]")
