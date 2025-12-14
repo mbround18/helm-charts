@@ -28,12 +28,11 @@ def get_env(var: str, default: str | None = None) -> str:
     return value if value else default  # type: ignore[return-value]
 
 
-def wait_for_meilisearch(url: str, master_key: str, max_retries: int = 30) -> bool:
+def wait_for_meilisearch(client: Client, max_retries: int = 30) -> bool:
     """Wait for Meilisearch to be ready."""
     with console.status("[bold cyan]Waiting for Meilisearch to be ready..."):
         for attempt in range(max_retries):
             try:
-                client = Client(url, master_key)
                 health = client.health()
                 if health.get("status") == "available":
                     console.print("[green]✓ Meilisearch is ready[/green]")
@@ -46,10 +45,9 @@ def wait_for_meilisearch(url: str, master_key: str, max_retries: int = 30) -> bo
     return False
 
 
-def validate_master_key(url: str, master_key: str) -> bool:
+def validate_master_key(client: Client) -> bool:
     """Validate the master key by testing it against Meilisearch."""
     try:
-        client = Client(url, master_key)
         health = client.health()
         is_valid = health.get("status") == "available"
         if is_valid:
@@ -73,29 +71,27 @@ def validate_api_key(url: str, api_key: str) -> bool:
 
 
 def create_api_key(
-    url: str,
-    master_key: str,
+    client: Client,
     description: str,
     indexes: list[str],
     actions: list[str],
 ) -> str | None:
-    """Create a new API key in Meilisearch using master key."""
+    """Create a new API key in Meilisearch using master key client."""
     try:
         with console.status("[bold cyan]Creating API key..."):
-            # Debug: Verify master key is still valid before creating
-            debug_client = Client(url, master_key)
-            debug_health = debug_client.health()
-            if debug_health.get("status") != "available":
-                console.print("[red]✗ Master key became invalid before creating[/red]")
-                return None
+            # Clean and validate input
+            valid_indexes = [idx.strip() for idx in indexes if idx.strip()]
+            valid_actions = [act.strip() for act in actions if act.strip()]
 
-            client = Client(url, master_key)
+            console.print(f"[cyan]Using indexes: {valid_indexes}[/cyan]")
+            console.print(f"[cyan]Using actions: {valid_actions}[/cyan]")
+
             response = client.create_key(
                 options={
                     "name": description,
                     "description": description,
-                    "actions": actions,
-                    "indexes": indexes,
+                    "actions": valid_actions,
+                    "indexes": valid_indexes,
                     "expiresAt": None,
                 }
             )
@@ -159,10 +155,17 @@ def main():
     meili_master_key = get_env("MEILI_MASTER_KEY")
     api_key_value = os.getenv("MEILI_API_KEY", "").strip()
     namespace = get_env("NAMESPACE", "default")
-    secret_name = get_env("SECRET_NAME", "meilisearch-wikijs-data")
-    key_description = get_env("API_KEY_DESCRIPTION", "Wiki.js API Key")
-    key_indexes = get_env("API_KEY_INDEXES", "wikijs").split(",")
-    key_actions = get_env("API_KEY_ACTIONS", "*").split(",")
+    secret_name = get_env("SECRET_NAME", "meilisearch-api-key")
+    key_description = get_env("API_KEY_DESCRIPTION", "Provisioned API Key")
+    key_indexes_input = get_env("API_KEY_INDEXES", "*").split(",")
+    key_actions_input = get_env("API_KEY_ACTIONS", "*").split(",")
+
+    # Use ["*"] if the input contains "*" to allow all
+    key_indexes = ["*"] if "*" in key_indexes_input else key_indexes_input
+    key_actions = ["*"] if "*" in key_actions_input else key_actions_input
+
+    # Initialize master key client (reuse throughout)
+    master_client = Client(meili_host, meili_master_key)
 
     # Display configuration
     config_table = Table(title="Configuration", show_header=False)
@@ -176,13 +179,13 @@ def main():
     console.print()
 
     # Wait for Meilisearch
-    if not wait_for_meilisearch(meili_host, meili_master_key):
+    if not wait_for_meilisearch(master_client):
         console.print("[red]Error: Meilisearch is not responding[/red]")
         sys.exit(1)
 
     # Validate master key
     console.print("[cyan]Validating master key...[/cyan]")
-    if not validate_master_key(meili_host, meili_master_key):
+    if not validate_master_key(master_client):
         console.print("[red]Error: Master key is invalid[/red]")
         sys.exit(1)
 
@@ -196,11 +199,9 @@ def main():
 
         console.print("[yellow]Existing API key is invalid. Regenerating...[/yellow]")
 
-    # Generate new key
+    # Generate new key using master client
     console.print("[cyan]No valid API key found. Creating new one...[/cyan]")
-    new_key = create_api_key(
-        meili_host, meili_master_key, key_description, key_indexes, key_actions
-    )
+    new_key = create_api_key(master_client, key_description, key_indexes, key_actions)
 
     if not new_key:
         console.print("[red]Error: Failed to create API key[/red]")

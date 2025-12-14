@@ -58,7 +58,10 @@ spec:
             - sh
             - -c
             - |
-              set -e    
+              set -e
+              
+              # Install uv
+              pip install uv --quiet
               
               # Create temp directory and copy files
               mkdir -p /tmp/provisioner
@@ -66,9 +69,8 @@ spec:
               cp /scripts/pyproject.toml /tmp/provisioner/
               cd /tmp/provisioner
 
-              python -m pip install .
-              
-              python main.py
+              # Use uv to install and run
+              uv run main.py
           volumeMounts:
             - name: scripts
               mountPath: /scripts
