@@ -1,4 +1,15 @@
 {{- if .Values.provisioning.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "meilisearch.fullname" . }}-provisioner-scripts
+  labels:
+    {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+data:
+  {{ (.Files.Glob "resources/*").AsConfig | indent 2 }}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -27,8 +38,10 @@ spec:
               done
       containers:
         - name: provisioner
-          image: alpine:3.22
+          image: python:3.14-slim-trixie
           env:
+            - name: MEILI_HOST
+              value: "http://{{ include "meilisearch.fullname" . }}:{{ .Values.service.port }}"
             - name: MEILI_MASTER_KEY
               valueFrom:
                 secretKeyRef:
@@ -36,68 +49,45 @@ spec:
                   key: master-key
             - name: MEILI_API_KEY
               valueFrom:
-                  secretKeyRef:
-                    name: {{ .Values.provisioning.indexSecret }}
-                    key: api-key
+                secretKeyRef:
+                  name: {{ .Values.provisioning.indexSecret }}
+                  key: api-key
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SECRET_NAME
+              value: {{ .Values.provisioning.indexSecret }}
+            - name: API_KEY_DESCRIPTION
+              value: "{{ .Values.provisioning.apiKeyDescription }}"
+            - name: API_KEY_INDEXES
+              value: "{{ .Values.provisioning.apiKeyIndexes | join "," }}"
+            - name: API_KEY_ACTIONS
+              value: "{{ .Values.provisioning.apiKeyActions | join "," }}"
           command:
             - sh
             - -c
             - |
               set -e
-              apk add --no-cache curl jq bash
-              # Install kubectl
-              KUBECTL_VERSION="v1.29.3"
-              curl -LO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
-              install -m 755 kubectl /usr/local/bin/kubectl
+              # Install uv and dependencies
+              apt-get update && apt-get install -y curl
+              curl -LsSf https://astral.sh/uv/install.sh | sh
+              export PATH="$HOME/.cargo/bin:$PATH"
               
-              MEILI_HOST="http://{{ include "meilisearch.fullname" . }}:{{ .Values.service.port }}"
+              # Create temp directory and copy files
+              mkdir -p /tmp/provisioner
+              cp /scripts/main.py /tmp/provisioner/
+              cp /scripts/pyproject.toml /tmp/provisioner/
+              cd /tmp/provisioner
               
-              # Wait for Meilisearch to be healthy
-              until curl -s $MEILI_HOST/health; do
-                echo "Waiting for Meilisearch..."
-                sleep 2
-              done
-
-              # Check if key already exists in secret and is not empty
-              if [ -n "$MEILI_API_KEY" ] && [ "$MEILI_API_KEY" != "" ]; then
-                echo "Validating existing API Key..."
-                # Test the key by hitting the health endpoint
-                HEALTH=$(curl -s -X GET "$MEILI_HOST/health" \
-                  -H "Authorization: Bearer $MEILI_API_KEY")
-                
-                if echo "$HEALTH" | jq -e '.status == "available"' > /dev/null 2>&1; then
-                  echo "API Key is valid."
-                  exit 0
-                else
-                  echo "API Key validation failed. Regenerating..."
-                fi
-              fi
-
-              echo "Generating new API Key..."
-              # Create key in Meilisearch
-              RESPONSE=$(curl -s -X POST "$MEILI_HOST/keys" \
-                -H "Authorization: Bearer $MEILI_MASTER_KEY" \
-                -H "Content-Type: application/json" \
-                --data-binary @- <<EOF
-              {
-                "description": "{{ .Values.provisioning.apiKeyDescription }}",
-                "actions": {{ .Values.provisioning.apiKeyActions | toJson }},
-                "indexes": {{ .Values.provisioning.apiKeyIndexes | toJson }},
-                "expiresAt": null
-              }
-              EOF
-              )
-
-              KEY=$(echo $RESPONSE | jq -r .key)
-
-              if [ "$KEY" == "null" ]; then
-                echo "Failed to generate key: $RESPONSE"
-                exit 1
-              fi
-
-              echo "Key generated. Updating secret..."
-              kubectl patch secret {{ .Values.provisioning.indexSecret }} \
-                -p "{\"stringData\":{\"api-key\": \"$KEY\"}}"
-
-              echo "Done."
+              # Run provisioner
+              uv run main.py
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "meilisearch.fullname" . }}-provisioner-scripts
+            defaultMode: 0755
 {{- end }}
