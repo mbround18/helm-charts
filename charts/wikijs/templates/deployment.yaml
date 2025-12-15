@@ -28,8 +28,8 @@ spec:
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.postgres.postgresql.passwordSecret }}
-                  key: POSTGRES_PASSWORD
+                  name: {{ .Values.postgres.secrets.password.name }}
+                  key: {{ .Values.postgres.secrets.password.key }}
           command:
             - sh
             - -c
