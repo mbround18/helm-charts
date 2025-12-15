@@ -54,6 +54,11 @@ meilisearch:
     repository: mbround18/wikijs-meilisearch-module
     tag: sha-7ae9ce1
     pullPolicy: IfNotPresent
+  secrets:
+    masterKey:
+      name: meilisearch-master-key
+      key: MEILI_MASTER_KEY
+      create: true
   resources: {}
   persistence:
     enabled: true
@@ -72,6 +77,15 @@ meilisearch:
 postgres:
   enabled: true
   authMethod: scram-sha-256
+  secrets:
+    password:
+      name: postgres-password
+      key: POSTGRES_PASSWORD
+      create: true
+    superuserPassword:
+      name: postgres-superuser-password
+      key: POSTGRES_PASSWORD
+      create: true
   ha:
     enabled: false
   image:

@@ -121,13 +121,13 @@ spec:
             - name: DB_PASS
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.postgres.postgresql.passwordSecret }}
-                  key: POSTGRES_PASSWORD
+                  name: {{ .Values.postgres.secrets.password.name }}
+                  key: {{ .Values.postgres.secrets.password.key }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.postgres.postgresql.passwordSecret }}
-                  key: POSTGRES_PASSWORD
+                  name: {{ .Values.postgres.secrets.password.name }}
+                  key: {{ .Values.postgres.secrets.password.key }}
             - name: HA_ACTIVE 
               value: "1"
           ports:
