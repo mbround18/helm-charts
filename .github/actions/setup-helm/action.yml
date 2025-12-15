@@ -1,0 +1,54 @@
+name: "setup-helm"
+description: "Composite action to install Helm and add Helm repositories"
+inputs:
+  version:
+    description: "Helm version (e.g. v3.14.4)"
+    required: false
+    default: "v3.14.4"
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: "${{ inputs.version }}"
+
+    # use https://github.com/actions/github-script to find all chart.yaml and chart.lock files and extract repositories and add them
+    - uses: actions/github-script@v8
+      with:
+        script: |
+          const { execSync } = require('child_process');
+          const fs = require('fs');
+          const path = require('path');
+
+          function findChartFiles(dir, fileList = []) {
+            const files = fs.readdirSync(dir);
+            files.forEach(file => {
+              const filePath = path.join(dir, file);
+              if (fs.statSync(filePath).isDirectory()) {
+                findChartFiles(filePath, fileList);
+              } else if (file === 'Chart.yaml' || file === 'Chart.lock') {
+                fileList.push(filePath);
+              }
+            });
+            return fileList;
+          }
+
+          const chartFiles = findChartFiles('./charts');
+          const repos = new Set();
+
+          chartFiles.forEach(file => {
+            const content = fs.readFileSync(file, 'utf8');
+            const regex = /repository:\s*(https?:\/\/[^\s]+)/g;
+            let match;
+            while ((match = regex.exec(content)) !== null) {
+              repos.add(match[1]);
+            }
+          });
+
+          repos.forEach(repo => {
+            console.log(`Adding Helm repo: ${repo}`);
+            execSync(`helm repo add temp-repo-${Buffer.from(repo).toString('base64').slice(0, 8)} ${repo}`);
+          });
+
+          execSync('helm repo update');
