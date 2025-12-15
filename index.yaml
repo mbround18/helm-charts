@@ -262,6 +262,21 @@ entries:
     version: 0.1.0
   meilisearch:
   - apiVersion: v2
+    appVersion: v1.30.0
+    created: "2025-12-15T22:42:09.501764871Z"
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Meilisearch
+    digest: ea0aa7c74bb28cb38119c99371b47ffdcc6ff7768764b14bfa104fbe12a688b5
+    name: meilisearch
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/meilisearch-0.1.6/meilisearch-0.1.6.tgz
+    version: 0.1.6
+  - apiVersion: v2
     appVersion: v1.11.1
     created: "2025-12-15T20:54:20.958481086Z"
     dependencies:
@@ -333,6 +348,15 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/palworld-0.2.0/palworld-0.2.0.tgz
     version: 0.2.0
   postgres:
+  - apiVersion: v2
+    appVersion: "18"
+    created: "2025-12-15T22:42:09.606038644Z"
+    description: PostgreSQL Helm chart with HA and secret management
+    digest: 37103747c390a43a7ad9da9e52db258bc47adfaec621ee6116e084b233a40cc7
+    name: postgres
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/postgres-0.1.7/postgres-0.1.7.tgz
+    version: 0.1.7
   - apiVersion: v2
     appVersion: "15.5"
     created: "2025-12-14T22:49:18.418874835Z"
@@ -505,6 +529,27 @@ entries:
   wikijs:
   - apiVersion: v2
     appVersion: "2.5"
+    created: "2025-12-15T22:42:09.72167529Z"
+    dependencies:
+    - name: postgres
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    - condition: meilisearch.enabled
+      name: meilisearch
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.4
+    description: Wiki.js Helm chart with Meilisearch and Postgres integration
+    digest: d34f0da9b210325e9d578a6659759a3903d6dda9823efbb2e23d554209719216
+    name: wikijs
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.7/wikijs-0.2.7.tgz
+    version: 0.2.7
+  - apiVersion: v2
+    appVersion: "2.5"
     created: "2025-12-15T21:00:14.438957774Z"
     dependencies:
     - name: postgres
@@ -566,4 +611,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: "2025-12-15T21:00:14.439030179Z"
+generated: "2025-12-15T22:42:09.721741203Z"
