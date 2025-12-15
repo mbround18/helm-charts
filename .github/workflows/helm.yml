@@ -1,43 +1,63 @@
 name: Helm Validation
 
 on:
-  push:
-    branches:
-      - "**"
   pull_request:
     branches:
-      - "**"
+      - "main"
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  helm-validation:
-    name: Helm Validation
+  lint:
+    name: Helm Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: v3.14.4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
+      - name: Setup Helm
+        uses: ./.github/actions/setup-helm
 
-      - name: Install uv
-        shell: bash
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-          uv --version
+      - name: Lint charts
+        run: make lint
 
-      - name: Verify tools
-        run: |
-          helm version
-          python --version
-          which uv
+  test:
+    name: Helm Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
+
+      - name: Setup Helm
+        uses: ./.github/actions/setup-helm
 
       - name: Run Helm tests
         run: make test
+
+  build:
+    name: Helm Build
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
+
+      - name: Setup Helm
+        uses: ./.github/actions/setup-helm
+
+      - name: Build Helm charts
+        run: make build

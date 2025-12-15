@@ -5,15 +5,15 @@ type: application
 version: 0.1.6
 appVersion: v0.0.3
 keywords:
-- vein
-- game-server
-- valheim-inspired
+  - vein
+  - game-server
+  - valheim-inspired
 home: https://github.com/mbround18/vein-docker
 sources:
-- https://github.com/mbround18/vein-docker
+  - https://github.com/mbround18/vein-docker
 maintainers:
-- name: mbruno
+  - name: mbruno
 dependencies:
-- name: game-tools
-  version: 0.1.0
-  repository: file://../game-tools
+  - name: game-tools
+    version: 0.1.0
+    repository: file://../game-tools
