@@ -62,8 +62,6 @@ meilisearch:
   service:
     type: ClusterIP
     port: 7700
-  auth:
-    masterKeySecret: meilisearch-master-key
   provisioning:
     enabled: true
     indexSecret: meilisearch-wikijs-data
@@ -87,4 +85,3 @@ postgres:
   postgresql:
     db: wikijs
     user: wikijs
-    passwordSecret: postgres-password

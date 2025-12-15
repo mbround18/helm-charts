@@ -30,8 +30,8 @@ spec:
             - name: MEILI_MASTER_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.auth.masterKeySecret }}
-                  key: master-key
+                  name: {{ .Values.secrets.masterKey.name }}
+                  key: {{ .Values.secrets.masterKey.key }}
           ports:
             - containerPort: 7700
               name: http

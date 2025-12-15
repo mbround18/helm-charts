@@ -78,8 +78,11 @@ istio-ingress:
     credentialName: ""
     httpsRedirect: false
 
-auth:
-  masterKeySecret: meilisearch-master-key
+secrets:
+  masterKey:
+    name: meilisearch-master-key
+    key: MEILI_MASTER_KEY
+    create: true
 
 provisioning:
   enabled: false
