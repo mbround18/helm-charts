@@ -1,17 +1,17 @@
 apiVersion: v2
 name: wikijs
 description: Wiki.js Helm chart with Meilisearch and Postgres integration
-version: 0.2.3
-appVersion: "2.5"
+version: 0.2.4
+appVersion: '2.5'
 dependencies:
-  - name: postgres
-    version: 0.1.0
-    repository: https://mbround18.github.io/helm-charts
-  - name: istio-ingress
-    version: 0.1.0
-    repository: https://mbround18.github.io/helm-charts
-    condition: istio-ingress.enabled
-  - name: meilisearch
-    version: 0.1.0
-    repository: https://mbround18.github.io/helm-charts
-    condition: meilisearch.enabled
+- name: postgres
+  version: 0.1.0
+  repository: https://mbround18.github.io/helm-charts
+- name: istio-ingress
+  version: 0.1.0
+  repository: https://mbround18.github.io/helm-charts
+  condition: istio-ingress.enabled
+- name: meilisearch
+  version: 0.1.0
+  repository: https://mbround18.github.io/helm-charts
+  condition: meilisearch.enabled
