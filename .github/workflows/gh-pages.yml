@@ -17,9 +17,11 @@ permissions:
 
 jobs:
   validation:
+    name: Helm Validation
     uses: ./.github/workflows/helm.yml
 
-  build:
+  publish:
+    name: Package and Publish Charts
     runs-on: ubuntu-latest
     needs:
       - validation
