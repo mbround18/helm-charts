@@ -17,13 +17,21 @@ image:
 ha:
   enabled: false
 
+secrets:
+  password:
+    name: postgres-password
+    key: POSTGRES_PASSWORD
+    create: true
+  superuserPassword:
+    name: postgres-superuser-password
+    key: POSTGRES_PASSWORD
+    create: true
+
 postgresql:
   db: wikijs
   user: wikijs
-  passwordSecret: postgres-password
   # Superuser configuration
   superuser: postgres
-  superuserPasswordSecret: postgres-superuser-password
 
 resources: {}
 

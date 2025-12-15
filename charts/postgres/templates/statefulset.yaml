@@ -16,7 +16,7 @@ spec:
     metadata:
       annotations:
         # ArgoCD generates with helm template piped to kubectl apply, this is needed for helm but not argo
-        {{- if not (hasKey .Values.global.secret.annotations "argocd.argoproj.io/resource-ignore") }}
+        {{- if or (not (hasKey .Values.global.secret.annotations "argocd.argoproj.io/resource-ignore")) (not .Values.secrets.superuserPassword.create) }}
         checksum/superuser-secret: {{ include (print $.Template.BasePath "/postgres-superuser-secret.yaml") . | sha256sum }}
         {{- end }}
       labels:
@@ -62,8 +62,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.postgresql.superuserPasswordSecret }}
-                  key: POSTGRES_PASSWORD
+                  name: {{ .Values.secrets.superuserPassword.name }}
+                  key: {{ .Values.secrets.superuserPassword.key }}
             - name: APP_USER
               value: {{ .Values.postgresql.user }}
             - name: APP_DB
@@ -71,8 +71,8 @@ spec:
             - name: APP_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.postgresql.passwordSecret }}
-                  key: POSTGRES_PASSWORD
+                  name: {{ .Values.secrets.password.name }}
+                  key: {{ .Values.secrets.password.key }}
             - name: POSTGRES_HOST_AUTH_METHOD
               value: {{ .Values.authMethod | default "scram-sha-256" }}
           ports:
