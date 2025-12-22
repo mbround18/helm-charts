@@ -37,7 +37,6 @@ def main():
         with open(inp, "r") as f:
             content = f.read()
 
-    docs = []
     # Split on lines that are exactly '---' (YAML document separator)
     parts = []
     cur = []

@@ -28,6 +28,10 @@ test: dump
 	@echo "Validating templated YAML with Python (uv)"
 	@uv run tools/validate_yaml.py ./tmp
 
+update-readme:
+	@uv run tools/update_readme_charts.py docs/README.md
+	@make lint
+
 build:
 	@mkdir -p ./tmp
 	@for chart in $(shell ls -d ./charts/*/); do \
