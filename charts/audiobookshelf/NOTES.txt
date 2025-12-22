@@ -1,0 +1,16 @@
+Thank you for installing Audiobookshelf via Helm!
+
+- The application stores its DB and settings under `/config`. Per upstream docs, avoid network-mounted filesystems for `CONFIG_PATH`.
+- `values.yaml` includes persistence settings for `config`, `metadata`, `audiobooks`, and `podcasts`.
+- To enable Istio VirtualService merge, set `istio-ingress.enabled=true` and configure `istio-ingress.virtualService.route` values.
+
+Examples:
+
+Enable ingress and set host in `values.yaml`:
+
+  ingress:
+    enabled: true
+    hosts:
+      - host: audiobookshelf.example.com
+
+To use Postgres or Meilisearch subcharts, set `postgres.enabled=true` or `meilisearch.enabled=true` and wire credentials appropriately.

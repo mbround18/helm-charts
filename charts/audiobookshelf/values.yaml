@@ -1,0 +1,95 @@
+image:
+  repository: ghcr.io/advplyr/audiobookshelf
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 80
+
+persistence:
+  config:
+    enabled: true
+    storageClassName: ""
+    size: 10Gi
+    claimName: audiobookshelf-config
+    mountPath: /config
+  metadata:
+    enabled: true
+    storageClassName: ""
+    size: 20Gi
+    claimName: audiobookshelf-metadata
+    mountPath: /metadata
+  audiobooks:
+    enabled: true
+    storageClassName: ""
+    size: 100Gi
+    claimName: audiobookshelf-books
+    mountPath: /audiobooks
+  podcasts:
+    enabled: false
+    storageClassName: ""
+    size: 10Gi
+    claimName: audiobookshelf-podcasts
+    mountPath: /podcasts
+
+env: {}
+# Example overrides:
+# env:
+#   HOST: 127.0.0.1
+#   PORT: "13378"
+#   TZ: "UTC"
+#   FFMPEG_PATH: ffmpeg
+#   FFPROBE_PATH: ffprobe
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    route:
+      host: audiobookshelf
+      port: 80
+
+ingress:
+  enabled: false
+  hosts:
+    - host: audiobookshelf.local
+      paths:
+        - /
+
+backups:
+  enabled: false
+  image: mbround18/backup-cron:latest
+  schedule: "0 3 * * *"
+  retainNDays: "7"
+  retainNFiles: "10"
+
+resources: {}
+
+serviceAccount:
+  create: true
+  name: ""
+
+secrets:
+  # JWT secret config
+  jwt:
+    create: false
+    name: audiobookshelf-jwt
+    key: JWT_SECRET_KEY
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Pod security and chown init container
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+initChown:
+  # If enabled, an initContainer will chown the mounted volumes to the rootless UID/GID
+  enabled: true
+  image: busybox:1.36
+  # Extra directories the chown init container should ensure (optional)
+  extraDirs: []

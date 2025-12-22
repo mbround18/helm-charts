@@ -3,6 +3,7 @@
 lint:
 	@npx -y prettier --write .
 	@for chart in $(shell ls -d ./charts/*/); do helm lint $$chart; done
+	@uv run ruff format .
 
 dump:
 	@rm -rf ./tmp
@@ -26,6 +27,10 @@ test: dump
 	@find . -name "*.py" -not -path "./.venv/*" -not -path "./.*" | xargs -I {} python3 -m py_compile {}
 	@echo "Validating templated YAML with Python (uv)"
 	@uv run tools/validate_yaml.py ./tmp
+
+update-readme:
+	@uv run tools/update_readme_charts.py docs/README.md
+	@make lint
 
 build:
 	@mkdir -p ./tmp

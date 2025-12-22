@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "audiobookshelf.fullname" . }}-config
+data:
+  # Example default paths for external binaries
+  FFMPEG_PATH: {{ .Values.env.FFMPEG_PATH | default "ffmpeg" }}
+  FFPROBE_PATH: {{ .Values.env.FFPROBE_PATH | default "ffprobe" }}

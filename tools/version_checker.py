@@ -43,10 +43,10 @@ def bump_version(v: str, bump: str) -> str:
         raise ValueError(f"Not a semver: {v}")
     major, minor, patch = t
     if bump == "major":
-        return f"{major+1}.0.0"
+        return f"{major + 1}.0.0"
     if bump == "minor":
-        return f"{major}.{minor+1}.0"
-    return f"{major}.{minor}.{patch+1}"
+        return f"{major}.{minor + 1}.0"
+    return f"{major}.{minor}.{patch + 1}"
 
 
 def find_latest_chart_tag(chart_name: str) -> Optional[Tuple[str, str]]:
@@ -115,7 +115,9 @@ def get_pr_labels(owner_repo: str, pr_number: int, token: Optional[str]) -> List
     return names
 
 
-def determine_bump(commits: Iterable[str], chart_path: Path, owner_repo: str, token: Optional[str]) -> str:
+def determine_bump(
+    commits: Iterable[str], chart_path: Path, owner_repo: str, token: Optional[str]
+) -> str:
     bump = "patch"
     for c in commits:
         msg = read_commit_message(c)
@@ -202,10 +204,15 @@ def main() -> int:
             log("INFO", msg)
             if summary_file:
                 with open(summary_file, "a", encoding="utf-8") as sf:
-                    sf.write(f"- Chart: {chart_name} - No changes since last release, skipping version bump.\n")
+                    sf.write(
+                        f"- Chart: {chart_name} - No changes since last release, skipping version bump.\n"
+                    )
             continue
 
-        log("INFO", f"Changes detected for {chart_name} since the last release. Determining version bump type...")
+        log(
+            "INFO",
+            f"Changes detected for {chart_name} since the last release. Determining version bump type...",
+        )
         commits = get_commits_since(latest_tag, chart_dir)
         bump = determine_bump(commits, chart_dir, owner_repo, token)
         log("INFO", f"Determined bump type: {bump}")
@@ -215,7 +222,7 @@ def main() -> int:
         log("INFO", f"Current Chart.yaml version: {current_version}")
         latest_tuple = parse_semver(latest_ver) or (0, 0, 0)
         current_tuple = parse_semver(current_version or "0.0.0") or (0, 0, 0)
-        base_version = (current_version or latest_ver)
+        base_version = current_version or latest_ver
         if current_tuple < latest_tuple:
             base_version = latest_ver
         if base_version != latest_ver:
@@ -225,12 +232,19 @@ def main() -> int:
         if dry_run:
             if summary_file:
                 with open(summary_file, "a", encoding="utf-8") as sf:
-                    sf.write(f"- Chart: {chart_name} - Bump type: {bump} - New version: {new_version}\n")
+                    sf.write(
+                        f"- Chart: {chart_name} - Bump type: {bump} - New version: {new_version}\n"
+                    )
             continue
 
         # Skip downgrade or no-op
-        if current_version and (parse_semver(current_version) or (0, 0, 0)) >= (parse_semver(new_version) or (0, 0, 0)):
-            log("INFO", f"{chart_name} already at version {current_version} >= target {new_version}, skipping update.")
+        if current_version and (parse_semver(current_version) or (0, 0, 0)) >= (
+            parse_semver(new_version) or (0, 0, 0)
+        ):
+            log(
+                "INFO",
+                f"{chart_name} already at version {current_version} >= target {new_version}, skipping update.",
+            )
             continue
 
         log("INFO", f"Updating chart version in {chart_yaml} to {new_version}")
@@ -240,12 +254,14 @@ def main() -> int:
         try:
             subprocess.check_call(["git", "add", str(chart_yaml)])
             # If nothing changed, commit will fail; ignore
-            subprocess.check_call([
-                "git",
-                "commit",
-                "-m",
-                f"[skip ci] Robot commit: Bumping chart version for {chart_name} to {new_version}",
-            ])
+            subprocess.check_call(
+                [
+                    "git",
+                    "commit",
+                    "-m",
+                    f"[skip ci] Robot commit: Bumping chart version for {chart_name} to {new_version}",
+                ]
+            )
             log("INFO", f"Version bump commit created for {chart_name}")
         except subprocess.CalledProcessError as e:
             log("WARNING", f"Git commit failed (possibly no changes); continuing. {e}")
@@ -253,7 +269,11 @@ def main() -> int:
     if not dry_run:
         # Push to current branch
         ref = os.environ.get("GITHUB_REF", "")
-        branch = ref.split("/heads/")[-1] if "/heads/" in ref else run(["git", "symbolic-ref", "--short", "HEAD"])  # type: ignore[arg-type]
+        branch = (
+            ref.split("/heads/")[-1]
+            if "/heads/" in ref
+            else run(["git", "symbolic-ref", "--short", "HEAD"])
+        )  # type: ignore[arg-type]
         log("INFO", f"Pushing changes to branch: {branch}")
         subprocess.check_call(["git", "push", "origin", f"HEAD:{branch}"])
 
