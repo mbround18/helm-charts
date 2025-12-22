@@ -2,10 +2,10 @@ apiVersion: v2
 name: audiobookshelf
 description: Helm chart for Audiobookshelf (self-hosted audiobook & podcast server)
 type: application
-version: 0.1.0
-appVersion: "latest"
+version: 0.1.1
+appVersion: latest
 dependencies:
-  - name: istio-ingress
-    version: 0.1.0
-    repository: https://mbround18.github.io/helm-charts
-    condition: istio-ingress.enabled
+- name: istio-ingress
+  version: 0.1.0
+  repository: https://mbround18.github.io/helm-charts
+  condition: istio-ingress.enabled
