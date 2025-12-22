@@ -1,0 +1,175 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "audiobookshelf.fullname" . }}
+  labels:
+    {{- include "audiobookshelf.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "audiobookshelf.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "audiobookshelf.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "audiobookshelf.labels" . | nindent 8 }}
+    spec:
+      # Pod-level security context: enforce non-root user/group and fsGroup
+      securityContext:
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      serviceAccountName: {{ if .Values.serviceAccount.name }}{{ .Values.serviceAccount.name }}{{ else if .Values.serviceAccount.create }}{{ include "audiobookshelf.fullname" . }}-sa{{ end }}
+      initContainers:
+        {{- /* chown any mounted volumes to the non-root UID/GID */}}
+        {{- if .Values.initChown.enabled }}
+        - name: chown-volumes
+          image: {{ .Values.initChown.image | quote }}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              TARGETS=""
+              if [ -d /config ]; then TARGETS="$TARGETS /config"; fi
+              if [ -d /metadata ]; then TARGETS="$TARGETS /metadata"; fi
+              if [ -d /audiobooks ]; then TARGETS="$TARGETS /audiobooks"; fi
+              if [ -d /podcasts ]; then TARGETS="$TARGETS /podcasts"; fi
+              {{- if .Values.initChown.extraDirs }}
+              # extra dirs from values
+              {{- range $i, $d := .Values.initChown.extraDirs }}
+              if [ -d "{{ $d }}" ]; then TARGETS="$TARGETS {{ $d }}"; fi
+              {{- end }}
+              {{- end }}
+              if [ -n "$TARGETS" ]; then chown -R {{ .Values.securityContext.runAsUser }}:{{ .Values.securityContext.runAsGroup }} $TARGETS || true; fi
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          volumeMounts:
+            - name: {{ .Values.persistence.config.claimName }}
+              mountPath: /config
+            - name: {{ .Values.persistence.metadata.claimName }}
+              mountPath: /metadata
+            {{- if .Values.persistence.audiobooks.enabled }}
+            - name: {{ .Values.persistence.audiobooks.claimName }}
+              mountPath: /audiobooks
+            {{- end }}
+            {{- if .Values.persistence.podcasts.enabled }}
+            - name: {{ .Values.persistence.podcasts.claimName }}
+              mountPath: /podcasts
+            {{- end }}
+        {{- end }}
+      containers:
+        - name: audiobookshelf
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            {{- if not (hasKey .Values.env "CONFIG_PATH") }}
+            - name: CONFIG_PATH
+              value: "{{ .Values.persistence.config.mountPath }}"
+            {{- end }}
+            {{- if not (hasKey .Values.env "METADATA_PATH") }}
+            - name: METADATA_PATH
+              value: "{{ .Values.persistence.metadata.mountPath }}"
+            {{- end }}
+            {{- if and .Values.persistence.audiobooks.enabled (not (hasKey .Values.env "AUDIOBOOKS_PATH")) }}
+            - name: AUDIOBOOKS_PATH
+              value: "{{ .Values.persistence.audiobooks.mountPath }}"
+            {{- end }}
+            {{- if and .Values.persistence.podcasts.enabled (not (hasKey .Values.env "PODCASTS_PATH")) }}
+            - name: PODCASTS_PATH
+              value: "{{ .Values.persistence.podcasts.mountPath }}"
+            {{- end }}
+
+            {{- /* Inject JWT secret from created Secret if present and not overridden in .Values.env */ -}}
+            {{- $jwtName := .Values.secrets.jwt.name }}
+            {{- $jwtKey := .Values.secrets.jwt.key -}}
+            {{- if and (not (hasKey .Values.env "JWT_SECRET_KEY")) .Values.secrets.jwt.create }}
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $jwtName }}
+                  key: {{ $jwtKey }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+          volumeMounts:
+            - name: {{ .Values.persistence.config.claimName }}
+              mountPath: {{ .Values.persistence.config.mountPath }}
+            - name: {{ .Values.persistence.metadata.claimName }}
+              mountPath: {{ .Values.persistence.metadata.mountPath }}
+            {{- if .Values.persistence.audiobooks.enabled }}
+            - name: {{ .Values.persistence.audiobooks.claimName }}
+              mountPath: {{ .Values.persistence.audiobooks.mountPath }}
+            {{- end }}
+            {{- if .Values.persistence.podcasts.enabled }}
+            - name: {{ .Values.persistence.podcasts.claimName }}
+              mountPath: {{ .Values.persistence.podcasts.mountPath }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.config.enabled }}
+    - metadata:
+        name: {{ .Values.persistence.config.claimName }}
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.persistence.config.size }}
+        {{- if .Values.persistence.config.storageClassName }}
+        storageClassName: {{ .Values.persistence.config.storageClassName }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.metadata.enabled }}
+    - metadata:
+        name: {{ .Values.persistence.metadata.claimName }}
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.persistence.metadata.size }}
+        {{- if .Values.persistence.metadata.storageClassName }}
+        storageClassName: {{ .Values.persistence.metadata.storageClassName }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.audiobooks.enabled }}
+    - metadata:
+        name: {{ .Values.persistence.audiobooks.claimName }}
+      spec:
+        accessModes: [ "ReadWriteMany" ]
+        resources:
+          requests:
+            storage: {{ .Values.persistence.audiobooks.size }}
+        {{- if .Values.persistence.audiobooks.storageClassName }}
+        storageClassName: {{ .Values.persistence.audiobooks.storageClassName }}
+        {{- end }}
+    {{- end }}

@@ -3,6 +3,7 @@
 lint:
 	@npx -y prettier --write .
 	@for chart in $(shell ls -d ./charts/*/); do helm lint $$chart; done
+	@uv run ruff format .
 
 dump:
 	@rm -rf ./tmp

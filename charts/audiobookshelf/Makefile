@@ -2,7 +2,7 @@
 
 # Chart-specific overrides (set before including central Makefile)
 CHART_DIR := $(CURDIR)
-RELEASE_NAME ?= meilisearch
+RELEASE_NAME ?= audiobookshelf
 BUILD_DIR ?= tmp
 
 # include centralized targets from repo root
