@@ -1,0 +1,64 @@
+image:
+  repository: syncthing/syncthing
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 8384
+
+persistence:
+  data:
+    enabled: true
+    storageClassName: ""
+    size: 30Gi
+    claimName: syncthing-data
+    mountPath: /var/syncthing
+
+env: {}
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    route:
+      host: syncthing
+      port: 8384
+
+ingress:
+  enabled: false
+  hosts:
+    - host: syncthing.local
+      paths:
+        - /
+
+resources: {}
+
+serviceAccount:
+  create: true
+  name: ""
+
+secrets:
+  # JWT secret config
+  password:
+    create: false
+    name: syncthing-password
+    key: PASSWORD
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Pod security and chown init container
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+
+initChown:
+  # If enabled, an initContainer will chown the mounted volumes to the rootless UID/GID
+  enabled: true
+  image: syncthing/syncthing
+  # Extra directories the chown init container should ensure (optional)
+  extraDirs: []

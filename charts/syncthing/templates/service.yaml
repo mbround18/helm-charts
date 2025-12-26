@@ -1,0 +1,37 @@
+
+# HTTP Service (for ingress)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "syncthing.fullname" . }}-http
+  labels:
+    {{- include "syncthing.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "syncthing.selectorLabels" . | nindent 4 }}
+
+# Sync Service (NodePort)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "syncthing.fullname" . }}-sync
+  labels:
+    {{- include "syncthing.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  ports:
+    - port: 22000
+      targetPort: sync
+      protocol: TCP
+      name: sync
+      nodePort: null
+  selector:
+    {{- include "syncthing.selectorLabels" . | nindent 4 }}

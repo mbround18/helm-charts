@@ -184,6 +184,16 @@ See [values.yaml](values.yaml) for all available configuration options.
 | `externalDns.enabled`     | Enable external-dns annotations                           | `false`          |
 | `helpers.useLocalGateway` | Auto-link VirtualService to local gateway                 | `true`           |
 
+## Testing
+
+Render and validate the chart fixtures locally (requires Helm on PATH):
+
+```bash
+uv run pytest charts/istio-ingress/tests/test_render.py
+```
+
+The suite covers default rendering, gateway/virtualService overrides, TLS/HTTPS with external-dns annotations, TCP routes, and feature-flag matrices.
+
 ## Notes
 
 - By default, the VirtualService will automatically reference the local Gateway if `helpers.useLocalGateway` is true
