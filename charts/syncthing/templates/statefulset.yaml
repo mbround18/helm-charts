@@ -1,0 +1,136 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "syncthing.fullname" . }}
+  labels:
+    {{- include "syncthing.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "syncthing.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "syncthing.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "syncthing.labels" . | nindent 8 }}
+    spec:
+      # Pod-level security context: enforce non-root user/group and fsGroup
+      securityContext:
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+      serviceAccountName: {{ if .Values.serviceAccount.name }}{{ .Values.serviceAccount.name }}{{ else if .Values.serviceAccount.create }}{{ include "syncthing.fullname" . }}-sa{{ end }}
+      initContainers:
+        {{- /* chown any mounted volumes to the non-root UID/GID */}}
+        {{- if .Values.initChown.enabled }}
+        - name: chown-volumes
+          image: {{ .Values.initChown.image | quote }}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              TARGETS=""
+              if [ -d /var/syncthing ]; then TARGETS="$TARGETS /var/syncthing"; fi
+              {{- if .Values.initChown.extraDirs }}
+              # extra dirs from values
+              {{- range $i, $d := .Values.initChown.extraDirs }}
+              if [ -d "{{ $d }}" ]; then TARGETS="$TARGETS {{ $d }}"; fi
+              {{- end }}
+              {{- end }}
+              if [ -n "$TARGETS" ]; then chown -R {{ .Values.securityContext.runAsUser }}:{{ .Values.securityContext.runAsGroup }} $TARGETS || true; fi
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          env:
+            {{- $pw := (include "syncthing.password" .) | fromJson }}
+            {{- if and $pw.name $pw.key }}
+            - name: {{ $pw.key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $pw.name }}
+                  key: {{ $pw.key }}
+            {{- end }}
+          volumeMounts:
+            - name: {{ .Values.persistence.data.claimName }}
+              mountPath: /var/syncthing
+        {{- end }}
+        {{- $pw := (include "syncthing.password" .) | fromJson }}
+        {{- if and $pw.name $pw.key }}
+        - name: setup-password
+          image: {{ .Values.initChown.image | quote }}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              syncthing generate \
+              --home /var/syncthing/config \
+              --gui-user=$DEFAULT_USER \
+              --gui-password=${{ if and $pw.name $pw.key }}{{ $pw.key }}{{ else }}PASSWORD{{ end }}
+          env:
+            - name: {{ $pw.key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $pw.name }}
+                  key: {{ $pw.key }}
+            - name: DEFAULT_USER
+              value: "admin"
+          volumeMounts:
+            - name: {{ .Values.persistence.data.claimName }}
+              mountPath: /var/syncthing
+        {{- end }}
+      containers:
+        - name: syncthing
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          livenessProbe:
+            httpGet:
+              path: /rest/noauth/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /rest/noauth/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+          volumeMounts:
+            - name: {{ .Values.persistence.data.claimName }}
+              mountPath: {{ .Values.persistence.data.mountPath }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+  {{- if .Values.persistence.data.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.persistence.data.claimName }}
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.persistence.data.size }}
+      {{- if .Values.persistence.data.storageClassName }}
+      storageClassName: {{ .Values.persistence.data.storageClassName }}
+      {{- end }}
+  {{- end }}
+    

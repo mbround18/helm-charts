@@ -1,0 +1,18 @@
+{{- /* Merge syncthing route into istio-ingress virtualService (runs early) */ -}}
+{{- if (index .Values "istio-ingress" "enabled") -}}
+  {{- $istioCfg := index .Values "istio-ingress" -}}
+  {{- $namespace := .Release.Namespace -}}
+  {{- $targetHost := printf "%s.%s.svc.cluster.local" (default (include "syncthing.fullname" .) "syncthing") $namespace -}}
+  {{- $targetPort := default .Values.service.port $istioCfg.virtualService.route.port -}}
+  {{- $route := dict
+    "name" "syncthing-web"
+    "match" (list (dict "uri" (dict "prefix" "/")))
+    "route" (list (dict
+      "destination" (dict
+        "host" $targetHost
+        "port" (dict "number" $targetPort)
+      )
+    ))
+  -}}
+  {{- $_ := set $istioCfg.virtualService "http" (list $route) -}}
+{{- end -}}
