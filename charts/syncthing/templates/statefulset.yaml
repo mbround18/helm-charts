@@ -20,6 +20,7 @@ spec:
         runAsUser: {{ .Values.securityContext.runAsUser }}
         runAsGroup: {{ .Values.securityContext.runAsGroup }}
         fsGroup: {{ .Values.securityContext.fsGroup }}
+        fsGroupChangePolicy: {{ .Values.securityContext.fsGroupChangePolicy | default "OnRootMismatch" }}
       serviceAccountName: {{ if .Values.serviceAccount.name }}{{ .Values.serviceAccount.name }}{{ else if .Values.serviceAccount.create }}{{ include "syncthing.fullname" . }}-sa{{ end }}
       initContainers:
         {{- /* chown any mounted volumes to the non-root UID/GID */}}
@@ -115,6 +116,8 @@ spec:
           ports:
             - containerPort: {{ .Values.service.port }}
               name: http
+            - containerPort: 22000
+              name: sync
           volumeMounts:
             - name: {{ .Values.persistence.data.claimName }}
               mountPath: {{ .Values.persistence.data.mountPath }}
