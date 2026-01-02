@@ -463,6 +463,22 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/postgres-0.1.0/postgres-0.1.0.tgz
     version: 0.1.0
+  syncthing:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-01-02T00:02:18.489366497Z"
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: Helm chart for syncthing
+    digest: 012ad01a5fdc1465ad2abac0bcf9e2e4fe23e6e0c8928a294ad6561439615080
+    name: syncthing
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/syncthing-0.1.0/syncthing-0.1.0.tgz
+    version: 0.1.0
   valheim:
   - apiVersion: v2
     appVersion: 3.1.0
@@ -878,4 +894,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: "2025-12-22T20:32:50.88680578Z"
+generated: "2026-01-02T00:02:18.489479178Z"
