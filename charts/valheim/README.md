@@ -70,7 +70,8 @@ helm install valheim mbround18/valheim \
 | `environment[].name=PUBLIC`   | List server publicly (0 or 1)         | `1`                          |
 | `environment[].name=PORT`     | Main game port                        | `2456`                       |
 | `GAMEPORT`                    | Base port for game (PORT uses this)   | `2456`                       |
-| `HTTPPORT`                    | HTTP API port                         | `8080`                       |
+| `HTTPPORT`                    | HTTP API port (YAML anchor)           | `8080`                       |
+| `environment[].name=HTTP_PORT`| HTTP API port (environment variable)  | `8080`                       |
 | `PUID`                        | Process user ID                       | `111`                        |
 | `GUID`                        | Process group ID                      | `1000`                       |
 
@@ -215,7 +216,7 @@ service:
     metallb.io/address-pool: valheim-pool
 ```
 
-**Important**: The `metallb.io/*` annotation namespace changed in recent MetalLB versions (was `metallb.universe.tf/*`).
+**Important**: The annotation namespace changed from `metallb.universe.tf/*` (older MetalLB versions) to `metallb.io/*` (newer versions). Use the appropriate namespace for your MetalLB version.
 
 ## Advanced Configuration
 
@@ -702,10 +703,11 @@ The container handles Valheim updates automatically if `AUTO_UPDATE` is enabled.
 
 ```bash
 # Force update by setting UPDATE_ON_STARTUP
+# Note: Find the correct array index by checking your current values
 helm upgrade <release-name> mbround18/valheim \
   --reuse-values \
-  --set environment[X].name=UPDATE_ON_STARTUP \
-  --set environment[X].value=1
+  --set environment[13].name=UPDATE_ON_STARTUP \
+  --set environment[13].value=1
 
 # Then restart the pod
 kubectl rollout restart deployment <release-name>-valheim -n <namespace>
