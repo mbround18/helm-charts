@@ -216,7 +216,7 @@ service:
     metallb.io/address-pool: valheim-pool
 ```
 
-**Important**: The annotation namespace changed from `metallb.universe.tf/*` (older MetalLB versions) to `metallb.io/*` (newer versions). Use the appropriate namespace for your MetalLB version.
+**Important**: MetalLB changed its annotation namespace. Use `metallb.universe.tf/*` for older MetalLB versions or `metallb.io/*` for newer versions (the current standard).
 
 ## Advanced Configuration
 
@@ -702,14 +702,19 @@ helm upgrade <release-name> mbround18/valheim -f values.yaml
 The container handles Valheim updates automatically if `AUTO_UPDATE` is enabled. To manually trigger an update:
 
 ```bash
-# Force update by setting UPDATE_ON_STARTUP
-# Note: Find the correct array index by checking your current values
+# Option 1: Update via custom values file (recommended)
+# Create a temporary values file
+cat > update-values.yaml <<EOF
+environment:
+  - name: "UPDATE_ON_STARTUP"
+    value: "1"
+EOF
+
 helm upgrade <release-name> mbround18/valheim \
   --reuse-values \
-  --set environment[13].name=UPDATE_ON_STARTUP \
-  --set environment[13].value=1
+  -f update-values.yaml
 
-# Then restart the pod
+# Option 2: Force pod restart to trigger update check
 kubectl rollout restart deployment <release-name>-valheim -n <namespace>
 ```
 
