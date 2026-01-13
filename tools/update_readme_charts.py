@@ -62,24 +62,12 @@ def build_table(charts_root="charts"):
             continue
         chart_name = meta.get("name") or name
         version = meta.get("version", "-")
-        # setup snippet: prefer charts/<chart>/README.md first paragraph
-        readme = os.path.join(chart_dir, "README.md")
-        snippet = first_paragraph(readme)
-        # clean snippet: remove markdown headings and trim
-        if snippet:
-            lines = [
-                ln for ln in snippet.splitlines() if not ln.strip().startswith("#")
-            ]
-            cleaned = "\n".join([ln.strip() for ln in lines]).strip()
-            if not cleaned:
-                cleaned = "No setup information available."
-        else:
-            cleaned = "No setup information available."
-
+        # chart link: link to the chart's README.md (relative to docs/ directory)
+        readme_path = f"../charts/{name}/README.md"
+        chart_link = f'<a href="{readme_path}">' + escape_html(chart_name) + "</a>"
         # produce install and values shell commands (inline code)
         install_cmd = f"helm install {name} mbround18/{name} --namespace {name} --create-namespace"
         values_cmd = f"helm show values mbround18/{name}"
-        chart_link = f'<a href="charts/{name}/">' + escape_html(chart_name) + "</a>"
         rows.append((chart_link, version, install_cmd, values_cmd))
     # build HTML table
     lines = []

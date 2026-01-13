@@ -2,4 +2,4 @@ apiVersion: v2
 name: postgres
 description: PostgreSQL Helm chart with HA and secret management
 version: 0.1.12
-appVersion: '18'
+appVersion: "18"
