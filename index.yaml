@@ -497,6 +497,16 @@ entries:
   valheim:
   - apiVersion: v2
     appVersion: 3.1.0
+    created: "2026-01-13T17:51:22.440736833Z"
+    description: A Helm chart for Kubernetes
+    digest: e6360fff8e0c9fa3500ffb5facc499ec241ddaa07e5e4ddf63362c93936ce6fa
+    name: valheim
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.2/valheim-0.4.2.tgz
+    version: 0.4.2
+  - apiVersion: v2
+    appVersion: 3.1.0
     created: "2025-11-03T21:47:45.204092466Z"
     description: A Helm chart for Kubernetes
     digest: 4fb3907726465183d96a360ccf20b690e2cbe032029c232d401b9b743ba40ef3
@@ -678,6 +688,27 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.0/vein-0.1.0.tgz
     version: 0.1.0
   wikijs:
+  - apiVersion: v2
+    appVersion: "2.5"
+    created: "2026-01-13T17:51:22.594683939Z"
+    dependencies:
+    - name: postgres
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.12
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    - condition: meilisearch.enabled
+      name: meilisearch
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.9
+    description: Wiki.js Helm chart with Meilisearch and Postgres integration
+    digest: bb62282aebb9fa0ed36c3a5f38fc7e6362264023cb962c98486b0e10c9fde771
+    name: wikijs
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.21/wikijs-0.2.21.tgz
+    version: 0.2.21
   - apiVersion: v2
     appVersion: "2.5"
     created: "2026-01-12T23:10:23.915913962Z"
@@ -972,4 +1003,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: "2026-01-12T23:10:23.916062679Z"
+generated: "2026-01-13T17:51:22.594870407Z"
