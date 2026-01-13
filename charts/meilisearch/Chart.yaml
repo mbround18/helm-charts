@@ -2,10 +2,10 @@ apiVersion: v2
 name: meilisearch
 description: A Helm chart for Meilisearch
 type: application
-version: 0.1.9
+version: 0.1.10
 appVersion: v1.30.0
 dependencies:
-  - name: istio-ingress
-    version: 0.1.0
-    repository: https://mbround18.github.io/helm-charts
-    condition: istio-ingress.enabled
+- name: istio-ingress
+  version: 0.1.0
+  repository: https://mbround18.github.io/helm-charts
+  condition: istio-ingress.enabled
