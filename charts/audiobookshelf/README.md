@@ -2,20 +2,39 @@
 
 This chart deploys Audiobookshelf with recommended defaults for production-style clusters (PVC-backed config, metadata and audiobooks storage, non-root runtime, Istio VirtualService support).
 
+## Features
+
+- Persistent storage for config, metadata, and audiobooks
+- Non-root runtime and security context
+- Istio VirtualService and standard Ingress support
+- Easy configuration via values.yaml
+
 ## Quick install (Helm)
 
 ```bash
 helm upgrade --install audiobookshelf ./charts/audiobookshelf --namespace audiobookshelf --create-namespace
 ```
 
-Minimal values (example):
+## Configuration
+
+| Parameter                      | Description                 | Default                          |
+| ------------------------------ | --------------------------- | -------------------------------- |
+| image.repository               | Container image repository  | "ghcr.io/advplyr/audiobookshelf" |
+| image.tag                      | Image tag/version           | "latest"                         |
+| persistence.config.enabled     | Enable config PVC           | true                             |
+| persistence.metadata.enabled   | Enable metadata PVC         | true                             |
+| persistence.audiobooks.enabled | Enable audiobooks PVC       | true                             |
+| securityContext.runAsUser      | User ID for container       | 1000                             |
+| istio.enabled                  | Enable Istio VirtualService | true                             |
+
+## Usage Examples
+
+### Minimal values (Argo inline)
 
 ```yaml
-# minimal audiobookshelf values for Argo inline injection
 image:
   repository: ghcr.io/advplyr/audiobookshelf
   tag: latest
-
 persistence:
   config:
     enabled: true
@@ -23,28 +42,30 @@ persistence:
     enabled: true
   audiobooks:
     enabled: true
-    # set storageClassName for ReadWriteMany where required
-
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
-
 secrets:
   jwt:
     create: true
     name: audiobookshelf-jwt
-
 istio:
   enabled: true
-  hosts:
-    - audiobookshelf.example.com
-
-resources:
-  requests:
-    cpu: "100m"
-    memory: "256Mi"
 ```
+
+### Enable standard Ingress
+
+```yaml
+ingress:
+  enabled: true
+  hosts:
+    - audiobooks.example.com
+```
+
+---
+
+For full configuration options, see [values.yaml](values.yaml).
 
 ## Argo CD
 

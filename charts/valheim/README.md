@@ -56,24 +56,24 @@ helm install valheim mbround18/valheim \
 
 ### Core Values
 
-| Parameter                     | Description                           | Default                      |
-| ----------------------------- | ------------------------------------- | ---------------------------- |
-| **Image**                     |                                       |                              |
-| `image.registry`              | Container registry                    | `docker.io`                  |
-| `image.repository`            | Valheim server image                  | `mbround18/valheim`          |
-| `image.tag`                   | Image tag (overrides appVersion)      | `""` (uses Chart appVersion) |
-| `image.pullPolicy`            | Image pull policy                     | `Always`                     |
-| **Server Settings**           |                                       |                              |
-| `environment[].name=NAME`     | Server name visible in browser        | `Valheim Docker`             |
-| `environment[].name=PASSWORD` | Server password (required for public) | `Strong! Password @ Here`    |
-| `environment[].name=WORLD`    | World name                            | `Dedicated`                  |
-| `environment[].name=PUBLIC`   | List server publicly (0 or 1)         | `1`                          |
-| `environment[].name=PORT`     | Main game port                        | `2456`                       |
-| `GAMEPORT`                    | Chart variable (YAML anchor) for port | `2456`                       |
-| `HTTPPORT`                    | Chart variable (YAML anchor) for HTTP | `8080`                       |
-| `environment[].name=HTTP_PORT`| HTTP API port (passed to container)   | `8080` (uses HTTPPORT anchor)|
-| `PUID`                        | Process user ID                       | `111`                        |
-| `GUID`                        | Process group ID                      | `1000`                       |
+| Parameter                      | Description                           | Default                       |
+| ------------------------------ | ------------------------------------- | ----------------------------- |
+| **Image**                      |                                       |                               |
+| `image.registry`               | Container registry                    | `docker.io`                   |
+| `image.repository`             | Valheim server image                  | `mbround18/valheim`           |
+| `image.tag`                    | Image tag (overrides appVersion)      | `""` (uses Chart appVersion)  |
+| `image.pullPolicy`             | Image pull policy                     | `Always`                      |
+| **Server Settings**            |                                       |                               |
+| `environment[].name=NAME`      | Server name visible in browser        | `Valheim Docker`              |
+| `environment[].name=PASSWORD`  | Server password (required for public) | `Strong! Password @ Here`     |
+| `environment[].name=WORLD`     | World name                            | `Dedicated`                   |
+| `environment[].name=PUBLIC`    | List server publicly (0 or 1)         | `1`                           |
+| `environment[].name=PORT`      | Main game port                        | `2456`                        |
+| `GAMEPORT`                     | Chart variable (YAML anchor) for port | `2456`                        |
+| `HTTPPORT`                     | Chart variable (YAML anchor) for HTTP | `8080`                        |
+| `environment[].name=HTTP_PORT` | HTTP API port (passed to container)   | `8080` (uses HTTPPORT anchor) |
+| `PUID`                         | Process user ID                       | `111`                         |
+| `GUID`                         | Process group ID                      | `1000`                        |
 
 **Note**: `GAMEPORT` and `HTTPPORT` are chart-level YAML anchors that define default port values, which are then referenced in the container's environment variables (`PORT` and `HTTP_PORT`).
 
