@@ -69,11 +69,13 @@ helm install valheim mbround18/valheim \
 | `environment[].name=WORLD`    | World name                            | `Dedicated`                  |
 | `environment[].name=PUBLIC`   | List server publicly (0 or 1)         | `1`                          |
 | `environment[].name=PORT`     | Main game port                        | `2456`                       |
-| `GAMEPORT`                    | Base port for game (PORT uses this)   | `2456`                       |
-| `HTTPPORT`                    | HTTP API port (YAML anchor)           | `8080`                       |
-| `environment[].name=HTTP_PORT`| HTTP API port (environment variable)  | `8080`                       |
+| `GAMEPORT`                    | Chart variable (YAML anchor) for port | `2456`                       |
+| `HTTPPORT`                    | Chart variable (YAML anchor) for HTTP | `8080`                       |
+| `environment[].name=HTTP_PORT`| HTTP API port (passed to container)   | `8080` (uses HTTPPORT anchor)|
 | `PUID`                        | Process user ID                       | `111`                        |
 | `GUID`                        | Process group ID                      | `1000`                       |
+
+**Note**: `GAMEPORT` and `HTTPPORT` are chart-level YAML anchors that define default port values, which are then referenced in the container's environment variables (`PORT` and `HTTP_PORT`).
 
 ### Update & Backup Configuration
 
@@ -216,7 +218,7 @@ service:
     metallb.io/address-pool: valheim-pool
 ```
 
-**Important**: MetalLB changed its annotation namespace. Use `metallb.universe.tf/*` for older MetalLB versions or `metallb.io/*` for newer versions (the current standard).
+**Important**: MetalLB changed its annotation namespace in version 0.13.0. Use `metallb.universe.tf/*` for versions < 0.13.0 or `metallb.io/*` for versions >= 0.13.0 (current standard).
 
 ## Advanced Configuration
 
@@ -702,21 +704,17 @@ helm upgrade <release-name> mbround18/valheim -f values.yaml
 The container handles Valheim updates automatically if `AUTO_UPDATE` is enabled. To manually trigger an update:
 
 ```bash
-# Option 1: Update via custom values file (recommended)
-# Create a temporary values file
-cat > update-values.yaml <<EOF
-environment:
-  - name: "UPDATE_ON_STARTUP"
-    value: "1"
-EOF
-
-helm upgrade <release-name> mbround18/valheim \
-  --reuse-values \
-  -f update-values.yaml
-
-# Option 2: Force pod restart to trigger update check
+# Option 1: Force pod restart to trigger update check (simplest)
 kubectl rollout restart deployment <release-name>-valheim -n <namespace>
+
+# Option 2: Update via full values file (for multiple changes)
+# Extract current values first to avoid conflicts
+helm get values <release-name> -n <namespace> > current-values.yaml
+# Edit current-values.yaml to modify environment variables as needed
+helm upgrade <release-name> mbround18/valheim -f current-values.yaml
 ```
+
+**Warning**: Using `--reuse-values` with `-f` or `--set` can cause conflicts if environment arrays already exist. Always use a complete values file or just restart the pod to trigger updates.
 
 Or update the image tag:
 
