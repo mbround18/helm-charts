@@ -355,6 +355,21 @@ entries:
   meilisearch:
   - apiVersion: v2
     appVersion: v1.30.0
+    created: "2026-01-20T19:15:26.65159929Z"
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Meilisearch
+    digest: 5b8f5144c20748b85972fa1b464dd139254a7122722720a467e1dfc20a0634cb
+    name: meilisearch
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/meilisearch-0.1.12/meilisearch-0.1.12.tgz
+    version: 0.1.12
+  - apiVersion: v2
+    appVersion: v1.30.0
     created: "2026-01-14T21:51:24.022726809Z"
     dependencies:
     - condition: istio-ingress.enabled
@@ -830,6 +845,27 @@ entries:
   wikijs:
   - apiVersion: v2
     appVersion: "2.5"
+    created: "2026-01-20T19:15:26.788086071Z"
+    dependencies:
+    - name: postgres
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.13
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    - condition: meilisearch.enabled
+      name: meilisearch
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.11
+    description: Wiki.js Helm chart with Meilisearch and Postgres integration
+    digest: 844fc12a7cb47e83a79be3e5bc2b52345bd8945a27be0163c2e83a298ebfc07a
+    name: wikijs
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.24/wikijs-0.2.24.tgz
+    version: 0.2.24
+  - apiVersion: v2
+    appVersion: "2.5"
     created: "2026-01-14T21:51:24.197529186Z"
     dependencies:
     - name: postgres
@@ -1185,4 +1221,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: "2026-01-14T21:51:24.19775082Z"
+generated: "2026-01-20T19:15:26.788320888Z"
