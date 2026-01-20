@@ -2,7 +2,7 @@ apiVersion: v2
 name: meilisearch
 description: A Helm chart for Meilisearch
 type: application
-version: 0.1.11
+version: 0.1.12
 appVersion: v1.30.0
 dependencies:
 - name: istio-ingress
