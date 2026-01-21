@@ -99,6 +99,17 @@ initChown:
   # Extra directories to chown in addition to /data
   extraDirs: []
 
+# Optional envFrom references to import many env vars from a ConfigMap or Secret
+envFrom:
+  # Name of a ConfigMap whose keys should be imported as env vars (optional)
+  configMapName: ""
+  # If true, the configMapRef will be marked optional
+  configMapOptional: false
+  # Name of a Secret whose keys should be imported as env vars (optional)
+  secretName: ""
+  # If true, the secretRef will be marked optional
+  secretOptional: false
+
 # Additional volumes on the output Deployment definition.
 volumes: []
 

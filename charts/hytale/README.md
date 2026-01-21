@@ -47,6 +47,14 @@ podSecurityContext:
 initChown:
   enabled: true
   image: busybox:1.36
+
+# Optional: import env vars from a ConfigMap or Secret
+# Use the same name as your ConfigMap/Secret. Both are optional and can be left blank.
+envFrom:
+  configMapName: "my-hytale-configmap"
+  configMapOptional: false
+  secretName: ""
+  secretOptional: true
 EOF
 
 helm install -f hytale-values.yaml my-hytale ./charts/hytale
