@@ -1,7 +1,21 @@
+# Headless Service used by the StatefulSet for stable network identity
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "hytale.fullname" . }}
+  labels:
+    {{- include "hytale.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "hytale.selectorLabels" . | nindent 4 }}
+
+---
+# NodePort service for external access
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hytale.fullname" . }}-nodeport
   labels:
     {{- include "hytale.labels" . | nindent 4 }}
 spec:
@@ -13,11 +27,13 @@ spec:
       targetPort: server-udp
       protocol: UDP
       name: server-udp
+      nodePort: null
     {{- if .Values.endpoint.consolePort }}
     - port: {{ .Values.endpoint.consolePort }}
       targetPort: console-tcp
       protocol: TCP
       name: console-tcp
+      nodePort: null
     {{- end }}
   selector:
     {{- include "hytale.selectorLabels" . | nindent 4 }}
