@@ -20,8 +20,10 @@ metadata:
     {{- include "hytale.labels" . | nindent 4 }}
 spec:
   type: NodePort
+  {{- if .Values.endpoint.externalIP }}
   externalIPs:
     - {{ .Values.endpoint.externalIP }}
+  {{- end }}
   ports:
     - port: {{ .Values.endpoint.serverPort }}
       targetPort: server-udp
