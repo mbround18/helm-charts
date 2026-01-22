@@ -107,7 +107,7 @@ service:
   # Type of the external Service. Common values: NodePort, ClusterIP, LoadBalancer
   type: NodePort
   # Explicit nodePort for the server (only has effect when type=NodePort). Use null to let k8s auto-assign
-  nodePortServer: null
+  nodePortServer: 35520
   # Explicit nodePort for the console (only has effect when type=NodePort)
   nodePortConsole: null
   # Service annotations (useful for MetalLB or other controllers)
