@@ -14,12 +14,23 @@ environment:
     value: 0.0.0.0
   - name: DISABLE_SENTRY
     value: "false"
-  - name: JAVA_OPTS
-    value: "-Xmx4G -Xms2G"
   - name: BOOT_COMMAND
     value: "auth login device"
   - name: REMOTE_CONSOLE_PORT
     value: "7000"
+
+# Optional: derive JAVA_OPTS from container resources (requests/limits)
+# When enabled, remove JAVA_OPTS from the environment list to avoid duplicates.
+javaOpts:
+  auto: true
+  name: JAVA_OPTS
+  # Env vars populated from resources.*.memory using the Downward API
+  limitEnv: JAVA_MEM_LIMIT
+  requestEnv: JAVA_MEM_REQUEST
+  # Divisor for resourceFieldRef; "1Mi" yields integer Mi values
+  divisor: "1Mi"
+  # Suffix appended to the generated -Xmx/-Xms values
+  unitSuffix: "m"
 
 # The name of the storage class to use. If not set, the default storage class will be used.
 storageClassName: ""
@@ -68,17 +79,15 @@ endpoint:
   serverPort: 5520
   consolePort: 7000
 
-resources: {}
+resources: 
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  limits:
+    memory: 8Gi
+  requests:
+    memory: 1Gi
 
 autoscaling:
   enabled: false

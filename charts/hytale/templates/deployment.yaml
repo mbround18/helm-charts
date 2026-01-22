@@ -66,9 +66,25 @@ spec:
             readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
             capabilities:
               drop: {{ toYaml .Values.securityContext.capabilities.drop | nindent 14 }}
-          {{- with .Values.environment }}
+          {{- if or .Values.environment .Values.javaOpts.auto }}
           env:
+            {{- with .Values.environment }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.javaOpts.auto }}
+            - name: {{ .Values.javaOpts.limitEnv | quote }}
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+                  divisor: {{ .Values.javaOpts.divisor | quote }}
+            - name: {{ .Values.javaOpts.requestEnv | quote }}
+              valueFrom:
+                resourceFieldRef:
+                  resource: requests.memory
+                  divisor: {{ .Values.javaOpts.divisor | quote }}
+            - name: {{ .Values.javaOpts.name | quote }}
+              value: {{ printf "-Xmx$(%s)%s -Xms$(%s)%s" .Values.javaOpts.limitEnv .Values.javaOpts.unitSuffix .Values.javaOpts.requestEnv .Values.javaOpts.unitSuffix | quote }}
+            {{- end }}
           {{- end }}
           {{- $cm := .Values.envFrom.configMapName }}
           {{- $cmOpt := .Values.envFrom.configMapOptional }}
