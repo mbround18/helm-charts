@@ -68,8 +68,15 @@ spec:
               drop: {{ toYaml .Values.securityContext.capabilities.drop | nindent 14 }}
           {{- if or .Values.environment .Values.javaOpts.auto }}
           env:
-            {{- with .Values.environment }}
-            {{- toYaml . | nindent 12 }}
+            {{- $envList := list }}
+            {{- range $e := .Values.environment }}
+            {{- if and $.Values.javaOpts.auto (eq (default "" $e.name) $.Values.javaOpts.name) }}
+            {{- else }}
+            {{- $envList = append $envList $e }}
+            {{- end }}
+            {{- end }}
+            {{- if $envList }}
+            {{- toYaml $envList | nindent 12 }}
             {{- end }}
             {{- if .Values.javaOpts.auto }}
             - name: {{ .Values.javaOpts.limitEnv | quote }}
