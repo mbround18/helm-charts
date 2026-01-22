@@ -55,6 +55,18 @@ envFrom:
   configMapOptional: false
   secretName: ""
   secretOptional: true
+
+# Controlling the external service
+# - To omit creating a NodePort (or any external service), set `service.create: false`.
+# - To use a ClusterIP (no NodePort), set `service.type: ClusterIP`.
+# Examples for Argo CD Application `helm.values`:
+# 1) Omit external service entirely
+#    service:
+#      create: false
+#
+# 2) Use ClusterIP instead of NodePort
+#    service:
+#      type: ClusterIP
 EOF
 
 helm install -f hytale-values.yaml my-hytale ./charts/hytale
@@ -65,3 +77,15 @@ helm install -f hytale-values.yaml my-hytale ./charts/hytale
 ## Configuration & Options
 
 For the complete set of environment variables, CLI flags, networking, and hosting recipes, see the upstream [server-hosting guide](https://github.com/mbround18/hytale/blob/main/docs/guides/server-hosting.md).
+
+## ArgoCD Note
+
+When using nodePort it is recommended to have the following on your application manifest:
+
+```yaml
+ignoreDifferences:
+  - group: ""
+    kind: Service
+    jqPathExpressions:
+      - .spec.ports[].nodePort
+```

@@ -91,6 +91,19 @@ pvc:
   name: data
   size: 10Gi
 
+service:
+  # Whether to create the externally-accessible Service (NodePort/ClusterIP).
+  # Set to false to omit creating the service (useful when using Ingress or to avoid NodePort resources).
+  create: true
+  # Type of the external Service. Common values: NodePort, ClusterIP, LoadBalancer
+  type: NodePort
+  # Explicit nodePort for the server (only has effect when type=NodePort). Use null to let k8s auto-assign
+  nodePortServer: null
+  # Explicit nodePort for the console (only has effect when type=NodePort)
+  nodePortConsole: null
+  # Service annotations (useful for MetalLB or other controllers)
+  annotations: {}
+
 initChown:
   # When enabled, an init container will chown mounted volumes to the non-root UID/GID
   enabled: true

@@ -11,15 +11,20 @@ spec:
     {{- include "hytale.selectorLabels" . | nindent 4 }}
 
 ---
-# NodePort service for external access
+# NodePort/ClusterIP service for external access (optional)
+{{- if .Values.service.create }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "hytale.fullname" . }}-nodeport
   labels:
     {{- include "hytale.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  type: NodePort
+  type: {{ .Values.service.type | default "NodePort" }}
   {{- if .Values.endpoint.externalIP }}
   externalIPs:
     - {{ .Values.endpoint.externalIP }}
@@ -29,13 +34,18 @@ spec:
       targetPort: server-udp
       protocol: UDP
       name: server-udp
-      nodePort: null
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePortServer }}
+      nodePort: {{ .Values.service.nodePortServer }}
+      {{- end }}
     {{- if .Values.endpoint.consolePort }}
     - port: {{ .Values.endpoint.consolePort }}
       targetPort: console-tcp
       protocol: TCP
       name: console-tcp
-      nodePort: null
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePortConsole }}
+      nodePort: {{ .Values.service.nodePortConsole }}
+      {{- end }}
     {{- end }}
   selector:
     {{- include "hytale.selectorLabels" . | nindent 4 }}
+{{- end }}
