@@ -133,7 +133,7 @@ spec:
               command:
                 - sh
                 - -c
-                - ss -ulnp | grep -q :{{ .Values.endpoint.serverPort }}
+                - ss -uln | grep -q :{{ .Values.endpoint.serverPort }}
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
@@ -146,7 +146,7 @@ spec:
               command:
                 - sh
                 - -c
-                - ss -ulnp | grep -q :{{ .Values.endpoint.serverPort }}
+                - ss -uln | grep -q :{{ .Values.endpoint.serverPort }}
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
