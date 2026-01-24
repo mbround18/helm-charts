@@ -89,6 +89,26 @@ resources:
   requests:
     memory: 1Gi
 
+# Health check probes for the game server
+probes:
+  liveness:
+    enabled: true
+    # Check if the UDP game port is listening
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    enabled: true
+    # Check if the server is ready to accept connections
+    # High initial delay and failure threshold to account for game/mod downloads on first boot
+    initialDelaySeconds: 120
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 20
+    successThreshold: 1
+
 autoscaling:
   enabled: false
   minReplicas: 1
@@ -99,6 +119,9 @@ autoscaling:
 pvc:
   name: data
   size: 10Gi
+  # Path where the persistent volume will be mounted in the container
+  # Defaults to /data/server so /data/.staging and other temp files can be wiped on restart
+  mountPath: "/data/server"
 
 service:
   # Whether to create the externally-accessible Service (NodePort/ClusterIP).

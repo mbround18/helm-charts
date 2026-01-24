@@ -4,7 +4,7 @@ A Helm chart for deploying a Hytale dedicated server on Kubernetes using the `mb
 
 ## Features
 
-- Persistent `/data` volume for downloads, logs, credentials, and server files
+- Persistent volume for downloads, logs, credentials, and server files (defaults to `/data/server`)
 - Non-root security defaults with optional ownership fix-up init container
 - Configurable server and remote console ports
 - Optional `envFrom` wiring for ConfigMaps/Secrets
@@ -37,12 +37,15 @@ helm install hytale mbround18/hytale --namespace hytale --create-namespace
 | image.tag                  | Image tag/version                              | "latest"           |
 | endpoint.serverPort        | Game server UDP port                           | 5520               |
 | endpoint.consolePort       | Remote console TCP port                        | 7000               |
-| pvc.size                   | PVC size for `/data`                           | "20Gi"             |
+| pvc.size                   | PVC size for persistent storage                | "20Gi"             |
+| pvc.mountPath              | Container path where PVC is mounted            | "/data/server"     |
 | service.type               | Service type (NodePort/LoadBalancer/ClusterIP) | "NodePort"         |
 | service.create             | Create external service                        | true               |
 | podSecurityContext.fsGroup | Filesystem group for volume permissions        | 1000               |
 | securityContext.runAsUser  | Container UID                                  | 1000               |
 | initChown.enabled          | Init container to `chown` `/data`              | true               |
+| probes.liveness.enabled    | Enable liveness probe for UDP game port        | true               |
+| probes.readiness.enabled   | Enable readiness probe for UDP game port       | true               |
 
 ## Usage Examples
 
@@ -54,6 +57,7 @@ endpoint:
   consolePort: 7000
 pvc:
   size: 20Gi
+  mountPath: "/data/server"  # or "/data" for legacy behavior
 ```
 
 ### Run with ClusterIP Only
@@ -88,7 +92,9 @@ For the complete reference of environment variables, CLI flags, networking optio
 
 On first boot, the server prints a device login URL/code in the logs. Complete the login to authenticate.
 
-The chart runs the container as a non-root user by default (UID/GID 1000) and sets `fsGroup` so Kubernetes will attempt to set group ownership on mounted volumes. An optional init container (enabled by default) will `chown` `/data` to the non-root UID/GID if required.
+The chart runs the container as a non-root user by default (UID/GID 1000) and sets `fsGroup` so Kubernetes will attempt to set group ownership on mounted volumes. An optional init container (enabled by default) will `chown` the mounted path to the non-root UID/GID if required.
+
+By default, the persistent volume is mounted at `/data/server` rather than `/data`. This allows temporary files in `/data/.staging` and other non-server directories to be wiped on each container restart while preserving your server data.
 
 ## Argo CD Note
 
