@@ -340,6 +340,17 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/game-tools-0.1.0/game-tools-0.1.0.tgz
     version: 0.1.0
+  hytale:
+  - apiVersion: v2
+    appVersion: v0.0.1
+    created: "2026-01-24T08:44:25.049859061Z"
+    description: A Helm chart for the Hytale dedicated server
+    digest: e5a8b55e110a0610794704179c0b816f5608999961c48cdd5fdd81bb2faa37f5
+    name: hytale
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/hytale-0.1.0/hytale-0.1.0.tgz
+    version: 0.1.0
   istio-ingress:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -1242,4 +1253,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: "2026-01-21T22:44:26.777287717Z"
+generated: "2026-01-24T08:44:25.050006697Z"
