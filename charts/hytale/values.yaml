@@ -109,13 +109,6 @@ probes:
     failureThreshold: 20
     successThreshold: 1
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
 pvc:
   name: data
   size: 10Gi
