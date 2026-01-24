@@ -343,6 +343,16 @@ entries:
   hytale:
   - apiVersion: v2
     appVersion: v0.0.1
+    created: "2026-01-24T21:56:53.100431724Z"
+    description: A Helm chart for the Hytale dedicated server
+    digest: 7ca32639d1585968d8428999925cdf2cc7590df5bb5631046fad89b5048d97f2
+    name: hytale
+    type: application
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/hytale-0.1.6/hytale-0.1.6.tgz
+    version: 0.1.6
+  - apiVersion: v2
+    appVersion: v0.0.1
     created: "2026-01-24T21:13:27.558493623Z"
     description: A Helm chart for the Hytale dedicated server
     digest: a6ab7e5f2cccfcff3a970d9089125686bd1cc462c53e24611a719512d1bed027
@@ -1303,4 +1313,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: "2026-01-24T21:13:27.558631581Z"
+generated: "2026-01-24T21:56:53.100588914Z"
