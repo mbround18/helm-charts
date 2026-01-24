@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "hytale.fullname" . }}
+  labels:
+    {{- include "hytale.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "hytale.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "hytale.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hytale.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "hytale.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy | quote }}
+      initContainers:
+        {{- if .Values.initChown.enabled }}
+        - name: chown-volumes
+          image: {{ .Values.initChown.image | quote }}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              TARGETS=""
+              if [ -d /data ]; then TARGETS="$TARGETS /data"; fi
+              {{- if .Values.initChown.extraDirs }}
+              # extra dirs from values
+              {{- range $i, $d := .Values.initChown.extraDirs }}
+              if [ -d "{{ $d }}" ]; then TARGETS="$TARGETS {{ $d }}"; fi
+              {{- end }}
+              {{- end }}
+              if [ -n "$TARGETS" ]; then chown -R {{ .Values.securityContext.runAsUser }}:{{ .Values.securityContext.runAsGroup }} $TARGETS || true; fi
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          volumeMounts:
+            - name: {{ .Values.pvc.name }}
+              mountPath: /data
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop: {{ toYaml .Values.securityContext.capabilities.drop | nindent 14 }}
+          {{- if or .Values.environment .Values.javaOpts.auto }}
+          env:
+            {{- $envList := list }}
+            {{- range $e := .Values.environment }}
+            {{- if and $.Values.javaOpts.auto (eq (default "" $e.name) $.Values.javaOpts.name) }}
+            {{- else }}
+            {{- $envList = append $envList $e }}
+            {{- end }}
+            {{- end }}
+            {{- if $envList }}
+            {{- toYaml $envList | nindent 12 }}
+            {{- end }}
+            {{- if .Values.javaOpts.auto }}
+            - name: {{ .Values.javaOpts.limitEnv | quote }}
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+                  divisor: {{ .Values.javaOpts.divisor | quote }}
+            - name: {{ .Values.javaOpts.requestEnv | quote }}
+              valueFrom:
+                resourceFieldRef:
+                  resource: requests.memory
+                  divisor: {{ .Values.javaOpts.divisor | quote }}
+            - name: {{ .Values.javaOpts.name | quote }}
+              value: {{ printf "-Xmx$(%s)%s -Xms$(%s)%s" .Values.javaOpts.limitEnv .Values.javaOpts.unitSuffix .Values.javaOpts.requestEnv .Values.javaOpts.unitSuffix | quote }}
+            {{- end }}
+          {{- end }}
+          {{- $cm := .Values.envFrom.configMapName }}
+          {{- $cmOpt := .Values.envFrom.configMapOptional }}
+          {{- $sec := .Values.envFrom.secretName }}
+          {{- $secOpt := .Values.envFrom.secretOptional }}
+          {{- if or $cm $sec }}
+          envFrom:
+            {{- if $cm }}
+            - configMapRef:
+                name: {{ $cm }}
+                optional: {{ $cmOpt }}
+            {{- end }}
+            {{- if $sec }}
+            - secretRef:
+                name: {{ $sec }}
+                optional: {{ $secOpt }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: server-udp
+              containerPort: {{ .Values.endpoint.serverPort }}
+              protocol: UDP
+            {{- if .Values.endpoint.consolePort }}
+            - name: console-tcp
+              containerPort: {{ .Values.endpoint.consolePort }}
+              protocol: TCP
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.pvc.name }}
+              mountPath: "/data"
+              readOnly: false
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.pvc.name }}
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.pvc.size }}
+      {{- if .Values.storageClassName }}
+      storageClassName: {{ .Values.storageClassName }}
+      {{- end }}

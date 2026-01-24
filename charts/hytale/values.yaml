@@ -1,0 +1,148 @@
+# Default values for hytale.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+# Environment variables to pass to the application
+environment:
+  - name: PATCHLINE
+    value: release
+  - name: SERVER_PORT
+    value: "5520"
+  - name: SERVER_BIND
+    value: 0.0.0.0
+  - name: DISABLE_SENTRY
+    value: "false"
+  - name: BOOT_COMMAND
+    value: "auth login device"
+  - name: REMOTE_CONSOLE_PORT
+    value: "7000"
+
+# Optional: derive JAVA_OPTS from container resources (requests/limits)
+# When enabled, remove JAVA_OPTS from the environment list to avoid duplicates.
+javaOpts:
+  auto: true
+  name: JAVA_OPTS
+  # Env vars populated from resources.*.memory using the Downward API
+  limitEnv: JAVA_MEM_LIMIT
+  requestEnv: JAVA_MEM_REQUEST
+  # Divisor for resourceFieldRef; "1Mi" yields integer Mi values
+  divisor: "1Mi"
+  # Suffix appended to the generated -Xmx/-Xms values
+  unitSuffix: "m"
+
+# The name of the storage class to use. If not set, the default storage class will be used.
+storageClassName: ""
+
+# Configuration for the application image
+image:
+  repository: mbround18/hytale
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v0.0.4"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+endpoint:
+  externalIP: ""
+  serverPort: 5520
+  # consolePort: 7000
+
+resources: 
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    memory: 8Gi
+  requests:
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+pvc:
+  name: data
+  size: 10Gi
+
+service:
+  # Whether to create the externally-accessible Service (NodePort/ClusterIP).
+  # Set to false to omit creating the service (useful when using Ingress or to avoid NodePort resources).
+  create: true
+  # Type of the external Service. Common values: NodePort, ClusterIP, LoadBalancer
+  type: NodePort
+  # Explicit nodePort for the server (only has effect when type=NodePort). Use null to let k8s auto-assign
+  nodePortServer: 32520
+  # Explicit nodePort for the console (only has effect when type=NodePort)
+  nodePortConsole: null
+  # Service annotations (useful for MetalLB or other controllers)
+  annotations: {}
+
+initChown:
+  # When enabled, an init container will chown mounted volumes to the non-root UID/GID
+  enabled: true
+  # A small image with sh and chown (default: busybox). Can be overridden if your distro needs different tools.
+  image: "busybox:1.36"
+  # Extra directories to chown in addition to /data
+  extraDirs: []
+
+# Optional envFrom references to import many env vars from a ConfigMap or Secret
+envFrom:
+  # Name of a ConfigMap whose keys should be imported as env vars (optional)
+  configMapName: ""
+  # If true, the configMapRef will be marked optional
+  configMapOptional: false
+  # Name of a Secret whose keys should be imported as env vars (optional)
+  secretName: ""
+  # If true, the secretRef will be marked optional
+  secretOptional: false
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
