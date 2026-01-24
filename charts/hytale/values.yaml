@@ -103,7 +103,7 @@ probes:
     enabled: true
     # Check if the server is ready to accept connections
     # High initial delay and failure threshold to account for game/mod downloads on first boot
-    initialDelaySeconds: 120
+    initialDelaySeconds: 300
     periodSeconds: 30
     timeoutSeconds: 5
     failureThreshold: 20
