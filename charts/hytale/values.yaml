@@ -77,7 +77,7 @@ securityContext:
 endpoint:
   externalIP: ""
   serverPort: 5520
-  consolePort: 7000
+  # consolePort: 7000
 
 resources: 
   # We usually recommend not to specify default resources and to leave this as a conscious
