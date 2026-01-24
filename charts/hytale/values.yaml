@@ -117,7 +117,7 @@ initChown:
   # When enabled, an init container will chown mounted volumes to the non-root UID/GID
   enabled: true
   # A small image with sh and chown (default: busybox). Can be overridden if your distro needs different tools.
-  image: "busybox:1.36"
+  image: "busybox:1.37"
   # Extra directories to chown in addition to /data
   extraDirs: []
 
