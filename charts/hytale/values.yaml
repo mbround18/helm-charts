@@ -40,7 +40,7 @@ image:
   repository: mbround18/hytale
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.8"
+  tag: "v0.0.9"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -91,16 +91,16 @@ resources:
 
 # Health check probes for the game server
 probes:
-  liveness:
-    enabled: true
+  liveness: # Still WIP
+    enabled: false
     # Check if the UDP game port is listening
     initialDelaySeconds: 60
     periodSeconds: 30
     timeoutSeconds: 5
     failureThreshold: 3
     successThreshold: 1
-  readiness:
-    enabled: true
+  readiness: # Still WIP
+    enabled: false
     # Check if the server is ready to accept connections
     # High initial delay and failure threshold to account for game/mod downloads on first boot
     initialDelaySeconds: 300
