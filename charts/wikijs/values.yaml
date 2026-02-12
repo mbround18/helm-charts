@@ -5,7 +5,7 @@ global:
 replicaCount: 1
 image:
   repository: ghcr.io/requarks/wiki
-  tag: 2.5.311
+  tag: 2.5.312
   pullPolicy: IfNotPresent
 resources: {}
 service:
