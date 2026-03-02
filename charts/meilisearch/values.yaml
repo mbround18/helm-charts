@@ -4,7 +4,7 @@ global:
 
 image:
   repository: getmeili/meilisearch
-  tag: v1.33.1
+  tag: v1.37.0
   pullPolicy: IfNotPresent
 
 # Optional Meilisearch UI sidecar
