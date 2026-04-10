@@ -14,7 +14,7 @@ runs:
         version: "${{ inputs.version }}"
 
     # use https://github.com/actions/github-script to find all chart.yaml and chart.lock files and extract repositories and add them
-    - uses: actions/github-script@v8
+    - uses: actions/github-script@v9
       with:
         script: |
           const { execSync } = require('child_process');
