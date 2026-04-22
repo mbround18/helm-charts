@@ -1,6 +1,6 @@
 image:
   repository: syncthing/syncthing
-  tag: "latest"
+  tag: 2.0.16
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -11,7 +11,7 @@ service:
 persistence:
   data:
     enabled: true
-    storageClassName: ""
+    storageClassName: ''
     size: 30Gi
     claimName: syncthing-data
     mountPath: /var/syncthing
@@ -36,7 +36,7 @@ resources: {}
 
 serviceAccount:
   create: true
-  name: ""
+  name: ''
 
 secrets:
   # JWT secret config
@@ -59,6 +59,6 @@ securityContext:
 initChown:
   # If enabled, an initContainer will chown the mounted volumes to the rootless UID/GID
   enabled: true
-  image: syncthing/syncthing
+  image: syncthing/syncthing:2.0.16
   # Extra directories the chown init container should ensure (optional)
   extraDirs: []

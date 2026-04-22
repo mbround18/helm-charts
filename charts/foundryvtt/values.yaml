@@ -18,8 +18,21 @@ network:
     credentialName: foundry-tls
 
 ingress:
+  enabled: false
   annotations: {}
   className: ""
+  hosts:
+    - host: foundry.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    route:
+      host: foundry
+      port: 80
 
 service:
   type: ClusterIP
@@ -167,12 +180,3 @@ backup_cleanup:
   enabled: true
   schedule: "0 2 * * *"
   olderThanDays: 30
-########################################################
-# Istio settings
-########################################################
-# istio:
-#   enabled: false
-#   gateway:
-#     selector:
-#       istio: ingressgateway
-#     credentialName: "foundryvtt-credential"

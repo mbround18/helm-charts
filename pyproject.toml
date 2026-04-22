@@ -11,6 +11,8 @@ dependencies = [
     "meilisearch",
     "rich",
     "kubernetes",
+    "ruamel.yaml",
+    "packaging",
 ]
 
 [tool.uv.workspace]
