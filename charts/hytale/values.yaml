@@ -9,15 +9,15 @@ environment:
   - name: PATCHLINE
     value: release
   - name: SERVER_PORT
-    value: "5520"
+    value: '5520'
   - name: SERVER_BIND
     value: 0.0.0.0
   - name: DISABLE_SENTRY
-    value: "false"
+    value: 'false'
   - name: BOOT_COMMAND
-    value: "auth login device"
+    value: auth login device
   - name: REMOTE_CONSOLE_PORT
-    value: "7000"
+    value: '7000'
 
 # Optional: derive JAVA_OPTS from container resources (requests/limits)
 # When enabled, remove JAVA_OPTS from the environment list to avoid duplicates.
@@ -28,23 +28,23 @@ javaOpts:
   limitEnv: JAVA_MEM_LIMIT
   requestEnv: JAVA_MEM_REQUEST
   # Divisor for resourceFieldRef; "1Mi" yields integer Mi values
-  divisor: "1Mi"
+  divisor: 1Mi
   # Suffix appended to the generated -Xmx/-Xms values
-  unitSuffix: "m"
+  unitSuffix: m
 
 # The name of the storage class to use. If not set, the default storage class will be used.
-storageClassName: ""
+storageClassName: ''
 
 # Configuration for the application image
 image:
   repository: mbround18/hytale
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.8"
+  tag: v0.0.11
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -55,7 +55,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: ''
 
 podAnnotations: {}
 podLabels: {}
@@ -75,11 +75,11 @@ securityContext:
   runAsGroup: 1000
 
 endpoint:
-  externalIP: ""
+  externalIP: ''
   serverPort: 5520
   # consolePort: 7000
 
-resources: 
+resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -114,7 +114,7 @@ pvc:
   size: 10Gi
   # Path where the persistent volume will be mounted in the container
   # Defaults to /data/server so /data/.staging and other temp files can be wiped on restart
-  mountPath: "/data/server"
+  mountPath: /data/server
 
 service:
   # Whether to create the externally-accessible Service (NodePort/ClusterIP).
@@ -125,7 +125,7 @@ service:
   # Explicit nodePort for the server (only has effect when type=NodePort). Use null to let k8s auto-assign
   nodePortServer: 32520
   # Explicit nodePort for the console (only has effect when type=NodePort)
-  nodePortConsole: null
+  nodePortConsole:
   # Service annotations (useful for MetalLB or other controllers)
   annotations: {}
 
@@ -133,18 +133,18 @@ initChown:
   # When enabled, an init container will chown mounted volumes to the non-root UID/GID
   enabled: true
   # A small image with sh and chown (default: busybox). Can be overridden if your distro needs different tools.
-  image: "busybox:1.37"
+  image: busybox:1.37.0
   # Extra directories to chown in addition to /data
   extraDirs: []
 
 # Optional envFrom references to import many env vars from a ConfigMap or Secret
 envFrom:
   # Name of a ConfigMap whose keys should be imported as env vars (optional)
-  configMapName: ""
+  configMapName: ''
   # If true, the configMapRef will be marked optional
   configMapOptional: false
   # Name of a Secret whose keys should be imported as env vars (optional)
-  secretName: ""
+  secretName: ''
   # If true, the secretRef will be marked optional
   secretOptional: false
 

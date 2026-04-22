@@ -1,5 +1,7 @@
 .DEFAULT_GOAL := help
 
+CHART_DIRS := $(sort $(dir $(wildcard ./charts/*/Chart.yaml)))
+
 .PHONY: help lint dump test build update-readme upgrade
 
 help:
@@ -7,13 +9,13 @@ help:
 
 lint: ## Lint and format the code
 	@npx -y prettier --write .
-	@for chart in $(shell ls -d ./charts/*/); do helm lint $$chart; done
+	@set -e; for chart in $(CHART_DIRS); do helm lint $$chart; done
 	@uv run ruff format .
 
 dump: ## Dump all chart templates to ./tmp
 	@rm -rf ./tmp
 	@mkdir -p ./tmp
-	@for chart in $(shell ls -d ./charts/*/); do \
+	@set -e; for chart in $(CHART_DIRS); do \
 		chart_name=$$(basename $$chart); \
 		chart_type=$$(grep -E '^type:' $$chart/Chart.yaml | awk '{print $$2}' || echo 'application'); \
 		if [ "$$chart_type" = "library" ]; then \
@@ -22,7 +24,10 @@ dump: ## Dump all chart templates to ./tmp
 		fi; \
 		mkdir -p ./tmp/$$chart_name; \
 		helm dependency update $$chart; \
-		helm template $$chart | csplit -s -z -f ./tmp/$$chart_name/manifest- - '/^---$$/' '{*}'; \
+		rendered_manifest=$$(mktemp); \
+		helm template $$chart > $$rendered_manifest; \
+		csplit -s -z -f ./tmp/$$chart_name/manifest- $$rendered_manifest '/^---$$/' '{*}'; \
+		rm -f $$rendered_manifest; \
 		for file in ./tmp/$$chart_name/manifest-*; do mv $$file $$file.yaml 2>/dev/null || true; done; \
 		rm -f ./tmp/$$chart_name/manifest.yaml; \
 	done
@@ -39,7 +44,7 @@ update-readme: ## Update the README with the latest chart information
 
 build: ## Build all charts
 	@mkdir -p ./tmp
-	@for chart in $(shell ls -d ./charts/*/); do \
+	@set -e; for chart in $(CHART_DIRS); do \
 		chart_name=$$(basename $$chart); \
 		chart_type=$$(grep -E '^type:' $$chart/Chart.yaml | awk '{print $$2}' || echo 'application'); \
 		if [ "$$chart_type" = "library" ]; then \
@@ -53,7 +58,4 @@ build: ## Build all charts
 	@echo "Packaged charts available in ./tmp"
 
 upgrade: ## Upgrade container image tags in all charts
-	@for chart in $(shell ls -d ./charts/*/); do \
-		echo "Upgrading chart: $$chart"; \
-		uv run tools/upgrade.py $$chart; \
-	done
+	@uv run tools/upgrade.py $(CHART_DIRS)

@@ -59,7 +59,7 @@ ingress:
 
 backups:
   enabled: false
-  image: mbround18/backup-cron:latest
+  image: mbround18/backup-cron:v1.0.0
   schedule: 0 3 * * *
   retainNDays: '7'
   retainNFiles: '10'
@@ -90,6 +90,6 @@ securityContext:
 initChown:
   # If enabled, an initContainer will chown the mounted volumes to the rootless UID/GID
   enabled: true
-  image: busybox:1.37
+  image: busybox:1.37.0
   # Extra directories the chown init container should ensure (optional)
   extraDirs: []

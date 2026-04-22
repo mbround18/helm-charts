@@ -1,4 +1,4 @@
-{{- if and .Values.istio.enabled (not .Values.istio-ingress.enabled) }}
+{{- if and .Values.istio (hasKey .Values.istio "enabled") .Values.istio.enabled (not (index .Values "istio-ingress" "enabled")) }}
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:

@@ -1,7 +1,8 @@
 apiVersion: v2
 name: fvtt-dndbeyond-companion
 description: A Helm chart for Kubernetes
-icon: "https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png"
+icon: 
+  https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -22,4 +23,4 @@ version: 0.0.3
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "main"
+appVersion: v1.1.0

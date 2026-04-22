@@ -5,7 +5,7 @@ global:
 replicaCount: 1
 image:
   repository: ghcr.io/requarks/wiki
-  tag: 2.5.311
+  tag: 2.5.277
   pullPolicy: IfNotPresent
 resources: {}
 service:
@@ -21,7 +21,7 @@ istio-ingress:
   virtualService:
     enabled: true
     hosts:
-      - "wikijs.local"
+      - wikijs.local
     route:
       # The host and port targets are set dynamically in templates/00-merge-istio-routes.yaml
       host: wikijs
@@ -36,11 +36,11 @@ istio-ingress:
           protocol: HTTP
           name: http
         hosts:
-          - "*"
+          - '*'
   tls:
     enabled: false
     mode: SIMPLE
-    credentialName: ""
+    credentialName: ''
     httpsRedirect: false
 meilisearch:
   # Dependency is available but disabled by default. Uncomment to enable and override.
@@ -48,7 +48,7 @@ meilisearch:
   enabled: false
   image:
     repository: getmeili/meilisearch
-    tag: v1.33.1
+    tag: v1.41.0
     pullPolicy: IfNotPresent
   copyImage:
     repository: mbround18/wikijs-meilisearch-module
@@ -70,9 +70,9 @@ meilisearch:
   provisioning:
     enabled: true
     indexSecret: meilisearch-wikijs-data
-    apiKeyDescription: "Wiki.js API Key"
-    apiKeyActions: ["*"]
-    apiKeyIndexes: ["*"]
+    apiKeyDescription: Wiki.js API Key
+    apiKeyActions: ['*']
+    apiKeyIndexes: ['*']
 
 postgres:
   enabled: true
@@ -90,7 +90,7 @@ postgres:
     enabled: false
   image:
     repository: postgres
-    tag: "18"
+    tag: '18.2'
     pullPolicy: IfNotPresent
   persistence:
     enabled: true
