@@ -1,0 +1,258 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations: null
+  name: null
+stringData:
+  POSTGRES_PASSWORD: <redacted:POSTGRES_PASSWORD>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations: null
+  name: null
+stringData:
+  POSTGRES_PASSWORD: <redacted:POSTGRES_PASSWORD>
+---
+apiVersion: v1
+data:
+  init-user-db.sh: "#!/bin/bash\nset -e\n\npsql -v ON_ERROR_STOP=1 --username \"$POSTGRES_USER\"\
+    \ --dbname \"$POSTGRES_DB\" <<-EOSQL\n    -- Create the application user if it\
+    \ doesn't exist\n    DO\n    \\$\\$\n    BEGIN\n       IF NOT EXISTS (\n     \
+    \     SELECT FROM pg_catalog.pg_roles\n          WHERE  rolname = '$APP_USER')\
+    \ THEN\n\n          CREATE ROLE $APP_USER LOGIN PASSWORD '$APP_PASSWORD';\n  \
+    \     ELSE\n          ALTER ROLE $APP_USER WITH PASSWORD '$APP_PASSWORD';\n  \
+    \     END IF;\n    END\n    \\$\\$;\n\n    -- Grant privileges\n    GRANT ALL\
+    \ PRIVILEGES ON DATABASE $APP_DB TO $APP_USER;\n    ALTER DATABASE $APP_DB OWNER\
+    \ TO $APP_USER;\n    \n    -- Grant schema usage\n    \\c $APP_DB\n    GRANT ALL\
+    \ ON SCHEMA public TO $APP_USER;\nEOSQL\n"
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: postgres-secret-manager
+  namespace: dev-testing
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - update
+  - patch
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - pods/exec
+  verbs:
+  - get
+  - list
+  - create
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgres-secret-manager-binding
+  namespace: dev-testing
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: postgres-secret-manager
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: dev-testing
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
+  selector:
+    app: postgres
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+  labels:
+    app: postgres
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      annotations:
+        checksum/superuser-secret: <normalized:checksum/superuser-secret>
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          value: wikijs
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: postgres-superuser-password
+        - name: APP_USER
+          value: wikijs
+        - name: APP_DB
+          value: wikijs
+        - name: APP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: postgres-password
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: scram-sha-256
+        image: postgres:18.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pg_isready -U postgres -d wikijs
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        name: postgres
+        ports:
+        - containerPort: 5432
+          name: postgres
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pg_isready -U postgres -d wikijs
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/lib/postgresql
+          name: data
+        - mountPath: /docker-entrypoint-initdb.d
+          name: init-scripts
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: postgres-data
+      - configMap:
+          name: postgres-init-scripts
+        name: init-scripts
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: '2'
+  name: postgres-password-sync
+spec:
+  template:
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - 'set -e
+
+          apk add --no-cache curl
+
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.2/bin/linux/amd64/kubectl
+
+          chmod +x kubectl
+
+          mv kubectl /usr/local/bin/
+
+
+          echo "Waiting for postgres-0 to be ready..."
+
+          kubectl wait --for=condition=Ready pod/postgres-0 --timeout=120s
+
+
+          echo "Updating password for user wikijs..."
+
+          # Pipe the SQL command to avoid exposing password in process args
+
+          # Use the superuser secret to authenticate if needed, or rely on local trust
+          if configured
+
+          # Here we assume we can exec as the postgres user inside the container who
+          is superuser
+
+          echo "ALTER USER wikijs WITH PASSWORD ''$POSTGRES_PASSWORD'';" | kubectl
+          exec -i postgres-0 -- psql -U postgres
+
+
+          echo "Password updated successfully."
+
+          '
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: postgres-password
+        image: alpine:3.22
+        name: password-sync
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - "apk add --no-cache postgresql-client\necho \"Waiting for PostgreSQL to\
+          \ be ready on postgres-0...\"\nuntil pg_isready -h postgres-0.postgres -p\
+          \ 5432 -U \"$PGUSER\"; do\n  echo \"PostgreSQL not ready, retrying...\"\n\
+          \  sleep 5\ndone\necho \"PostgreSQL is accepting connections.\"\n"
+        env:
+        - name: PGUSER
+          value: postgres
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: postgres-superuser-password
+        image: alpine:3.22
+        name: wait-for-postgres
+      restartPolicy: OnFailure
+      serviceAccountName: default

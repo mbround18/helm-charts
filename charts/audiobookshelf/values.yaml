@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/advplyr/audiobookshelf
-  tag: "latest"
+  tag: 2.19.0
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -11,25 +11,25 @@ service:
 persistence:
   config:
     enabled: true
-    storageClassName: ""
+    storageClassName: ''
     size: 10Gi
     claimName: audiobookshelf-config
     mountPath: /config
   metadata:
     enabled: true
-    storageClassName: ""
+    storageClassName: ''
     size: 20Gi
     claimName: audiobookshelf-metadata
     mountPath: /metadata
   audiobooks:
     enabled: true
-    storageClassName: ""
+    storageClassName: ''
     size: 100Gi
     claimName: audiobookshelf-books
     mountPath: /audiobooks
   podcasts:
     enabled: false
-    storageClassName: ""
+    storageClassName: ''
     size: 10Gi
     claimName: audiobookshelf-podcasts
     mountPath: /podcasts
@@ -59,16 +59,16 @@ ingress:
 
 backups:
   enabled: false
-  image: mbround18/backup-cron:latest
-  schedule: "0 3 * * *"
-  retainNDays: "7"
-  retainNFiles: "10"
+  image: mbround18/backup-cron:v1.0.0
+  schedule: 0 3 * * *
+  retainNDays: '7'
+  retainNFiles: '10'
 
 resources: {}
 
 serviceAccount:
   create: true
-  name: ""
+  name: ''
 
 secrets:
   # JWT secret config
@@ -90,6 +90,6 @@ securityContext:
 initChown:
   # If enabled, an initContainer will chown the mounted volumes to the rootless UID/GID
   enabled: true
-  image: busybox:1.37
+  image: busybox:1.37.0
   # Extra directories the chown init container should ensure (optional)
   extraDirs: []

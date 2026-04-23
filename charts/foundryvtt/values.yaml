@@ -1,25 +1,38 @@
 replicaCount: 1
-fullnameOverride: "foundryvtt-dnd-boop-ninja"
+fullnameOverride: foundryvtt-dnd-boop-ninja
 
 ########################################################
 # Main Foundry container settings
 ########################################################
 image:
-  repository: "mbround18/foundryvtt-docker"
-  tag: "latest"
+  repository: mbround18/foundryvtt-docker
+  tag: v3.0.27
   pullPolicy: IfNotPresent
 
 sslProxy: false
 
 network:
-  host: "dnd.boop.ninja"
+  host: dnd.boop.ninja
   tls:
     enabled: true
     credentialName: foundry-tls
 
 ingress:
+  enabled: false
   annotations: {}
-  className: ""
+  className: ''
+  hosts:
+    - host: foundry.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    route:
+      host: foundry
+      port: 80
 
 service:
   type: ClusterIP
@@ -27,29 +40,29 @@ service:
   port: 80
 
 imagePullSecrets: []
-priorityClassName: ""
+priorityClassName: ''
 terminationGracePeriodSeconds: 30
 
 resources:
   limits:
-    cpu: "0.3"
-    memory: "1024Mi"
+    cpu: '0.3'
+    memory: 1024Mi
   requests:
-    cpu: "0.2"
-    memory: "512Mi"
+    cpu: '0.2'
+    memory: 512Mi
 
 ########################################################
 # Pod security and service account
 ########################################################
 serviceAccount:
   create: true
-  name: ""
+  name: ''
   annotations: {}
 
 podSecurityContext:
   enabled: true
   fsGroup: 1000
-  fsGroupChangePolicy: "OnRootMismatch"
+  fsGroupChangePolicy: OnRootMismatch
   seccompProfile:
     type: RuntimeDefault
 
@@ -61,7 +74,7 @@ securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
   capabilities:
-    drop: ["ALL"]
+    drop: [ALL]
 
 podAnnotations: {}
 commonLabels: {}
@@ -74,10 +87,10 @@ env: []
 
 initImage:
   repository: busybox
-  tag: "1.37"
+  tag: 1.37.0
 cleanupImage:
   repository: alpine
-  tag: "3.23"
+  tag: '20260127'
 
 updateStrategy: {}
 
@@ -92,12 +105,12 @@ pdb:
 probes:
   liveness:
     enabled: true
-    path: "/"
+    path: /
     initialDelaySeconds: 30
     periodSeconds: 10
   readiness:
     enabled: true
-    path: "/"
+    path: /
     initialDelaySeconds: 10
     periodSeconds: 10
 
@@ -108,29 +121,29 @@ probes:
 volumeClaimTemplates:
   backups:
     enabled: true
-    storageClassName: "longhorn"
-    size: "10Gi"
-    accessModes: ["ReadWriteMany"]
+    storageClassName: longhorn
+    size: 10Gi
+    accessModes: [ReadWriteMany]
   config:
     enabled: true
-    storageClassName: "longhorn"
-    size: "1Gi"
-    accessModes: ["ReadWriteOnce"]
+    storageClassName: longhorn
+    size: 1Gi
+    accessModes: [ReadWriteOnce]
   data:
     enabled: true
-    storageClassName: "longhorn"
-    size: "20Gi"
-    accessModes: ["ReadWriteMany"]
+    storageClassName: longhorn
+    size: 20Gi
+    accessModes: [ReadWriteMany]
   core:
     enabled: true
-    storageClassName: "longhorn"
-    size: "2Gi"
-    accessModes: ["ReadWriteOnce"]
+    storageClassName: longhorn
+    size: 2Gi
+    accessModes: [ReadWriteOnce]
   app:
     enabled: true
-    storageClassName: "longhorn"
-    size: "4Gi"
-    accessModes: ["ReadWriteOnce"]
+    storageClassName: longhorn
+    size: 4Gi
+    accessModes: [ReadWriteOnce]
 
 ########################################################
 # Extra Persistent Volumes
@@ -165,14 +178,5 @@ extraContainers: []
 ########################################################
 backup_cleanup:
   enabled: true
-  schedule: "0 2 * * *"
+  schedule: 0 2 * * *
   olderThanDays: 30
-########################################################
-# Istio settings
-########################################################
-# istio:
-#   enabled: false
-#   gateway:
-#     selector:
-#       istio: ingressgateway
-#     credentialName: "foundryvtt-credential"

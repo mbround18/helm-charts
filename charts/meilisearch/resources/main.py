@@ -4,26 +4,36 @@ Meilisearch API Key Provisioner
 Generates and validates Meilisearch API keys using the Python client library.
 """
 
+from __future__ import annotations
+
 import argparse
 import base64
 import logging
 import os
 import sys
 import time
-from typing import Optional
 from contextlib import contextmanager
-from typing import Iterator, Any
+from typing import TYPE_CHECKING, Any, Iterator, Optional
 
-from meilisearch import Client  # type: ignore[attr-defined]
+if TYPE_CHECKING:
+    from meilisearch import Client as MeiliClient  # type: ignore[attr-defined]
+else:
+    MeiliClient = Any
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
+def create_meili_client(host: str, key: Optional[str]) -> MeiliClient:
+    from meilisearch import Client  # type: ignore[attr-defined]
+
+    return Client(host, key)
+
+
 @contextmanager
-def meili_client_ctx(host: str, key: Optional[str]) -> Iterator[Client]:
+def meili_client_ctx(host: str, key: Optional[str]) -> Iterator[MeiliClient]:
     """Context manager for Meilisearch Client."""
-    client = Client(host, key)
+    client = create_meili_client(host, key)
     try:
         yield client
     finally:
@@ -62,7 +72,7 @@ def get_env(var: str, default: str | None = None) -> str:
     return value if value else default  # type: ignore[return-value]
 
 
-def wait_for_meilisearch(client: Client, max_retries: int = 30) -> bool:
+def wait_for_meilisearch(client: MeiliClient, max_retries: int = 30) -> bool:
     """Wait for Meilisearch to be ready."""
     for attempt in range(max_retries):
         try:
@@ -78,7 +88,7 @@ def wait_for_meilisearch(client: Client, max_retries: int = 30) -> bool:
     return False
 
 
-def validate_master_key(client: Client) -> bool:
+def validate_master_key(client: MeiliClient) -> bool:
     """Validate the master key by testing it against Meilisearch."""
     try:
         # Health endpoint may be accessible without auth; require an admin
@@ -105,7 +115,7 @@ def validate_master_key(client: Client) -> bool:
 def validate_api_key(url: str, api_key: str) -> bool:
     """Validate an API key by testing it against Meilisearch."""
     try:
-        test_client = Client(url, api_key)
+        test_client = create_meili_client(url, api_key)
         health = test_client.health()
         return health.get("status") == "available"
     except Exception:
@@ -113,7 +123,7 @@ def validate_api_key(url: str, api_key: str) -> bool:
 
 
 def find_matching_key(
-    client: Client,
+    client: MeiliClient,
     host_url: str,
     description: str,
     indexes: list[str],
@@ -201,13 +211,15 @@ def find_matching_key(
     return None
 
 
-def ensure_indexes(client: Client, indexes: list[str]) -> None:
+def ensure_indexes(client: MeiliClient, indexes: list[str]) -> None:
     """Create any missing indexes in Meilisearch using the master client.
 
     Skips when indexes is ['*'] (meaning all indexes).
     """
     if not indexes or indexes == ["*"]:
-        logger.info("Index creation skipped (wildcard '*')")
+        message = "Index creation skipped (wildcard '*')"
+        logger.info(message)
+        print(message)
         return
 
     for idx in indexes:
@@ -236,7 +248,7 @@ def ensure_indexes(client: Client, indexes: list[str]) -> None:
 
 
 def create_api_key(
-    client: Client,
+    client: MeiliClient,
     description: str,
     indexes: list[str],
     actions: list[str],
