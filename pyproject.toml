@@ -12,6 +12,10 @@ dependencies = [
     "rich",
     "kubernetes",
     "ruamel.yaml",
+    "pytest-snapshot",
+    "pytest-cov",
+    "pytest-sugar",
+    "pytest-xdist",
     "packaging",
 ]
 
