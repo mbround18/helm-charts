@@ -1,9 +1,9 @@
 dependencies:
 - name: game-tools
   repository: file://../game-tools
-  version: 0.1.2
+  version: 0.1.3
 - name: gitops-tools
   repository: file://../gitops-tools
   version: 0.1.0
-digest: sha256:f9b61ea79f6f5bcdf9536d55e275ade37b3eaa2bc5a38c001ac8dd56abdc1b1f
-generated: "2026-04-25T21:24:16.014936748-07:00"
+digest: sha256:d6c81d58dac81a712b1e405d5cb9f216311e832b7d8b74759480384f605b1741
+generated: "2026-04-25T23:06:01.92122965-07:00"

@@ -61,7 +61,8 @@ jobs:
         uses: ./.github/actions/setup-helm
 
       - name: Update Chart Version
-        run: uv run tools/version_checker.py
+        run: |
+          uv run tools/version_checker.py
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -86,7 +87,8 @@ jobs:
         uses: ./.github/actions/setup-helm
 
       - name: Verify local file dependency versions
-        run: uv run pytest charts/tests/test_manifest_contracts.py -k local_file_dependencies_match_referenced_chart_versions
+        run: uv run pytest charts/tests/test_manifest_contracts.py -k
+          local_file_dependencies_match_referenced_chart_versions
         env:
           PYTEST_ADDOPTS: --color=yes -rA --durations=20
 
