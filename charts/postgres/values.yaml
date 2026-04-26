@@ -11,7 +11,7 @@ authMethod: scram-sha-256
 
 image:
   repository: postgres
-  tag: '18.2'
+  tag: "18.2"
   pullPolicy: IfNotPresent
 
 ha:

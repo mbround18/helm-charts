@@ -39,7 +39,7 @@ service:
 ingress:
   enabled: false
   # Standard Kubernetes Ingress (fallback if istio not enabled)
-  className: ''
+  className: ""
   # Default domain if not specified
   domain: meilisearch.example.com
   # Custom hosts (overrides default domain)
@@ -49,7 +49,7 @@ ingress:
   # TLS configuration
   tls:
     enabled: false
-    secretName: ''
+    secretName: ""
 
 # Istio Ingress (istio-ingress subchart)
 istio-ingress:
@@ -70,12 +70,12 @@ istio-ingress:
           protocol: HTTP
           name: http
         hosts:
-          - '*'
+          - "*"
   # TLS configuration (optional - enable for HTTPS)
   tls:
     enabled: false
     mode: SIMPLE
-    credentialName: ''
+    credentialName: ""
     httpsRedirect: false
 
 secrets:
@@ -91,6 +91,6 @@ provisioning:
   # Key description in Meilisearch
   apiKeyDescription: Provisioned API Key
   # Actions allowed for this key
-  apiKeyActions: ['*']
+  apiKeyActions: ["*"]
   # Indexes allowed for this key
-  apiKeyIndexes: ['*']
+  apiKeyIndexes: ["*"]

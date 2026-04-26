@@ -8,12 +8,12 @@ environment: []
   # - name: MY_ENV_VAR
   #   value: my-env-var-value
 
-storageClassName: ''
+storageClassName: ""
 
 backups:
   enabled: false
   image: mbround18/backup-cron:v1.0.0
-  schedule: '*/5 * * * *'
+  schedule: "*/5 * * * *"
   retainNDays: 7
   retainNFiles: 0
 
@@ -21,11 +21,11 @@ image:
   repository: mbround18/palworld-docker
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: '2.1'
+  tag: "2.1"
 
 imagePullSecrets: []
-nameOverride: ''
-fullnameOverride: ''
+nameOverride: ""
+fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -36,7 +36,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ''
+  name: ""
 
 podAnnotations: {}
 podLabels: {}
@@ -53,7 +53,7 @@ securityContext: {}
   # runAsUser: 1000
 
 endpoint:
-  externalIP: ''
+  externalIP: ""
   gamePort: 8211
   queryPort: 27015
 
