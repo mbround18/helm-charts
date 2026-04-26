@@ -5,15 +5,30 @@ JOBS ?= $(shell nproc 2>/dev/null || echo 4)
 PYTEST_ARGS ?= charts
 MANIFEST_PYTEST_ARGS ?= charts/tests/test_manifest_contracts.py
 
-.PHONY: help lint dump deps-update validate test test-update build update-readme upgrade
+.PHONY: help lint lint-helm dump deps-update validate test test-update build update-readme upgrade
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 lint: ## Lint and format the code
 	@npx -y prettier --write .
-	@set -e; for chart in $(CHART_DIRS); do helm lint $$chart; done
+	@$(MAKE) lint-helm
 	@uv run ruff format .
+
+lint-helm: ## Build vendored chart dependencies and run helm lint for every chart
+	@printf '%s\n' $(CHART_DIRS) | xargs -P $(JOBS) -I {} sh -eu -c '\
+		chart="{}"; \
+		chart_name=$$(basename "$$chart"); \
+		chart_type=$$(grep -E "^type:" "$$chart/Chart.yaml" | awk "{print \$$2}" || echo application); \
+		if [ "$$chart_type" != "library" ] && grep -Eq "^dependencies:" "$$chart/Chart.yaml"; then \
+			if [ ! -f "$$chart/Chart.lock" ]; then \
+				echo "Missing $$chart/Chart.lock. Run make deps-update." >&2; \
+				exit 1; \
+			fi; \
+			helm dependency build --skip-refresh "$$chart" >/dev/null; \
+		fi; \
+		printf "Linting %s\n" "$$chart_name"; \
+		helm lint "$$chart" >/dev/null'
 
 dump: ## Dump all chart templates to ./tmp
 	@rm -rf ./tmp

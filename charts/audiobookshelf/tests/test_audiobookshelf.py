@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import yaml
@@ -23,10 +22,12 @@ def _document_by_kind(documents, kind):
 
 def test_chart_rendering(snapshot):
     chart_path = Path(__file__).parent.parent
-    rendered_templates = render_chart_documents(chart_path, namespace=SNAPSHOT_NAMESPACE)
-    
+    rendered_templates = render_chart_documents(
+        chart_path, namespace=SNAPSHOT_NAMESPACE
+    )
+
     # The snapshot library expects a string, so we dump the yaml back to a string
-    snapshot.assert_match(yaml.dump_all(rendered_templates), 'chart_snapshot.yaml')
+    snapshot.assert_match(yaml.dump_all(rendered_templates), "chart_snapshot.yaml")
 
 
 def test_argocd_metadata_is_not_rendered_by_default():
@@ -47,9 +48,14 @@ def test_argocd_metadata_renders_when_application_api_is_available():
     service = _document_by_kind(documents, "Service")
     service_account = _document_by_kind(documents, "ServiceAccount")
 
-    assert statefulset["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "30"
+    assert (
+        statefulset["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "30"
+    )
     assert service["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "0"
-    assert service_account["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "0"
+    assert (
+        service_account["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"]
+        == "0"
+    )
 
 
 @pytest.mark.parametrize("jwt_secret", [True, False])
@@ -72,7 +78,10 @@ def test_argocd_force_mode_adds_instance_label(jwt_secret):
 
     statefulset = _document_by_kind(documents, "StatefulSet")
 
-    assert statefulset["metadata"]["labels"]["argocd.argoproj.io/instance"] == "audiobookshelf-prod"
+    assert (
+        statefulset["metadata"]["labels"]["argocd.argoproj.io/instance"]
+        == "audiobookshelf-prod"
+    )
 
     if jwt_secret:
         secret = _document_by_kind(documents, "Secret")
