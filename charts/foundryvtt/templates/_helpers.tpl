@@ -20,6 +20,7 @@ foundryvtt
 helm.sh/chart: {{ include "foundryvtt.chart" . }}
 app.kubernetes.io/name: {{ include "foundryvtt.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- include "gitops-tools.argocd.labels" (dict "context" .) }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- if .Values.commonLabels }}

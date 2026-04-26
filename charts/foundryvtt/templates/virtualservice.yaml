@@ -5,6 +5,11 @@ metadata:
   name: {{ include "foundryvtt.fullname" . }}-vs
   labels:
     {{- include "foundryvtt.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
 spec:
   hosts:
    - {{ .Values.network.host }}

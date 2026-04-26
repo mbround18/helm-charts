@@ -4,9 +4,10 @@ metadata:
   name: {{ include "foundryvtt.fullname" . }}
   labels:
     {{- include "foundryvtt.labels" . | nindent 4 }}
-  {{- with .Values.service.annotations }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" .Values.service.annotations) }}
+  {{- if $annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
+    {{- $annotations | nindent 4 }}
   {{- end }}
 spec:
   type: {{ .Values.service.type }}

@@ -15,6 +15,12 @@ data:
   FFPROBE_PATH: ffprobe
 kind: ConfigMap
 metadata:
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: audiobookshelf
+    app.kubernetes.io/version: 2.19.0
+    helm.sh/chart: audiobookshelf-0.1.2
   name: release-name-audiobookshelf-config
 ---
 apiVersion: v1

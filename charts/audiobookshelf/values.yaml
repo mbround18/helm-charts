@@ -11,25 +11,25 @@ service:
 persistence:
   config:
     enabled: true
-    storageClassName: ''
+    storageClassName: ""
     size: 10Gi
     claimName: audiobookshelf-config
     mountPath: /config
   metadata:
     enabled: true
-    storageClassName: ''
+    storageClassName: ""
     size: 20Gi
     claimName: audiobookshelf-metadata
     mountPath: /metadata
   audiobooks:
     enabled: true
-    storageClassName: ''
+    storageClassName: ""
     size: 100Gi
     claimName: audiobookshelf-books
     mountPath: /audiobooks
   podcasts:
     enabled: false
-    storageClassName: ''
+    storageClassName: ""
     size: 10Gi
     claimName: audiobookshelf-podcasts
     mountPath: /podcasts
@@ -50,6 +50,12 @@ istio-ingress:
       host: audiobookshelf
       port: 80
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 ingress:
   enabled: false
   hosts:
@@ -61,14 +67,14 @@ backups:
   enabled: false
   image: mbround18/backup-cron:v1.0.0
   schedule: 0 3 * * *
-  retainNDays: '7'
-  retainNFiles: '10'
+  retainNDays: "7"
+  retainNFiles: "10"
 
 resources: {}
 
 serviceAccount:
   create: true
-  name: ''
+  name: ""
 
 secrets:
   # JWT secret config

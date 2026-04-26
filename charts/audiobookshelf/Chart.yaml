@@ -1,6 +1,6 @@
 apiVersion: v2
 name: audiobookshelf
-description: Helm chart for Audiobookshelf (self-hosted audiobook & podcast 
+description: Helm chart for Audiobookshelf (self-hosted audiobook & podcast
   server)
 type: application
 version: 0.1.2
@@ -10,3 +10,6 @@ dependencies:
     version: 0.1.0
     repository: https://mbround18.github.io/helm-charts
     condition: istio-ingress.enabled
+  - name: gitops-tools
+    version: 0.1.0
+    repository: file://../gitops-tools
