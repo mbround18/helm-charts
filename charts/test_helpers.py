@@ -45,7 +45,9 @@ def application_chart_directories(charts_root: Path | None = None) -> list[Path]
     ]
 
 
-def resource_namespace(document: dict[str, Any], default_namespace: str = DEFAULT_NAMESPACE) -> str:
+def resource_namespace(
+    document: dict[str, Any], default_namespace: str = DEFAULT_NAMESPACE
+) -> str:
     metadata = document.get("metadata") or {}
     return metadata.get("namespace") or default_namespace
 
@@ -98,6 +100,7 @@ def render_chart_documents(
     values: dict[str, Any] | None = None,
     release_name: str = DEFAULT_RELEASE_NAME,
     namespace: str = DEFAULT_NAMESPACE,
+    api_versions: list[str] | None = None,
 ) -> list[Any]:
     command = [
         "helm",
@@ -107,6 +110,9 @@ def render_chart_documents(
         "--namespace",
         namespace,
     ]
+
+    for api_version in api_versions or []:
+        command.extend(["--api-versions", api_version])
 
     values_file = None
     if values:
@@ -169,13 +175,14 @@ def iter_workloads(
             pod_labels = (document.get("metadata") or {}).get("labels") or {}
         else:
             pod_labels = (
-                (((document.get("spec") or {}).get("template") or {}).get("metadata") or {}).get("labels")
+                ((document.get("spec") or {}).get("template") or {}).get("metadata")
                 or {}
-            )
+            ).get("labels") or {}
 
         claim_templates = tuple(
             template.get("metadata", {}).get("name")
-            for template in (document.get("spec") or {}).get("volumeClaimTemplates") or []
+            for template in (document.get("spec") or {}).get("volumeClaimTemplates")
+            or []
             if template.get("metadata", {}).get("name")
         )
 
