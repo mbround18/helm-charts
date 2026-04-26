@@ -62,7 +62,7 @@ jobs:
 
       - name: Update Chart Version
         run: |
-          uv run tools/version_checker.py
+          uv run python -m tools.manager --push
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

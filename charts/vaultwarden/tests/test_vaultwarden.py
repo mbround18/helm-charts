@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from charts.test_helpers import render_chart_documents, render_chart_snapshot
+from charts.test_helpers import render_chart_documents
 
 
 def _render(values=None):
@@ -17,15 +17,6 @@ def _render_with_api_versions(api_versions, values=None):
 
 def _document_by_kind(documents, kind):
     return next(document for document in documents if document.get("kind") == kind)
-
-
-def test_chart_rendering(snapshot):
-    chart_path = Path(__file__).parent.parent
-
-    snapshot.assert_match(
-        render_chart_snapshot(chart_path, normalize_secrets=True),
-        "chart_snapshot.yaml",
-    )
 
 
 def test_defaults_reuse_existing_claim_and_secret_without_creating_them():

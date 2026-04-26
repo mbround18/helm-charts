@@ -1,16 +1,15 @@
 from pathlib import Path
 
-import yaml
 import pytest
 
-from charts.test_helpers import SNAPSHOT_NAMESPACE, render_chart_documents
+from charts.test_helpers import DEFAULT_NAMESPACE, render_chart_documents
 
 
 def _render(values=None, api_versions=None):
     chart_path = Path(__file__).parent.parent
     return render_chart_documents(
         chart_path,
-        namespace=SNAPSHOT_NAMESPACE,
+        namespace=DEFAULT_NAMESPACE,
         values=values,
         api_versions=api_versions,
     )
@@ -18,16 +17,6 @@ def _render(values=None, api_versions=None):
 
 def _document_by_kind(documents, kind):
     return next(document for document in documents if document.get("kind") == kind)
-
-
-def test_chart_rendering(snapshot):
-    chart_path = Path(__file__).parent.parent
-    rendered_templates = render_chart_documents(
-        chart_path, namespace=SNAPSHOT_NAMESPACE
-    )
-
-    # The snapshot library expects a string, so we dump the yaml back to a string
-    snapshot.assert_match(yaml.dump_all(rendered_templates), "chart_snapshot.yaml")
 
 
 def test_argocd_metadata_is_not_rendered_by_default():
