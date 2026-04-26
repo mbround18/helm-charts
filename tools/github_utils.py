@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 
+
 def get_github_token() -> str | None:
     """
     Attempts to retrieve a GitHub token from environment variables or gh CLI.
@@ -16,23 +17,32 @@ def get_github_token() -> str | None:
     try:
         # Check if gh CLI is installed
         subprocess.run(["which", "gh"], check=True, capture_output=True)
-        
+
         # Get token using gh auth token
         # Using --hostname github.com to ensure we get the token for the main GitHub
         # This might need to be configurable if dealing with GitHub Enterprise
         token_proc = subprocess.run(
             ["gh", "auth", "token", "--hostname", "github.com"],
-            capture_output=True, text=True, check=True
+            capture_output=True,
+            text=True,
+            check=True,
         )
         token = token_proc.stdout.strip()
         if token:
             return token
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("Warning: Neither GITHUB_TOKEN environment variable nor 'gh' CLI token found.", file=sys.stderr)
-        print("         GHCR authentication might fail or hit rate limits for private repositories.", file=sys.stderr)
-        pass # gh CLI not found or not logged in
+    except subprocess.CalledProcessError, FileNotFoundError:
+        print(
+            "Warning: Neither GITHUB_TOKEN environment variable nor 'gh' CLI token found.",
+            file=sys.stderr,
+        )
+        print(
+            "         GHCR authentication might fail or hit rate limits for private repositories.",
+            file=sys.stderr,
+        )
+        pass  # gh CLI not found or not logged in
 
     return None
+
 
 if __name__ == "__main__":
     # Example usage
