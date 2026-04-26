@@ -170,6 +170,99 @@ def write_chart_version(chart_yaml: Path, new_version: str) -> None:
         yaml.safe_dump(data, fh, sort_keys=False)
 
 
+def load_chart_data(chart_yaml: Path) -> dict:
+    with chart_yaml.open("r", encoding="utf-8") as fh:
+        data = yaml.safe_load(fh) or {}
+    return data if isinstance(data, dict) else {}
+
+
+def write_chart_data(chart_yaml: Path, data: dict) -> None:
+    with chart_yaml.open("w", encoding="utf-8") as fh:
+        yaml.safe_dump(data, fh, sort_keys=False)
+
+
+def sync_local_dependency_versions(
+    charts_root: Path,
+    bumped_versions: Dict[str, str],
+) -> List[Path]:
+    """Propagate local file:// dependency version bumps to consumer Chart.yaml files.
+
+    Returns chart directories that were modified.
+    """
+    updated_chart_dirs: List[Path] = []
+
+    for chart_dir in list_chart_dirs(charts_root):
+        chart_yaml = chart_dir / "Chart.yaml"
+        if not chart_yaml.exists():
+            continue
+
+        data = load_chart_data(chart_yaml)
+        dependencies = data.get("dependencies")
+        if not isinstance(dependencies, list):
+            continue
+
+        changed = False
+        for dep in dependencies:
+            if not isinstance(dep, dict):
+                continue
+
+            repository = dep.get("repository")
+            dep_name = dep.get("name")
+            dep_version = dep.get("version")
+            if not (
+                isinstance(repository, str)
+                and repository.startswith("file://")
+                and isinstance(dep_name, str)
+                and isinstance(dep_version, str)
+            ):
+                continue
+
+            target_version = bumped_versions.get(dep_name)
+            if target_version and dep_version != target_version:
+                log(
+                    "INFO",
+                    (
+                        f"Updating local dependency version in {chart_yaml}: "
+                        f"{dep_name} {dep_version} -> {target_version}"
+                    ),
+                )
+                dep["version"] = target_version
+                changed = True
+
+        if changed:
+            write_chart_data(chart_yaml, data)
+            updated_chart_dirs.append(chart_dir)
+
+    return updated_chart_dirs
+
+
+def refresh_dependency_locks(chart_dirs: Iterable[Path]) -> List[Path]:
+    """Regenerate Chart.lock files for updated consumer charts."""
+    updated_lockfiles: List[Path] = []
+    for chart_dir in chart_dirs:
+        chart_yaml = chart_dir / "Chart.yaml"
+        data = load_chart_data(chart_yaml)
+        dependencies = data.get("dependencies") or []
+        if not dependencies:
+            continue
+
+        lock_path = chart_dir / "Chart.lock"
+        if not lock_path.exists():
+            continue
+
+        try:
+            run(
+                ["helm", "dependency", "build", "--skip-refresh", str(chart_dir)]
+            )
+            updated_lockfiles.append(lock_path)
+        except subprocess.CalledProcessError as e:
+            log(
+                "WARNING",
+                f"Failed to refresh lockfile for {chart_dir.name}: {e}",
+            )
+    return updated_lockfiles
+
+
 def get_repo_root() -> Path:
     try:
         return Path(run(["git", "rev-parse", "--show-toplevel"]))
@@ -281,8 +374,19 @@ def main() -> int:
             log("INFO", "No version updates were required. Skipping commit and push.")
             return 0
 
+        bumped_versions = {name: version for name, version, _ in updated_charts}
+        dependency_updated_chart_dirs = sync_local_dependency_versions(
+            charts_root,
+            bumped_versions,
+        )
+        updated_lockfiles = refresh_dependency_locks(dependency_updated_chart_dirs)
+
         # Batch all chart version bumps into one commit for faster CI and cleaner history.
         staged_paths = [str(chart_yaml) for _, _, chart_yaml in updated_charts]
+        staged_paths.extend(
+            str(chart_dir / "Chart.yaml") for chart_dir in dependency_updated_chart_dirs
+        )
+        staged_paths.extend(str(lockfile) for lockfile in updated_lockfiles)
         subprocess.check_call(["git", "add", *staged_paths])
 
         summary = ", ".join(f"{name}:{version}" for name, version, _ in updated_charts)
