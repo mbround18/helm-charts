@@ -33,6 +33,11 @@ def load_chart_version(chart_yaml: Path) -> Optional[str]:
     return version if isinstance(version, str) else None
 
 
+def load_chart_type(chart_yaml: Path) -> str:
+    chart_type = load_yaml(chart_yaml).get("type")
+    return chart_type if isinstance(chart_type, str) else "application"
+
+
 def write_chart_version(chart_yaml: Path, new_version: str) -> None:
     data = load_yaml(chart_yaml)
     data["version"] = new_version
