@@ -61,7 +61,8 @@ jobs:
         uses: ./.github/actions/setup-helm
 
       - name: Update Chart Version
-        run: uv run tools/version_checker.py
+        run: |
+          uv run python -m tools.manager --push
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -86,7 +87,8 @@ jobs:
         uses: ./.github/actions/setup-helm
 
       - name: Verify local file dependency versions
-        run: uv run pytest charts/tests/test_manifest_contracts.py -k local_file_dependencies_match_referenced_chart_versions
+        run: uv run pytest charts/tests/test_manifest_contracts.py -k
+          local_file_dependencies_match_referenced_chart_versions
         env:
           PYTEST_ADDOPTS: --color=yes -rA --durations=20
 
@@ -111,6 +113,11 @@ jobs:
           ref: main
           token: ${{ steps.app-token.outputs.token }}
 
+      - name: Configure Git
+        run: |
+          git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
       - name: Setup Python
         uses: ./.github/actions/setup-python
 
@@ -127,11 +134,12 @@ jobs:
 
       - name: Run chart-releaser
         if: github.event_name != 'pull_request'
-        uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # cae68fe, https://github.com/helm/chart-releaser-action/releases/latest
-        with:
-          charts_dir: charts
-          config: cr.yaml
-          skip_existing: true
-          skip_packaging: true
+        run: |
+          uv run python -m tools.release_charts \
+            --config cr.yaml \
+            --package-path .cr-release-packages \
+            --pages-branch gh-pages \
+            --skip-existing
         env:
-          CR_TOKEN: "${{ steps.app-token.outputs.token }}"
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

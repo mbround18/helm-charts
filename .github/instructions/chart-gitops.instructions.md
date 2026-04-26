@@ -33,7 +33,7 @@ Use the repository GitOps phase model when designing charts and chart integratio
 
 ## Validation Expectations
 
-- Update chart tests and snapshots when sync-wave behavior changes.
+- Update chart tests and manifest contract assertions when sync-wave behavior changes.
 - Run `make test` after chart design changes.
 - If dependency metadata or vendored library behavior changed, run `make deps-update` before `make test`.
 

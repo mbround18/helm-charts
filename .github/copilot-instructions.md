@@ -65,8 +65,8 @@ When adding optional components, follow this pattern:
 | `make dump`        | Template all charts to YAML                  | Creates `tmp/{chart-name}/manifest-00.yaml`, etc. (split by `---`)  |
 | `make validate`    | Python syntax + manifest contract validation | Runs Python compile checks and pytest-based manifest validation     |
 | `make test`        | Full repository validation                   | Runs `make validate` and then the full pytest suite                 |
-| `make test-update` | Snapshot refresh workflow                    | Updates pytest snapshots, then reruns pytest                        |
 | `make deps-update` | Refresh chart dependencies                   | Updates Helm dependencies and rewrites committed `Chart.lock` files |
+| `make refresh`     | Refresh generated repo state                 | Updates lockfiles, image tags, and generated README content         |
 | `make build`       | Package charts for distribution              | Creates `tmp/{chart-name}-{version}.tgz`                            |
 
 **Workflow chain**: `make lint` → edit charts → `make dump` → `make test` → `make build`
@@ -74,6 +74,8 @@ When adding optional components, follow this pattern:
 ### YAML Validation
 
 Rendered manifest validation now runs under pytest in `charts/tests/test_manifest_contracts.py`, so it benefits from the repository's parallel pytest configuration.
+
+Snapshot-style golden file assertions are intentionally not part of the workflow. Prefer contract-style assertions over rendered manifests so upgrades do not require bulk snapshot rewrites.
 
 **When adding new charts**: Always run `make test` after template changes. Do not rely on `helm lint` alone.
 
