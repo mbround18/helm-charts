@@ -1,0 +1,58 @@
+name: "Summarize JUnit"
+description: "Composite action: appends a short JUnit summary to the GitHub Actions job summary."
+inputs:
+  report-path:
+    description: "Path to the JUnit XML report file"
+    required: true
+  report-title:
+    description: "Heading to use in the GitHub job summary"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Summarize JUnit report
+      uses: actions/github-script@v9
+      env:
+        REPORT_PATH: ${{ inputs.report-path }}
+        REPORT_TITLE: ${{ inputs.report-title }}
+      with:
+        script: |
+          const fs = require('fs')
+          const reportPath = process.env.REPORT_PATH
+          const title = process.env.REPORT_TITLE
+
+          let lines = [`### ${title}`, '']
+
+          if (!fs.existsSync(reportPath)) {
+            lines.push('- No JUnit report produced.')
+          } else {
+            const xml = fs.readFileSync(reportPath, 'utf8')
+            const suiteMatches = [...xml.matchAll(/<testsuite\b([^>]*)>/g)]
+            const getAttr = (attrs, name) => {
+              const match = attrs.match(new RegExp(`${name}="([^"]+)"`))
+              return match ? match[1] : null
+            }
+
+            const totals = suiteMatches.reduce(
+              (accumulator, match) => {
+                const attrs = match[1]
+                accumulator.tests += Number(getAttr(attrs, 'tests') || 0)
+                accumulator.failures += Number(getAttr(attrs, 'failures') || 0)
+                accumulator.errors += Number(getAttr(attrs, 'errors') || 0)
+                accumulator.skipped += Number(getAttr(attrs, 'skipped') || 0)
+                accumulator.duration += Number(getAttr(attrs, 'time') || 0)
+                return accumulator
+              },
+              { tests: 0, failures: 0, errors: 0, skipped: 0, duration: 0 }
+            )
+
+            lines = lines.concat([
+              `- Tests: ${totals.tests}`,
+              `- Failures: ${totals.failures}`,
+              `- Errors: ${totals.errors}`,
+              `- Skipped: ${totals.skipped}`,
+              `- Duration: ${totals.duration.toFixed(2)}s`,
+            ])
+          }
+
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`)

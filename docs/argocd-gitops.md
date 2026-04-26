@@ -4,13 +4,13 @@ This repository uses a single Argo CD sync-wave contract so dependent charts lan
 
 ## Wave Model
 
-| Phase | Wave | Use for |
-| --- | ---: | --- |
-| `foundation` | `0` | Secrets, PVCs, service accounts, bootstrap ConfigMaps, and other prerequisites |
-| `database` | `10` | Databases and other stateful data-layer workloads |
-| `supporting` | `20` | Supporting jobs or workloads that prepare dependencies for the main app |
-| `release` | `30` | The primary application Deployment or StatefulSet |
-| `ingress` | `40` | Services, Ingresses, VirtualServices, and other traffic-routing config |
+| Phase        | Wave | Use for                                                                        |
+| ------------ | ---: | ------------------------------------------------------------------------------ |
+| `foundation` |  `0` | Secrets, PVCs, service accounts, bootstrap ConfigMaps, and other prerequisites |
+| `database`   | `10` | Databases and other stateful data-layer workloads                              |
+| `supporting` | `20` | Supporting jobs or workloads that prepare dependencies for the main app        |
+| `release`    | `30` | The primary application Deployment or StatefulSet                              |
+| `ingress`    | `40` | Services, Ingresses, VirtualServices, and other traffic-routing config         |
 
 This ordering matches how integrated charts in this repo depend on each other:
 

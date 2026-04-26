@@ -9,20 +9,27 @@ concurrency:
   group: ${{ github.workflow }}-publish-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+defaults:
+  run:
+    shell: bash
+
 permissions:
-  pull-requests: write
-  issues: write
   contents: write
-  repository-projects: write
 
 jobs:
   validation:
     name: Helm Validation
     uses: ./.github/workflows/helm.yml
+    with:
+      run-build: false
 
   publish:
     name: Package and Publish Charts
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs:
       - validation
     steps:
