@@ -142,7 +142,7 @@ def get_registry_type(repository: str) -> str:
         return "mcr.microsoft.com"
     # Assumes docker.io if no explicit registry prefix or if it's a simple name like 'busybox'
     # and not an explicit domain like 'my.custom.registry/repo'
-    elif not "/" in repository or (not "." in repository.split("/")[0]):
+    elif "/" not in repository or ("." not in repository.split("/")[0]):
         return "docker.io"
     # Add more registries as needed
     return "unknown"

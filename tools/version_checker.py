@@ -228,14 +228,17 @@ def sync_local_dependency_versions(
 
         if changed:
             write_chart_data(chart_yaml, data)
-            
+
             # Instantly sync Chart.lock to match without running helm dependency build
             lock_path = chart_dir / "Chart.lock"
             if lock_path.exists():
                 lock_data = load_chart_data(lock_path)
                 lock_changed = False
                 for lock_dep in lock_data.get("dependencies", []):
-                    if isinstance(lock_dep, dict) and lock_dep.get("name") in bumped_versions:
+                    if (
+                        isinstance(lock_dep, dict)
+                        and lock_dep.get("name") in bumped_versions
+                    ):
                         new_v = bumped_versions[lock_dep["name"]]
                         if lock_dep.get("version") != new_v:
                             lock_dep["version"] = new_v
@@ -243,7 +246,7 @@ def sync_local_dependency_versions(
                 if lock_changed:
                     write_chart_data(lock_path, lock_data)
                     log("INFO", f"Updated local dependency version in {lock_path}")
-                    
+
             updated_chart_dirs.append(chart_dir)
 
     return updated_chart_dirs
@@ -396,7 +399,6 @@ def main() -> int:
             lock_path = chart_dir / "Chart.lock"
             if lock_path.exists():
                 staged_paths.append(str(lock_path))
-
 
         summary = ", ".join(f"{name}:{version}" for name, version, _ in updated_charts)
         commit_message = f"[skip ci] Robot commit: Bump chart versions ({summary})"
