@@ -77,7 +77,7 @@ jobs:
 
       - name: Upload Python tool test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 043fb46, https://github.com/actions/upload-artifact/releases/latest
         with:
           name: python-tool-test-results
           path: .artifacts/test-results/python-tool-tests.xml
@@ -122,7 +122,7 @@ jobs:
 
       - name: Upload manifest contract test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 043fb46, https://github.com/actions/upload-artifact/releases/latest
         with:
           name: manifest-contract-test-results
           path: .artifacts/test-results/manifest-contract-tests.xml
@@ -162,7 +162,7 @@ jobs:
 
       - name: Upload chart test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 043fb46, https://github.com/actions/upload-artifact/releases/latest
         with:
           name: chart-test-results
           path: .artifacts/test-results/chart-tests.xml
@@ -189,7 +189,7 @@ jobs:
 
       - name: Upload packaged charts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 043fb46, https://github.com/actions/upload-artifact/releases/latest
         with:
           name: packaged-charts
           path: tmp/*.tgz
