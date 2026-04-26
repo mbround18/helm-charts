@@ -38,6 +38,14 @@ def _container_ports(container):
     }
 
 
+def _local_dependency_chart_path(chart_path, repository: str):
+    if not repository.startswith("file://"):
+        return None
+
+    local_reference = repository.removeprefix("file://")
+    return (chart_path / local_reference).resolve()
+
+
 @pytest.mark.skipif(not HELM_AVAILABLE, reason="helm not installed")
 @pytest.mark.parametrize("chart_path", APPLICATION_CHARTS, ids=_chart_id)
 def test_rendered_templates_parse_as_yaml(chart_path):
@@ -56,6 +64,47 @@ def test_charts_with_dependencies_have_lockfiles(chart_path):
     assert (chart_path / "Chart.lock").is_file(), (
         f"{chart_path.name}: dependency charts must commit Chart.lock so normal make targets can use helm dependency build"
     )
+
+
+@pytest.mark.parametrize("chart_path", APPLICATION_CHARTS, ids=_chart_id)
+def test_local_file_dependencies_match_referenced_chart_versions(chart_path):
+    metadata = load_chart_metadata(chart_path)
+    dependencies = metadata.get("dependencies") or []
+    errors = []
+
+    for dependency in dependencies:
+        repository = dependency.get("repository")
+        if not isinstance(repository, str):
+            continue
+
+        local_chart_path = _local_dependency_chart_path(chart_path, repository)
+        if local_chart_path is None:
+            continue
+
+        dependency_name = dependency.get("name")
+        dependency_version = dependency.get("version")
+
+        if not (local_chart_path / "Chart.yaml").is_file():
+            errors.append(
+                f"{chart_path.name}: local dependency {dependency_name} points to missing chart at {repository}"
+            )
+            continue
+
+        local_metadata = load_chart_metadata(local_chart_path)
+        local_name = local_metadata.get("name")
+        local_version = local_metadata.get("version")
+
+        if dependency_name and local_name and dependency_name != local_name:
+            errors.append(
+                f"{chart_path.name}: local dependency name mismatch for {repository}: expected {dependency_name}, found {local_name}"
+            )
+
+        if dependency_version != local_version:
+            errors.append(
+                f"{chart_path.name}: local dependency {dependency_name} version mismatch for {repository}: expected {dependency_version}, found {local_version}"
+            )
+
+    assert not errors, "\n".join(errors)
 
 
 @pytest.mark.skipif(not HELM_AVAILABLE, reason="helm not installed")
