@@ -90,7 +90,7 @@ postgres:
     enabled: false
   image:
     repository: postgres
-    tag: "18.2"
+    tag: "18.3"
     pullPolicy: IfNotPresent
   persistence:
     enabled: true
