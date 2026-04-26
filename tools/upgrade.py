@@ -10,6 +10,7 @@ from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, SingleQuotedScalarString
 from packaging.version import parse as parse_version, InvalidVersion
 
+
 # --- YAML Loading/Saving Utilities ---
 def create_yaml() -> YAML:
     yaml = YAML()
@@ -21,13 +22,15 @@ def create_yaml() -> YAML:
 
 def load_yaml_file(filepath: Path):
     yaml = create_yaml()
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         return yaml.load(f)
+
 
 def save_yaml_file(filepath: Path, data):
     yaml = create_yaml()
-    with open(filepath, 'w') as f:
+    with open(filepath, "w") as f:
         yaml.dump(data, f)
+
 
 def apply_scalar_style(new_value: str, existing_value):
     if isinstance(existing_value, DoubleQuotedScalarString):
@@ -38,7 +41,9 @@ def apply_scalar_style(new_value: str, existing_value):
 
 
 def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description="Upgrade container image tags in Helm charts.")
+    parser = argparse.ArgumentParser(
+        description="Upgrade container image tags in Helm charts."
+    )
     parser.add_argument(
         "chart_paths",
         nargs="+",
@@ -65,6 +70,7 @@ def parse_args(argv=None):
     )
     return parser.parse_args(argv)
 
+
 # --- Image Discovery ---
 def find_images_in_values(data, path_parts=None):
     if path_parts is None:
@@ -75,47 +81,56 @@ def find_images_in_values(data, path_parts=None):
     if isinstance(data, dict) or isinstance(data, CommentedMap):
         # Type 1: Dictionary with separate 'repository' and 'tag' keys
         if "repository" in data and "tag" in data:
-            images.append({
-                "path": ".".join(path_parts),
-                "repository_obj": data, # Reference to the dictionary holding 'repository' and 'tag'
-                "repository_key": "repository",
-                "tag_key": "tag",
-                "current_repository": data["repository"],
-                "current_tag": data["tag"],
-                "type": "repo_tag_keys"
-            })
-        
+            images.append(
+                {
+                    "path": ".".join(path_parts),
+                    "repository_obj": data,  # Reference to the dictionary holding 'repository' and 'tag'
+                    "repository_key": "repository",
+                    "tag_key": "tag",
+                    "current_repository": data["repository"],
+                    "current_tag": data["tag"],
+                    "type": "repo_tag_keys",
+                }
+            )
+
         # Type 2: Key named 'image' (or similar) with a string value like "repo/image:tag"
         for key, value in data.items():
-            if isinstance(value, str) and (key == "image" or key.endswith("Image")): # Heuristic for image strings
+            if isinstance(value, str) and (
+                key == "image" or key.endswith("Image")
+            ):  # Heuristic for image strings
                 full_image_str = value
                 repository = full_image_str
                 tag = ""
-                
+
                 # Attempt to parse into repository and tag
                 if ":" in full_image_str:
                     repository, tag = full_image_str.rsplit(":", 1)
-                
+
                 # Avoid adding duplicates if already caught by Type 1 (e.g. `image: {repository: foo, tag: bar}`)
                 # This might happen if 'image' is a sub-key of a larger image object
                 if "repository" not in data or "tag" not in data:
-                    images.append({
-                        "path": ".".join(path_parts + [str(key)]),
-                        "repository_obj": data, # Reference to the dictionary holding the image string
-                        "repository_key": str(key), # The key itself (e.g., 'image')
-                        "tag_key": None, # No separate tag key for this type
-                        "current_repository": repository,
-                        "current_tag": tag,
-                        "type": "image_string"
-                    })
-            
+                    images.append(
+                        {
+                            "path": ".".join(path_parts + [str(key)]),
+                            "repository_obj": data,  # Reference to the dictionary holding the image string
+                            "repository_key": str(
+                                key
+                            ),  # The key itself (e.g., 'image')
+                            "tag_key": None,  # No separate tag key for this type
+                            "current_repository": repository,
+                            "current_tag": tag,
+                            "type": "image_string",
+                        }
+                    )
+
             # Recurse for nested dictionaries and lists
             images.extend(find_images_in_values(value, path_parts + [str(key)]))
     elif isinstance(data, list):
         for index, item in enumerate(data):
             images.extend(find_images_in_values(item, path_parts + [str(index)]))
-    
+
     return images
+
 
 # --- Registry API Interactions ---
 def get_registry_type(repository: str) -> str:
@@ -127,14 +142,15 @@ def get_registry_type(repository: str) -> str:
         return "mcr.microsoft.com"
     # Assumes docker.io if no explicit registry prefix or if it's a simple name like 'busybox'
     # and not an explicit domain like 'my.custom.registry/repo'
-    elif not "/" in repository or (not "." in repository.split("/")[0]): 
+    elif not "/" in repository or (not "." in repository.split("/")[0]):
         return "docker.io"
     # Add more registries as needed
     return "unknown"
 
+
 def get_docker_hub_tags(repository: str) -> list[tuple[str, datetime.datetime]]:
     repo_name = repository
-    if '/' not in repo_name and not repo_name.startswith("library/"):
+    if "/" not in repo_name and not repo_name.startswith("library/"):
         repo_name = f"library/{repo_name}"
 
     url = f"https://hub.docker.com/v2/repositories/{repo_name}/tags/?page_size=100"
@@ -144,21 +160,29 @@ def get_docker_hub_tags(repository: str) -> list[tuple[str, datetime.datetime]]:
             response = requests.get(url, timeout=10)
             response.raise_for_status()
             data = response.json()
-            for t in data['results']:
+            for t in data["results"]:
                 try:
                     # Docker Hub's last_updated is ISO 8601 string
-                    timestamp = datetime.datetime.fromisoformat(t['last_updated'].replace('Z', '+00:00'))
-                    tags_with_dates.append((t['name'], timestamp))
+                    timestamp = datetime.datetime.fromisoformat(
+                        t["last_updated"].replace("Z", "+00:00")
+                    )
+                    tags_with_dates.append((t["name"], timestamp))
                 except (ValueError, KeyError) as e:
-                    print(f"Warning: Could not parse timestamp for tag {t['name']} in {repository}: {e}", file=sys.stderr)
-            url = data['next']
+                    print(
+                        f"Warning: Could not parse timestamp for tag {t['name']} in {repository}: {e}",
+                        file=sys.stderr,
+                    )
+            url = data["next"]
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching Docker Hub tags for {repository}: {e}", file=sys.stderr)
+            print(
+                f"Error fetching Docker Hub tags for {repository}: {e}", file=sys.stderr
+            )
             return []
     return tags_with_dates
 
+
 def get_ghcr_tags(repository: str) -> list[str]:
-    parts = repository.split('/')
+    parts = repository.split("/")
     if len(parts) < 3:
         print(f"Invalid ghcr.io repository format: {repository}", file=sys.stderr)
         return []
@@ -192,11 +216,11 @@ def get_ghcr_tags(repository: str) -> list[str]:
 
 
 def get_quay_tags(repository: str) -> list[tuple[str, datetime.datetime]]:
-    parts = repository.split('/')
+    parts = repository.split("/")
     if len(parts) < 3:
         print(f"Invalid quay.io repository format: {repository}", file=sys.stderr)
         return []
-    
+
     org = parts[1]
     repo_name = parts[2]
 
@@ -207,14 +231,19 @@ def get_quay_tags(repository: str) -> list[tuple[str, datetime.datetime]]:
             response = requests.get(url, timeout=10)
             response.raise_for_status()
             data = response.json()
-            for t in data['tags']:
+            for t in data["tags"]:
                 try:
                     # Quay.io's last_modified is ISO 8601 string
-                    timestamp = datetime.datetime.fromisoformat(t['last_modified'].replace('Z', '+00:00'))
-                    tags_with_dates.append((t['name'], timestamp))
+                    timestamp = datetime.datetime.fromisoformat(
+                        t["last_modified"].replace("Z", "+00:00")
+                    )
+                    tags_with_dates.append((t["name"], timestamp))
                 except (ValueError, KeyError) as e:
-                    print(f"Warning: Could not parse timestamp for tag {t['name']} in {repository}: {e}", file=sys.stderr)
-            if 'next_page' in data and data['next_page']:
+                    print(
+                        f"Warning: Could not parse timestamp for tag {t['name']} in {repository}: {e}",
+                        file=sys.stderr,
+                    )
+            if "next_page" in data and data["next_page"]:
                 url = f"https://quay.io{data['next_page']}"
             else:
                 url = None
@@ -223,12 +252,13 @@ def get_quay_tags(repository: str) -> list[tuple[str, datetime.datetime]]:
             return []
     return tags_with_dates
 
+
 def get_mcr_tags(repository: str) -> list[str]:
-    parts = repository.split('/', 1)
+    parts = repository.split("/", 1)
     if len(parts) < 2:
         print(f"Invalid MCR repository format: {repository}", file=sys.stderr)
         return []
-    
+
     registry = parts[0]
     repo_path = parts[1]
 
@@ -238,9 +268,11 @@ def get_mcr_tags(repository: str) -> list[str]:
         response = requests.get(auth_url, timeout=10)
         response.raise_for_status()
         token_data = response.json()
-        token = token_data.get('access_token')
+        token = token_data.get("access_token")
         if not token:
-            print(f"Error: MCR access token not found for {repository}", file=sys.stderr)
+            print(
+                f"Error: MCR access token not found for {repository}", file=sys.stderr
+            )
             return []
     except requests.exceptions.RequestException as e:
         print(f"Error getting MCR token for {repository}: {e}", file=sys.stderr)
@@ -255,11 +287,11 @@ def get_mcr_tags(repository: str) -> list[str]:
             response = requests.get(current_tags_url, headers=headers, timeout=10)
             response.raise_for_status()
             data = response.json()
-            all_tags.extend(data.get('tags', []))
-            
+            all_tags.extend(data.get("tags", []))
+
             current_tags_url = None
-            if 'Link' in response.headers:
-                link_header = response.headers['Link']
+            if "Link" in response.headers:
+                link_header = response.headers["Link"]
                 match = re.search(r'<(.*)>; rel="next"', link_header)
                 if match:
                     current_tags_url = match.group(1)
@@ -271,15 +303,19 @@ def get_mcr_tags(repository: str) -> list[str]:
 
 
 # --- Tag Filtering and Selection ---
-def get_latest_stable_tag(tags_with_dates: list[tuple[str, datetime.datetime]], min_age_days: int = 0) -> str | None:
+def get_latest_stable_tag(
+    tags_with_dates: list[tuple[str, datetime.datetime]], min_age_days: int = 0
+) -> str | None:
     stable_tags = []
     now = datetime.datetime.now(datetime.timezone.utc)
-    
+
     for tag, timestamp in tags_with_dates:
         # Filter out common non-stable indicators
-        if re.search(r'\b(latest|snapshot|dev|nightly|test|alpha|beta|rc)\b', tag.lower()):
+        if re.search(
+            r"\b(latest|snapshot|dev|nightly|test|alpha|beta|rc)\b", tag.lower()
+        ):
             continue
-        
+
         # Apply age filter if required and timestamp is available
         if min_age_days > 0 and timestamp != datetime.datetime.min:
             if (now - timestamp).days < min_age_days:
@@ -294,20 +330,20 @@ def get_latest_stable_tag(tags_with_dates: list[tuple[str, datetime.datetime]], 
         except InvalidVersion:
             # If packaging.version can't parse it, it's not a version we care about for auto-upgrade
             continue
-    
+
     if not stable_tags:
         return None
 
     # Sort versions and return the latest
     def version_sort_key(tag_name):
-        clean_tag = tag_name.lstrip('v')
+        clean_tag = tag_name.lstrip("v")
         try:
             return parse_version(clean_tag)
         except InvalidVersion:
-            return parse_version("0.0.0") # Fallback for malformed tags
+            return parse_version("0.0.0")  # Fallback for malformed tags
 
     stable_tags.sort(key=version_sort_key, reverse=True)
-    
+
     return stable_tags[0]
 
 
@@ -323,7 +359,9 @@ def get_tags_for_repository(registry_type: str, repository: str):
     return None
 
 
-async def resolve_image_update(img_info, min_tag_age_days: int, image_semaphore: asyncio.Semaphore):
+async def resolve_image_update(
+    img_info, min_tag_age_days: int, image_semaphore: asyncio.Semaphore
+):
     current_repository = img_info["current_repository"]
     current_tag = img_info["current_tag"]
     logs = []
@@ -359,10 +397,14 @@ async def resolve_image_update(img_info, min_tag_age_days: int, image_semaphore:
         )
         tags_with_dates = [(tag, datetime.datetime.min) for tag in tags_raw]
 
-    latest_stable_tag = get_latest_stable_tag(tags_with_dates, min_age_days=min_tag_age_days)
+    latest_stable_tag = get_latest_stable_tag(
+        tags_with_dates, min_age_days=min_tag_age_days
+    )
 
     if latest_stable_tag and latest_stable_tag != current_tag:
-        logs.append(f"    Found new version: {latest_stable_tag} (current: {current_tag})")
+        logs.append(
+            f"    Found new version: {latest_stable_tag} (current: {current_tag})"
+        )
         return {"info": img_info, "new_tag": latest_stable_tag}, logs
     if latest_stable_tag:
         logs.append(f"    Already at latest stable version: {current_tag}")
@@ -374,7 +416,9 @@ async def resolve_image_update(img_info, min_tag_age_days: int, image_semaphore:
     return None, logs
 
 
-async def process_chart(chart_path: Path, min_tag_age_days: int, image_semaphore: asyncio.Semaphore):
+async def process_chart(
+    chart_path: Path, min_tag_age_days: int, image_semaphore: asyncio.Semaphore
+):
     logs = [f"Processing chart: {chart_path.name}"]
 
     if not chart_path.is_dir():
@@ -414,12 +458,15 @@ async def process_chart(chart_path: Path, min_tag_age_days: int, image_semaphore
     # A chart is considered multi-container if it has more than one image definition found,
     # or if the single image definition is not the top-level 'image' object
     # (e.g., if it's nested like 'someApp.image').
-    is_multi_container = len(images_in_values) > 1 or \
-                         (len(images_in_values) == 1 and images_in_values[0]["path"] != "image")
-    
+    is_multi_container = len(images_in_values) > 1 or (
+        len(images_in_values) == 1 and images_in_values[0]["path"] != "image"
+    )
+
     # Determine update strategy
     if is_multi_container:
-        logs.append("  Chart identified as multi-container (or multiple images need update). Updating tags in values.yaml.")
+        logs.append(
+            "  Chart identified as multi-container (or multiple images need update). Updating tags in values.yaml."
+        )
         for update_item in images_to_update:
             img_info = update_item["info"]
             if img_info["type"] == "repo_tag_keys":
@@ -427,12 +474,16 @@ async def process_chart(chart_path: Path, min_tag_age_days: int, image_semaphore
                 img_info["repository_obj"][img_info["tag_key"]] = apply_scalar_style(
                     update_item["new_tag"], existing_value
                 )
-                logs.append(f"    Updated {img_info['path']}.{img_info['tag_key']} to {update_item['new_tag']}")
+                logs.append(
+                    f"    Updated {img_info['path']}.{img_info['tag_key']} to {update_item['new_tag']}"
+                )
             elif img_info["type"] == "image_string":
-                new_full_image = f"{img_info['current_repository']}:{update_item['new_tag']}"
+                new_full_image = (
+                    f"{img_info['current_repository']}:{update_item['new_tag']}"
+                )
                 existing_value = img_info["repository_obj"][img_info["repository_key"]]
-                img_info["repository_obj"][img_info["repository_key"]] = apply_scalar_style(
-                    new_full_image, existing_value
+                img_info["repository_obj"][img_info["repository_key"]] = (
+                    apply_scalar_style(new_full_image, existing_value)
                 )
                 logs.append(f"    Updated {img_info['path']} to {new_full_image}")
 
@@ -440,30 +491,42 @@ async def process_chart(chart_path: Path, min_tag_age_days: int, image_semaphore
             save_yaml_file(values_yaml_path, values_data)
             logs.append(f"  Updated values.yaml for {chart_path.name}")
 
-    elif images_to_update: # Single image found in values.yaml, and it's the main 'image' object or string
+    elif (
+        images_to_update
+    ):  # Single image found in values.yaml, and it's the main 'image' object or string
         update_item = images_to_update[0]
         img_info = update_item["info"]
-        
-        logs.append("  Chart identified as single-container. Updating appVersion in Chart.yaml and tag in values.yaml.")
+
+        logs.append(
+            "  Chart identified as single-container. Updating appVersion in Chart.yaml and tag in values.yaml."
+        )
         # Update values.yaml
         if img_info["type"] == "repo_tag_keys":
             existing_value = img_info["repository_obj"][img_info["tag_key"]]
             img_info["repository_obj"][img_info["tag_key"]] = apply_scalar_style(
                 update_item["new_tag"], existing_value
             )
-            logs.append(f"    Updated {img_info['path']}.{img_info['tag_key']} to {update_item['new_tag']} in values.yaml")
+            logs.append(
+                f"    Updated {img_info['path']}.{img_info['tag_key']} to {update_item['new_tag']} in values.yaml"
+            )
         elif img_info["type"] == "image_string":
-            new_full_image = f"{img_info['current_repository']}:{update_item['new_tag']}"
+            new_full_image = (
+                f"{img_info['current_repository']}:{update_item['new_tag']}"
+            )
             existing_value = img_info["repository_obj"][img_info["repository_key"]]
             img_info["repository_obj"][img_info["repository_key"]] = apply_scalar_style(
                 new_full_image, existing_value
             )
-            logs.append(f"    Updated {img_info['path']} to {new_full_image} in values.yaml")
+            logs.append(
+                f"    Updated {img_info['path']} to {new_full_image} in values.yaml"
+            )
 
         save_yaml_file(values_yaml_path, values_data)
 
         # Update Chart.yaml appVersion
-        chart_data["appVersion"] = apply_scalar_style(update_item["new_tag"], chart_data.get("appVersion"))
+        chart_data["appVersion"] = apply_scalar_style(
+            update_item["new_tag"], chart_data.get("appVersion")
+        )
         save_yaml_file(chart_yaml_path, chart_data)
         logs.append(f"    Updated appVersion in Chart.yaml to {update_item['new_tag']}")
     else:
@@ -480,7 +543,9 @@ async def process_chart_with_semaphore(
     image_semaphore: asyncio.Semaphore,
 ):
     async with chart_semaphore:
-        return chart_path, await process_chart(chart_path, min_tag_age_days, image_semaphore)
+        return chart_path, await process_chart(
+            chart_path, min_tag_age_days, image_semaphore
+        )
 
 
 async def async_main(args) -> int:

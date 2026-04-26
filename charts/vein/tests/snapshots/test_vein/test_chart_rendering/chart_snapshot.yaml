@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: vein
     app.kubernetes.io/version: v0.0.3
-    helm.sh/chart: vein-0.1.10
+    helm.sh/chart: vein-0.1.11
   name: release-name-vein
 ---
 apiVersion: apps/v1
@@ -17,7 +17,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: vein
     app.kubernetes.io/version: v0.0.3
-    helm.sh/chart: vein-0.1.10
+    helm.sh/chart: vein-0.1.11
   name: release-name-vein
 spec:
   replicas: 1

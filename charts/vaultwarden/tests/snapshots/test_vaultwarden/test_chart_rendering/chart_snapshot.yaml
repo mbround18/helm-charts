@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: vaultwarden
-    app.kubernetes.io/version: 1.32.7
+    app.kubernetes.io/version: 1.35.4
     helm.sh/chart: vaultwarden-0.1.0
   name: release-name-vaultwarden
 spec:
@@ -26,7 +26,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: vaultwarden
-    app.kubernetes.io/version: 1.32.7
+    app.kubernetes.io/version: 1.35.4
     helm.sh/chart: vaultwarden-0.1.0
   name: release-name-vaultwarden
 spec:
@@ -75,7 +75,7 @@ spec:
               name: vaultwarden
         - name: EMERGENCY_ACCESS_ALLOWED
           value: 'true'
-        image: vaultwarden/server:1.32.7
+        image: vaultwarden/server:1.35.4
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -132,7 +132,7 @@ metadata:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: vaultwarden
-    app.kubernetes.io/version: 1.32.7
+    app.kubernetes.io/version: 1.35.4
     helm.sh/chart: vaultwarden-0.1.0
   name: release-name-vaultwarden-route
 spec:

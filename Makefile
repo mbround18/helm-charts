@@ -5,7 +5,7 @@ JOBS ?= $(shell nproc 2>/dev/null || echo 4)
 PYTEST_ARGS ?= charts
 MANIFEST_PYTEST_ARGS ?= charts/tests/test_manifest_contracts.py
 
-.PHONY: help lint lint-helm dump deps-update validate test test-update build update-readme upgrade prune-branches
+.PHONY: help lint lint-helm dump deps-update validate test test-update build update-readme upgrade prune-branches update
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -68,6 +68,7 @@ deps-update: ## Refresh chart dependencies and lockfiles for charts that declare
 		if ! grep -Eq "^dependencies:" "$$chart/Chart.yaml"; then \
 			exit 0; \
 		fi; \
+		uv run tools/fix_chart_deps.py "$$chart/Chart.yaml"; \
 		echo "Updating dependencies for $$chart_name..."; \
 		helm dependency update "$$chart"'
 
@@ -135,3 +136,12 @@ prune-branches: ## Delete all local branches except main. Set REMOTE=1 to also d
 			echo "No remote branches to delete."; \
 		fi; \
 	fi
+
+
+ci: ## Run all CI checks and build charts. This is the default target.
+	@$(MAKE) deps-update
+	@$(MAKE) upgrade
+	@$(MAKE) update-readme
+	@$(MAKE) test-update
+	@$(MAKE) build
+	@$(MAKE) test

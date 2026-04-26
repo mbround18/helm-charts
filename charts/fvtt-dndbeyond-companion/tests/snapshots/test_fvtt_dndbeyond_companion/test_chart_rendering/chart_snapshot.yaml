@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fvtt-dndbeyond-companion
     app.kubernetes.io/version: v1.1.0
-    helm.sh/chart: fvtt-dndbeyond-companion-0.0.4
+    helm.sh/chart: fvtt-dndbeyond-companion-0.0.5
   name: release-name-fvtt-dndbeyond-companion
 ---
 apiVersion: v1
@@ -17,7 +17,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fvtt-dndbeyond-companion
     app.kubernetes.io/version: v1.1.0
-    helm.sh/chart: fvtt-dndbeyond-companion-0.0.4
+    helm.sh/chart: fvtt-dndbeyond-companion-0.0.5
   name: release-name-fvtt-dndbeyond-companion
 spec:
   ports:
@@ -38,7 +38,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fvtt-dndbeyond-companion
     app.kubernetes.io/version: v1.1.0
-    helm.sh/chart: fvtt-dndbeyond-companion-0.0.4
+    helm.sh/chart: fvtt-dndbeyond-companion-0.0.5
   name: release-name-fvtt-dndbeyond-companion
 spec:
   replicas: 1
@@ -81,7 +81,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: fvtt-dndbeyond-companion
     app.kubernetes.io/version: v1.1.0
-    helm.sh/chart: fvtt-dndbeyond-companion-0.0.4
+    helm.sh/chart: fvtt-dndbeyond-companion-0.0.5
   name: release-name-fvtt-dndbeyond-companion-test-connection
 spec:
   containers:

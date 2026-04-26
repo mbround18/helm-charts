@@ -106,10 +106,14 @@ image:
     )
 
     exit_code, logs = asyncio.run(
-        upgrade.process_chart(chart_dir, min_tag_age_days=14, image_semaphore=asyncio.Semaphore(4))
+        upgrade.process_chart(
+            chart_dir, min_tag_age_days=14, image_semaphore=asyncio.Semaphore(4)
+        )
     )
 
     assert exit_code == 0
     assert any("Found new version: 1.38" in line for line in logs)
     assert 'tag: "1.38"' in (chart_dir / "values.yaml").read_text(encoding="utf-8")
-    assert 'appVersion: "1.38"' in (chart_dir / "Chart.yaml").read_text(encoding="utf-8")
+    assert 'appVersion: "1.38"' in (chart_dir / "Chart.yaml").read_text(
+        encoding="utf-8"
+    )
