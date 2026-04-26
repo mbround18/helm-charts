@@ -3,5 +3,5 @@ name: fvtt-dndbeyond-companion
 description: A Helm chart for Kubernetes
 icon: https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png
 type: application
-version: 0.0.6
+version: 0.0.7
 appVersion: v1.1.0
