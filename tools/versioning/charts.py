@@ -95,14 +95,19 @@ def refresh_dependency_locks(chart_dirs: list[Path]) -> list[Path]:
 
     for chart_dir in chart_dirs:
         lock_path = chart_dir / "Chart.lock"
-        if not lock_path.exists():
-            continue
-
         log("INFO", f"Refreshing dependency lock for {chart_dir.name}")
+
+        # Once Chart.yaml dependency versions change, Helm refuses to build from a
+        # stale Chart.lock. Remove it first so dependency build regenerates the
+        # lockfile from current dependency metadata.
+        lock_path.unlink(missing_ok=True)
+
         subprocess.check_call(
             ["helm", "dependency", "build", "--skip-refresh", str(chart_dir)],
             cwd=str(chart_dir.parent.parent),
         )
-        updated_lockfiles.append(lock_path)
+
+        if lock_path.exists():
+            updated_lockfiles.append(lock_path)
 
     return updated_lockfiles
