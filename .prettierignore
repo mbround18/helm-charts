@@ -1,4 +1,3 @@
 templates/
 .idea/
 tmp/
-charts/**/tests/snapshots

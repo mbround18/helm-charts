@@ -10,7 +10,6 @@ import yaml
 
 DEFAULT_RELEASE_NAME = "release-name"
 DEFAULT_NAMESPACE = "contract-tests"
-SNAPSHOT_NAMESPACE = "dev-testing"
 
 WORKLOAD_PATHS = {
     "Deployment": ("spec", "template", "spec"),
@@ -125,33 +124,6 @@ def resource_identity(
     )
 
 
-def _normalize_checksum_annotations(value):
-    if isinstance(value, dict):
-        annotations = value.get("annotations")
-        if isinstance(annotations, dict):
-            for key in annotations:
-                if key.startswith("checksum/"):
-                    annotations[key] = f"<normalized:{key}>"
-
-        for child in value.values():
-            _normalize_checksum_annotations(child)
-    elif isinstance(value, list):
-        for item in value:
-            _normalize_checksum_annotations(item)
-
-
-def _normalize_secret_payloads(documents):
-    for document in documents:
-        if not isinstance(document, dict) or document.get("kind") != "Secret":
-            continue
-
-        for field in ("data", "stringData"):
-            payload = document.get(field)
-            if isinstance(payload, dict):
-                for key in payload:
-                    payload[key] = f"<redacted:{key}>"
-
-
 def render_chart_documents(
     chart_path: Path,
     *,
@@ -195,20 +167,6 @@ def render_chart_documents(
             Path(values_file.name).unlink(missing_ok=True)
 
     return list(yaml.safe_load_all(result.stdout))
-
-
-def render_chart_snapshot(chart_path: Path, *, normalize_secrets: bool = False) -> str:
-    rendered_templates = render_chart_documents(
-        chart_path,
-        release_name=DEFAULT_RELEASE_NAME,
-        namespace=SNAPSHOT_NAMESPACE,
-    )
-    _normalize_checksum_annotations(rendered_templates)
-
-    if normalize_secrets:
-        _normalize_secret_payloads(rendered_templates)
-
-    return yaml.dump_all(rendered_templates)
 
 
 def iter_workloads(
