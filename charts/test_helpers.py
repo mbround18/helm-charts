@@ -1,3 +1,4 @@
+import fcntl
 import subprocess
 import tempfile
 from dataclasses import dataclass
@@ -33,6 +34,63 @@ class WorkloadManifest:
 
 def load_chart_metadata(chart_path: Path) -> dict[str, Any]:
     return yaml.safe_load((chart_path / "Chart.yaml").read_text(encoding="utf-8")) or {}
+
+
+def _vendored_dependency_present(chart_path: Path, dependency: dict[str, Any]) -> bool:
+    charts_dir = chart_path / "charts"
+    if not charts_dir.is_dir():
+        return False
+
+    dependency_name = dependency.get("name")
+    dependency_version = dependency.get("version")
+    if not dependency_name or not dependency_version:
+        return False
+
+    return (charts_dir / f"{dependency_name}-{dependency_version}.tgz").exists() or (
+        charts_dir / dependency_name
+    ).exists()
+
+
+def ensure_chart_dependencies(chart_path: Path) -> None:
+    metadata = load_chart_metadata(chart_path)
+    dependencies = metadata.get("dependencies") or []
+    if not dependencies:
+        return
+
+    lock_path = chart_path / "Chart.lock"
+    if not lock_path.is_file():
+        raise FileNotFoundError(
+            f"{chart_path.name}: dependency charts must commit Chart.lock so test renders can vendor dependencies"
+        )
+
+    lock_data = yaml.safe_load(lock_path.read_text(encoding="utf-8")) or {}
+    locked_dependencies = lock_data.get("dependencies") or []
+    if locked_dependencies and all(
+        _vendored_dependency_present(chart_path, dependency)
+        for dependency in locked_dependencies
+    ):
+        return
+
+    lock_file_path = chart_path / ".helm-dependency-build.lock"
+    lock_file_path.touch(exist_ok=True)
+
+    with lock_file_path.open("r", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            if locked_dependencies and all(
+                _vendored_dependency_present(chart_path, dependency)
+                for dependency in locked_dependencies
+            ):
+                return
+
+            subprocess.run(
+                ["helm", "dependency", "build", "--skip-refresh", str(chart_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def application_chart_directories(charts_root: Path | None = None) -> list[Path]:
@@ -102,6 +160,8 @@ def render_chart_documents(
     namespace: str = DEFAULT_NAMESPACE,
     api_versions: list[str] | None = None,
 ) -> list[Any]:
+    ensure_chart_dependencies(chart_path)
+
     command = [
         "helm",
         "template",
