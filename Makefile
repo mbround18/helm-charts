@@ -5,7 +5,7 @@ JOBS ?= $(shell nproc 2>/dev/null || echo 4)
 PYTEST_ARGS ?= charts
 MANIFEST_PYTEST_ARGS ?= charts/tests/test_manifest_contracts.py
 
-.PHONY: help lint lint-helm dump deps-update validate test test-update build update-readme upgrade
+.PHONY: help lint lint-helm dump deps-update validate test test-update build update-readme upgrade prune-branches
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -114,3 +114,24 @@ build: ## Build all charts
 
 upgrade: ## Upgrade container image tags in all charts
 	@uv run tools/upgrade.py $(CHART_DIRS)
+
+prune-branches: ## Delete all local branches except main. Set REMOTE=1 to also delete from origin
+	@git checkout main 2>/dev/null || true
+	@echo "Pruning merged remote-tracking refs..."
+	@git fetch --prune
+	@local_branches=$$(git branch | grep -v '^\*\? *main$$' | sed 's/^[ *]*//' | tr '\n' ' '); \
+	if [ -z "$$(echo $$local_branches | tr -d ' ')" ]; then \
+		echo "Nothing to prune."; \
+		exit 0; \
+	fi; \
+	echo "Deleting local branches: $$local_branches"; \
+	echo $$local_branches | xargs git branch -D; \
+	if [ "$${REMOTE:-0}" = "1" ]; then \
+		remote_branches=$$(git branch -r | grep 'origin/' | grep -v 'origin/HEAD' | grep -v 'origin/main$$' | grep -v 'origin/gh-pages$$' | sed 's|origin/||' | sed 's/^[ ]*//' | tr '\n' ' '); \
+		if [ -n "$$(echo $$remote_branches | tr -d ' ')" ]; then \
+			echo "Deleting remote branches: $$remote_branches"; \
+			echo $$remote_branches | xargs -I{} git push origin --delete {}; \
+		else \
+			echo "No remote branches to delete."; \
+		fi; \
+	fi
