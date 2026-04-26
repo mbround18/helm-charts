@@ -91,9 +91,11 @@ def read_commit_message(commit: str) -> str:
     return git(["log", "--format=%B", "-n", "1", commit])
 
 
-def find_pr_number(text: str) -> Optional[int]:
-    m = re.search(r"#(\d+)", text)
-    return int(m.group(1)) if m else None
+def get_prs_since(tag: str, path: Path) -> Set[int]:
+    """Fetch all PR numbers from commit subjects and bodies in one call."""
+    rng = f"{tag}..HEAD"
+    out = git(["log", "--format=%s %b", rng, "--", str(path)])
+    return set(int(m.group(1)) for m in re.finditer(r"#(\d+)", out))
 
 
 def get_pr_labels(owner_repo: str, pr_number: int, token: Optional[str]) -> List[str]:
@@ -123,23 +125,19 @@ def get_pr_labels(owner_repo: str, pr_number: int, token: Optional[str]) -> List
 
 
 def determine_bump(
-    commits: Iterable[str],
+    tag: str,
+    path: Path,
     owner_repo: str,
     token: Optional[str],
-    commit_message_cache: Dict[str, str],
     pr_labels_cache: Dict[int, List[str]],
 ) -> str:
     bump = "patch"
-    seen_prs: Set[int] = set()
-    for c in commits:
-        if c not in commit_message_cache:
-            commit_message_cache[c] = read_commit_message(c)
-        msg = commit_message_cache[c]
-        prn = find_pr_number(msg)
-        if prn is None or prn in seen_prs:
-            continue
-        seen_prs.add(prn)
+    try:
+        prs = get_prs_since(tag, path)
+    except Exception:
+        prs = set()
 
+    for prn in prs:
         labels: List[str] = []
         if owner_repo:
             if prn not in pr_labels_cache:
@@ -149,7 +147,6 @@ def determine_bump(
             return "major"
         if any(label.lower() == "minor" for label in labels):
             bump = "minor"
-        # otherwise default patch
     return bump
 
 
@@ -185,7 +182,7 @@ def sync_local_dependency_versions(
     charts_root: Path,
     bumped_versions: Dict[str, str],
 ) -> List[Path]:
-    """Propagate local file:// dependency version bumps to consumer Chart.yaml files.
+    """Propagate local file:// dependency version bumps to consumer Chart.yaml and Chart.lock files.
 
     Returns chart directories that were modified.
     """
@@ -231,6 +228,22 @@ def sync_local_dependency_versions(
 
         if changed:
             write_chart_data(chart_yaml, data)
+            
+            # Instantly sync Chart.lock to match without running helm dependency build
+            lock_path = chart_dir / "Chart.lock"
+            if lock_path.exists():
+                lock_data = load_chart_data(lock_path)
+                lock_changed = False
+                for lock_dep in lock_data.get("dependencies", []):
+                    if isinstance(lock_dep, dict) and lock_dep.get("name") in bumped_versions:
+                        new_v = bumped_versions[lock_dep["name"]]
+                        if lock_dep.get("version") != new_v:
+                            lock_dep["version"] = new_v
+                            lock_changed = True
+                if lock_changed:
+                    write_chart_data(lock_path, lock_data)
+                    log("INFO", f"Updated local dependency version in {lock_path}")
+                    
             updated_chart_dirs.append(chart_dir)
 
     return updated_chart_dirs
@@ -284,7 +297,6 @@ def main() -> int:
     owner_repo = os.environ.get("GITHUB_REPOSITORY", "")
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     latest_tags = build_latest_tag_map()
-    commit_message_cache: Dict[str, str] = {}
     pr_labels_cache: Dict[int, List[str]] = {}
     updated_charts: List[Tuple[str, str, Path]] = []
 
@@ -323,12 +335,11 @@ def main() -> int:
             "INFO",
             f"Changes detected for {chart_name} since the last release. Determining version bump type...",
         )
-        commits = get_commits_since(latest_tag, chart_dir)
         bump = determine_bump(
-            commits,
+            latest_tag,
+            chart_dir,
             owner_repo,
             token,
-            commit_message_cache,
             pr_labels_cache,
         )
         log("INFO", f"Determined bump type: {bump}")
@@ -377,15 +388,15 @@ def main() -> int:
             charts_root,
             bumped_versions,
         )
-        updated_lockfiles = refresh_dependency_locks(dependency_updated_chart_dirs)
 
         # Batch all chart version bumps into one commit for faster CI and cleaner history.
         staged_paths = [str(chart_yaml) for _, _, chart_yaml in updated_charts]
-        staged_paths.extend(
-            str(chart_dir / "Chart.yaml") for chart_dir in dependency_updated_chart_dirs
-        )
-        staged_paths.extend(str(lockfile) for lockfile in updated_lockfiles)
-        subprocess.check_call(["git", "add", *staged_paths])
+        for chart_dir in dependency_updated_chart_dirs:
+            staged_paths.append(str(chart_dir / "Chart.yaml"))
+            lock_path = chart_dir / "Chart.lock"
+            if lock_path.exists():
+                staged_paths.append(str(lock_path))
+
 
         summary = ", ".join(f"{name}:{version}" for name, version, _ in updated_charts)
         commit_message = f"[skip ci] Robot commit: Bump chart versions ({summary})"

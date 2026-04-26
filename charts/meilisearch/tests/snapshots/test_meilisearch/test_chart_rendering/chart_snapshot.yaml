@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: meilisearch
     app.kubernetes.io/version: v1.30.0
-    helm.sh/chart: meilisearch-0.1.14
+    helm.sh/chart: meilisearch-0.1.15
   name: meilisearch-master-key
 stringData:
   MEILI_MASTER_KEY: <redacted:MEILI_MASTER_KEY>
@@ -20,7 +20,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: meilisearch
     app.kubernetes.io/version: v1.30.0
-    helm.sh/chart: meilisearch-0.1.14
+    helm.sh/chart: meilisearch-0.1.15
   name: release-name-meilisearch-data
 spec:
   accessModes:
@@ -37,7 +37,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: meilisearch
     app.kubernetes.io/version: v1.30.0
-    helm.sh/chart: meilisearch-0.1.14
+    helm.sh/chart: meilisearch-0.1.15
   name: release-name-meilisearch
 spec:
   ports:
@@ -59,7 +59,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: meilisearch
     app.kubernetes.io/version: v1.30.0
-    helm.sh/chart: meilisearch-0.1.14
+    helm.sh/chart: meilisearch-0.1.15
   name: release-name-meilisearch
 spec:
   replicas: 1
