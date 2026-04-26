@@ -1,0 +1,134 @@
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: vaultwarden/server
+  tag: 1.32.7
+  pullPolicy: IfNotPresent
+
+revisionHistoryLimit: 10
+
+strategy:
+  type: Recreate
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: default
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 65534
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+resources: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  annotations: {}
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+persistence:
+  enabled: true
+  mountPath: /data
+  existingClaim: vaultwarden
+  create: false
+  claimName: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  storageClassName: longhorn-static
+  volumeName: ""
+  annotations: {}
+  labels: {}
+  keep: true
+
+secret:
+  existingSecret: vaultwarden
+  create: false
+  annotations: {}
+  labels: {}
+  adminTokenKey: admin-token
+  adminToken: ""
+
+vaultwarden:
+  domain: https://key.bruno.fyi
+  signupsAllowed: false
+  signupsVerify: false
+  requireDeviceEmail: false
+  invitationsAllowed: true
+  showPasswordHint: false
+  webVaultEnabled: true
+  sendsAllowed: true
+  orgCreationUsers: all
+  emergencyAccessAllowed: true
+  enableDbWal: true
+  admin:
+    enabled: true
+    disableAdminToken: false
+  extraEnv: []
+  extraSecretEnv: []
+
+probes:
+  liveness:
+    enabled: true
+    path: /
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    path: /
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: key.bruno.fyi
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+virtualService:
+  enabled: true
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: key.bruno.fyi
+    external-dns.alpha.kubernetes.io/ttl: "300"
+  gateways:
+    - vaultwarden-gateway
+  hosts:
+    - key.bruno.fyi
+  pathPrefix: /
+
+nodeSelector: {}
+affinity: {}
+tolerations: []
