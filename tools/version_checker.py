@@ -251,7 +251,13 @@ def refresh_dependency_locks(chart_dirs: Iterable[Path]) -> List[Path]:
             continue
 
         try:
+<<<<<<< HEAD
             run(["helm", "dependency", "build", "--skip-refresh", str(chart_dir)])
+=======
+            run(
+                ["helm", "dependency", "build", "--skip-refresh", str(chart_dir)]
+            )
+>>>>>>> a120b2965bea440ea3079b1e0f8c44a2377687c5
             updated_lockfiles.append(lock_path)
         except subprocess.CalledProcessError as e:
             log(
