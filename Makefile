@@ -68,6 +68,7 @@ deps-update: ## Refresh chart dependencies and lockfiles for charts that declare
 		if ! grep -Eq "^dependencies:" "$$chart/Chart.yaml"; then \
 			exit 0; \
 		fi; \
+		uv run tools/fix_chart_deps.py "$$chart/Chart.yaml"; \
 		echo "Updating dependencies for $$chart_name..."; \
 		helm dependency update "$$chart"'
 
