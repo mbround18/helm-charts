@@ -19,6 +19,10 @@ metadata:
   labels:
 {{ .labels | indent 4 }}
   {{- end }}
+  {{- if .annotations }}
+  annotations:
+{{ .annotations | indent 4 }}
+  {{- end }}
 spec:
   type: NodePort
   ports:

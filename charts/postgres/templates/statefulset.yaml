@@ -5,7 +5,7 @@ metadata:
   labels:
     app: postgres
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   serviceName: postgres
   replicas: {{ if .Values.ha.enabled }}3{{ else }}1{{ end }}

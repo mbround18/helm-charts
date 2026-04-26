@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "meilisearch.labels" . | nindent 4 }}
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   serviceName: {{ include "meilisearch.fullname" . }}
   replicas: 1

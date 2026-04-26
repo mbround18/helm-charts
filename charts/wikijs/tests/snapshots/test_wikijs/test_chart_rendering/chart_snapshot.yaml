@@ -119,7 +119,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    argocd.argoproj.io/sync-wave: '33'
+    argocd.argoproj.io/sync-wave: '30'
   labels:
     app: wikijs
   name: wikijs

@@ -53,7 +53,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   annotations:
-    argocd.argoproj.io/sync-wave: '1'
+    argocd.argoproj.io/sync-wave: '10'
   labels:
     app.kubernetes.io/instance: release-name
     app.kubernetes.io/managed-by: Helm
