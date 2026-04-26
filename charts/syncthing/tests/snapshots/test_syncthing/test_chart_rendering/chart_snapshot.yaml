@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: syncthing
     app.kubernetes.io/version: 2.0.16
-    helm.sh/chart: syncthing-0.1.1
+    helm.sh/chart: syncthing-0.1.2
   name: release-name-syncthing-sa
 ---
 apiVersion: v1
@@ -17,7 +17,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: syncthing
     app.kubernetes.io/version: 2.0.16
-    helm.sh/chart: syncthing-0.1.1
+    helm.sh/chart: syncthing-0.1.2
   name: release-name-syncthing-http
 spec:
   ports:
@@ -38,7 +38,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: syncthing
     app.kubernetes.io/version: 2.0.16
-    helm.sh/chart: syncthing-0.1.1
+    helm.sh/chart: syncthing-0.1.2
   name: release-name-syncthing-sync
 spec:
   ports:
@@ -60,7 +60,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: syncthing
     app.kubernetes.io/version: 2.0.16
-    helm.sh/chart: syncthing-0.1.1
+    helm.sh/chart: syncthing-0.1.2
   name: release-name-syncthing
 spec:
   replicas: 1
@@ -76,7 +76,7 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: syncthing
         app.kubernetes.io/version: 2.0.16
-        helm.sh/chart: syncthing-0.1.1
+        helm.sh/chart: syncthing-0.1.2
     spec:
       containers:
       - env: null

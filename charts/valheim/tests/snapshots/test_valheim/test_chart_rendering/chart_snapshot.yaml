@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: valheim
     app.kubernetes.io/version: '3.6'
-    helm.sh/chart: valheim-0.4.3
+    helm.sh/chart: valheim-0.4.4
   name: release-name-valheim
   namespace: dev-testing
 ---
@@ -19,7 +19,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: valheim
     app.kubernetes.io/version: '3.6'
-    helm.sh/chart: valheim-0.4.3
+    helm.sh/chart: valheim-0.4.4
   name: release-name-data
   namespace: dev-testing
 spec:
@@ -37,7 +37,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: valheim
     app.kubernetes.io/version: '3.6'
-    helm.sh/chart: valheim-0.4.3
+    helm.sh/chart: valheim-0.4.4
   name: release-name-saves
   namespace: dev-testing
 spec:
@@ -55,7 +55,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: valheim
     app.kubernetes.io/version: '3.6'
-    helm.sh/chart: valheim-0.4.3
+    helm.sh/chart: valheim-0.4.4
   name: release-name-backups
   namespace: dev-testing
 spec:
@@ -75,7 +75,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: valheim
     app.kubernetes.io/version: '3.6'
-    helm.sh/chart: valheim-0.4.3
+    helm.sh/chart: valheim-0.4.4
   name: release-name-valheim
   namespace: dev-testing
 spec:
@@ -109,7 +109,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: valheim
     app.kubernetes.io/version: '3.6'
-    helm.sh/chart: valheim-0.4.3
+    helm.sh/chart: valheim-0.4.4
   name: release-name-valheim
   namespace: dev-testing
 spec:
@@ -127,7 +127,7 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: valheim
         app.kubernetes.io/version: '3.6'
-        helm.sh/chart: valheim-0.4.3
+        helm.sh/chart: valheim-0.4.4
     spec:
       containers:
       - env:

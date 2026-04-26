@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: palworld
     app.kubernetes.io/version: latest
-    helm.sh/chart: palworld-0.3.3
+    helm.sh/chart: palworld-0.3.4
   name: release-name-palworld
 ---
 apiVersion: v1
@@ -49,7 +49,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: palworld
     app.kubernetes.io/version: latest
-    helm.sh/chart: palworld-0.3.3
+    helm.sh/chart: palworld-0.3.4
   name: release-name-palworld
 spec:
   externalIPs:
@@ -84,7 +84,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: palworld
     app.kubernetes.io/version: latest
-    helm.sh/chart: palworld-0.3.3
+    helm.sh/chart: palworld-0.3.4
   name: release-name-palworld
 spec:
   replicas: 1
@@ -99,7 +99,7 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: palworld
         app.kubernetes.io/version: latest
-        helm.sh/chart: palworld-0.3.3
+        helm.sh/chart: palworld-0.3.4
     spec:
       containers:
       - image: mbround18/palworld-docker:2.1

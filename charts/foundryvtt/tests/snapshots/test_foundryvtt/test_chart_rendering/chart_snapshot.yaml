@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: foundryvtt
     app.kubernetes.io/version: '1.0'
-    helm.sh/chart: foundryvtt-0.2.10
+    helm.sh/chart: foundryvtt-0.2.11
   name: foundryvtt-dnd-boop-ninja
 ---
 apiVersion: v1
@@ -17,7 +17,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: foundryvtt
     app.kubernetes.io/version: '1.0'
-    helm.sh/chart: foundryvtt-0.2.10
+    helm.sh/chart: foundryvtt-0.2.11
   name: foundryvtt-dnd-boop-ninja
 spec:
   ports:
@@ -37,7 +37,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: foundryvtt
     app.kubernetes.io/version: '1.0'
-    helm.sh/chart: foundryvtt-0.2.10
+    helm.sh/chart: foundryvtt-0.2.11
   name: foundryvtt-dnd-boop-ninja
 spec:
   replicas: 1
@@ -171,7 +171,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: foundryvtt
     app.kubernetes.io/version: '1.0'
-    helm.sh/chart: foundryvtt-0.2.10
+    helm.sh/chart: foundryvtt-0.2.11
   name: foundryvtt-dnd-boop-ninja-backup-cleanup
 spec:
   jobTemplate:
