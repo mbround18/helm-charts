@@ -5,7 +5,7 @@ import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 import yaml
 
@@ -49,23 +49,26 @@ def bump_version(v: str, bump: str) -> str:
     return f"{major}.{minor}.{patch + 1}"
 
 
-def find_latest_chart_tag(chart_name: str) -> Optional[Tuple[str, str]]:
-    tags = git(["tag", "-l", f"{chart_name}-*"]).splitlines()
-    best: Optional[Tuple[int, int, int]] = None
-    best_tag: Optional[str] = None
-    best_ver: Optional[str] = None
-    for t in tags:
-        ver = t.split("-", 1)[1] if "-" in t else ""
-        st = parse_semver(ver)
-        if st is None:
+def build_latest_tag_map() -> Dict[str, Tuple[str, str, Tuple[int, int, int]]]:
+    """Build a chart -> latest tag map using a single tag query for speed."""
+    out = git(["tag", "-l", "*-*"])
+    latest: Dict[str, Tuple[str, str, Tuple[int, int, int]]] = {}
+    for raw_tag in out.splitlines():
+        tag = raw_tag.strip()
+        if not tag:
             continue
-        if best is None or st > best:
-            best = st
-            best_tag = t
-            best_ver = ver
-    if best_tag and best_ver:
-        return best_tag, best_ver
-    return None
+        m = re.match(r"^(?P<chart>.+)-(?P<version>\d+\.\d+\.\d+)$", tag)
+        if not m:
+            continue
+        chart_name = m.group("chart")
+        version = m.group("version")
+        parsed = parse_semver(version)
+        if parsed is None:
+            continue
+        current = latest.get(chart_name)
+        if current is None or parsed > current[2]:
+            latest[chart_name] = (tag, version, parsed)
+    return latest
 
 
 def get_commits_since(tag: str, path: Path) -> List[str]:
@@ -74,10 +77,14 @@ def get_commits_since(tag: str, path: Path) -> List[str]:
     return [line for line in out.splitlines() if line]
 
 
-def get_changed_files_since(tag: str, path: Path) -> List[str]:
+def has_changes_since(tag: str, path: Path) -> bool:
     rng = f"{tag}..HEAD"
-    out = git(["diff", "--name-only", rng, "--", str(path)])
-    return [line for line in out.splitlines() if line]
+    proc = subprocess.run(
+        ["git", "diff", "--quiet", rng, "--", str(path)],
+        check=False,
+    )
+    # exit code 1 means there are differences, 0 means no differences
+    return proc.returncode == 1
 
 
 def read_commit_message(commit: str) -> str:
@@ -116,20 +123,32 @@ def get_pr_labels(owner_repo: str, pr_number: int, token: Optional[str]) -> List
 
 
 def determine_bump(
-    commits: Iterable[str], chart_path: Path, owner_repo: str, token: Optional[str]
+    commits: Iterable[str],
+    owner_repo: str,
+    token: Optional[str],
+    commit_message_cache: Dict[str, str],
+    pr_labels_cache: Dict[int, List[str]],
 ) -> str:
     bump = "patch"
+    seen_prs: Set[int] = set()
     for c in commits:
-        msg = read_commit_message(c)
+        if c not in commit_message_cache:
+            commit_message_cache[c] = read_commit_message(c)
+        msg = commit_message_cache[c]
         prn = find_pr_number(msg)
-        if prn is not None:
-            labels: List[str] = []
-            if owner_repo:
-                labels = get_pr_labels(owner_repo, prn, token)
-            if any(label.lower() == "major" for label in labels):
-                return "major"
-            if any(label.lower() == "minor" for label in labels):
-                bump = "minor"
+        if prn is None or prn in seen_prs:
+            continue
+        seen_prs.add(prn)
+
+        labels: List[str] = []
+        if owner_repo:
+            if prn not in pr_labels_cache:
+                pr_labels_cache[prn] = get_pr_labels(owner_repo, prn, token)
+            labels = pr_labels_cache[prn]
+        if any(label.lower() == "major" for label in labels):
+            return "major"
+        if any(label.lower() == "minor" for label in labels):
+            bump = "minor"
         # otherwise default patch
     return bump
 
@@ -173,6 +192,10 @@ def main() -> int:
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY") if dry_run else None
     owner_repo = os.environ.get("GITHUB_REPOSITORY", "")
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    latest_tags = build_latest_tag_map()
+    commit_message_cache: Dict[str, str] = {}
+    pr_labels_cache: Dict[int, List[str]] = {}
+    updated_charts: List[Tuple[str, str, Path]] = []
 
     for chart_dir in list_chart_dirs(charts_root):
         chart_name = chart_dir.name
@@ -183,7 +206,7 @@ def main() -> int:
             log("WARNING", f"Chart.yaml not found for {chart_name}, skipping.")
             continue
 
-        latest = find_latest_chart_tag(chart_name)
+        latest = latest_tags.get(chart_name)
         if latest is None:
             msg = f"No previous tag found for {chart_name}, skipping version bump."
             log("WARNING", msg)
@@ -192,14 +215,10 @@ def main() -> int:
                     sf.write(f"- Chart: {chart_name} - {msg}\n")
             continue
 
-        latest_tag, latest_ver = latest
+        latest_tag, latest_ver, _ = latest
         log("INFO", f"Latest tag found: {latest_tag} (version: {latest_ver})")
-        # last tag commit only for log parity
-        last_tag_commit = git(["rev-list", "-n", "1", latest_tag])
-        log("INFO", f"Last tag commit: {last_tag_commit}")
 
-        changed = get_changed_files_since(latest_tag, chart_dir)
-        if not changed:
+        if not has_changes_since(latest_tag, chart_dir):
             msg = f"No changes found for {chart_name} since last release, skipping version bump."
             log("INFO", msg)
             if summary_file:
@@ -214,7 +233,13 @@ def main() -> int:
             f"Changes detected for {chart_name} since the last release. Determining version bump type...",
         )
         commits = get_commits_since(latest_tag, chart_dir)
-        bump = determine_bump(commits, chart_dir, owner_repo, token)
+        bump = determine_bump(
+            commits,
+            owner_repo,
+            token,
+            commit_message_cache,
+            pr_labels_cache,
+        )
         log("INFO", f"Determined bump type: {bump}")
 
         # Determine base version to bump from: max(current Chart.yaml, latest tag)
@@ -249,24 +274,21 @@ def main() -> int:
 
         log("INFO", f"Updating chart version in {chart_yaml} to {new_version}")
         write_chart_version(chart_yaml, new_version)
-
-        # Stage and commit if changed
-        try:
-            subprocess.check_call(["git", "add", str(chart_yaml)])
-            # If nothing changed, commit will fail; ignore
-            subprocess.check_call(
-                [
-                    "git",
-                    "commit",
-                    "-m",
-                    f"[skip ci] Robot commit: Bumping chart version for {chart_name} to {new_version}",
-                ]
-            )
-            log("INFO", f"Version bump commit created for {chart_name}")
-        except subprocess.CalledProcessError as e:
-            log("WARNING", f"Git commit failed (possibly no changes); continuing. {e}")
+        updated_charts.append((chart_name, new_version, chart_yaml))
 
     if not dry_run:
+        if not updated_charts:
+            log("INFO", "No version updates were required. Skipping commit and push.")
+            return 0
+
+        # Batch all chart version bumps into one commit for faster CI and cleaner history.
+        staged_paths = [str(chart_yaml) for _, _, chart_yaml in updated_charts]
+        subprocess.check_call(["git", "add", *staged_paths])
+
+        summary = ", ".join(f"{name}:{version}" for name, version, _ in updated_charts)
+        commit_message = f"[skip ci] Robot commit: Bump chart versions ({summary})"
+        subprocess.check_call(["git", "commit", "-m", commit_message])
+
         # Push to current branch
         ref = os.environ.get("GITHUB_REF", "")
         branch = (
