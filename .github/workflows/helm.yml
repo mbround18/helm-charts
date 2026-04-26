@@ -100,8 +100,7 @@ jobs:
         run: uv sync --locked
 
       - name: Check Python syntax
-        run:
-          find . -name "*.py" -not -path "./.venv/*" -not -path "./.*" -print0 |
+        run: find . -name "*.py" -not -path "./.venv/*" -not -path "./.*" -print0 |
           xargs -0 -n 50 -P "$(nproc 2>/dev/null || echo 4)" python3 -m
           py_compile
 
@@ -149,8 +148,7 @@ jobs:
         run: mkdir -p .artifacts/test-results
 
       - name: Run chart tests
-        run:
-          uv run pytest charts --ignore=charts/tests/test_manifest_contracts.py
+        run: uv run pytest charts --ignore=charts/tests/test_manifest_contracts.py
           --junitxml=.artifacts/test-results/chart-tests.xml
         env:
           PYTEST_ADDOPTS: ${{ env.CI_PYTEST_ADDOPTS }}
@@ -188,7 +186,6 @@ jobs:
 
       - name: Build Helm charts
         run: |
-          make deps-update
           make build
 
       - name: Upload packaged charts
