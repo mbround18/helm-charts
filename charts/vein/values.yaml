@@ -82,6 +82,12 @@ service:
       protocol: UDP
       nodePort: null
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 storage:
   game:
     enabled: true

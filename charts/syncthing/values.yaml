@@ -11,7 +11,7 @@ service:
 persistence:
   data:
     enabled: true
-    storageClassName: ''
+    storageClassName: ""
     size: 30Gi
     claimName: syncthing-data
     mountPath: /var/syncthing
@@ -25,6 +25,12 @@ istio-ingress:
       host: syncthing
       port: 8384
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 ingress:
   enabled: false
   hosts:
@@ -36,7 +42,7 @@ resources: {}
 
 serviceAccount:
   create: true
-  name: ''
+  name: ""
 
 secrets:
   # JWT secret config

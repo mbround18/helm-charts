@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vaultwarden.fullname" . }}
+  labels:
+    {{- include "vaultwarden.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "vaultwarden.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "vaultwarden.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "vaultwarden.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: vaultwarden
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: ROCKET_PORT
+              value: "8080"
+            - name: SIGNUPS_ALLOWED
+              value: {{ .Values.vaultwarden.signupsAllowed | quote }}
+            - name: SIGNUPS_VERIFY
+              value: {{ .Values.vaultwarden.signupsVerify | quote }}
+            - name: REQUIRE_DEVICE_EMAIL
+              value: {{ .Values.vaultwarden.requireDeviceEmail | quote }}
+            - name: INVITATIONS_ALLOWED
+              value: {{ .Values.vaultwarden.invitationsAllowed | quote }}
+            - name: SHOW_PASSWORD_HINT
+              value: {{ .Values.vaultwarden.showPasswordHint | quote }}
+            - name: WEB_VAULT_ENABLED
+              value: {{ .Values.vaultwarden.webVaultEnabled | quote }}
+            - name: SENDS_ALLOWED
+              value: {{ .Values.vaultwarden.sendsAllowed | quote }}
+            - name: ORG_CREATION_USERS
+              value: {{ .Values.vaultwarden.orgCreationUsers | quote }}
+            - name: ENABLE_DB_WAL
+              value: {{ .Values.vaultwarden.enableDbWal | quote }}
+            - name: DOMAIN
+              value: {{ .Values.vaultwarden.domain | quote }}
+            {{- if and .Values.vaultwarden.admin.enabled (not .Values.vaultwarden.admin.disableAdminToken) }}
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "vaultwarden.secretName" . }}
+                  key: {{ .Values.secret.adminTokenKey }}
+            {{- end }}
+            - name: EMERGENCY_ACCESS_ALLOWED
+              value: {{ .Values.vaultwarden.emergencyAccessAllowed | quote }}
+            {{- with .Values.vaultwarden.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- range .Values.vaultwarden.extraSecretEnv }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .key }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "vaultwarden.persistenceClaimName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

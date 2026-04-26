@@ -127,6 +127,7 @@ We welcome contributions from both newcomers and experienced developers! Here's 
 
 ### External Resources
 
+- [Argo CD GitOps Wave Order](argocd-gitops.md) - Repository sync-wave policy for GitOps-driven charts
 - [Helm Documentation](https://helm.sh/docs/) - Official Helm docs
 - [Kubernetes Documentation](https://kubernetes.io/docs/) - Official Kubernetes docs
 - [Game Server Hosting Best Practices](https://kubernetes.io/blog/2018/03/22/kubernetes-game-servers/)

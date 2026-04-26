@@ -19,6 +19,7 @@
 {{- define "audiobookshelf.labels" -}}
 helm.sh/chart: {{ include "audiobookshelf.chart" . }}
 {{ include "audiobookshelf.selectorLabels" . }}
+{{- include "gitops-tools.argocd.labels" (dict "context" .) }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}

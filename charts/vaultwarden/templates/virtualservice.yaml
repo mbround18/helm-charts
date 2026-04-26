@@ -1,0 +1,27 @@
+{{- if .Values.virtualService.enabled }}
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ include "vaultwarden.fullname" . }}-route
+  labels:
+    {{- include "vaultwarden.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" .Values.virtualService.annotations) }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  gateways:
+    {{- toYaml .Values.virtualService.gateways | nindent 4 }}
+  hosts:
+    {{- toYaml .Values.virtualService.hosts | nindent 4 }}
+  http:
+    - match:
+        - uri:
+            prefix: {{ .Values.virtualService.pathPrefix }}
+      route:
+        - destination:
+            host: {{ include "vaultwarden.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.service.port }}
+{{- end }}

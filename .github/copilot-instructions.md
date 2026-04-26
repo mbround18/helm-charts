@@ -59,28 +59,27 @@ When adding optional components, follow this pattern:
 
 ### Make Targets (Primary Commands)
 
-| Command      | Purpose                               | Output                                                             |
-| ------------ | ------------------------------------- | ------------------------------------------------------------------ |
-| `make lint`  | Prettier formatting + Helm validation | Fixes formatting in-place; fails on chart syntax errors            |
-| `make dump`  | Template all charts to YAML           | Creates `tmp/{chart-name}/manifest-00.yaml`, etc. (split by `---`) |
-| `make test`  | Dump + validate templated YAML        | Runs validate_yaml.py on all manifests                             |
-| `make build` | Package charts for distribution       | Creates `tmp/{chart-name}-{version}.tgz`                           |
+| Command            | Purpose                                      | Output                                                              |
+| ------------------ | -------------------------------------------- | ------------------------------------------------------------------- |
+| `make lint`        | Prettier formatting + Helm validation        | Fixes formatting in-place; fails on chart syntax errors             |
+| `make dump`        | Template all charts to YAML                  | Creates `tmp/{chart-name}/manifest-00.yaml`, etc. (split by `---`)  |
+| `make validate`    | Python syntax + manifest contract validation | Runs Python compile checks and pytest-based manifest validation     |
+| `make test`        | Full repository validation                   | Runs `make validate` and then the full pytest suite                 |
+| `make test-update` | Snapshot refresh workflow                    | Updates pytest snapshots, then reruns pytest                        |
+| `make deps-update` | Refresh chart dependencies                   | Updates Helm dependencies and rewrites committed `Chart.lock` files |
+| `make build`       | Package charts for distribution              | Creates `tmp/{chart-name}-{version}.tgz`                            |
 
 **Workflow chain**: `make lint` → edit charts → `make dump` → `make test` → `make build`
 
 ### YAML Validation
 
-Custom Python validator (tools/validate_yaml.py):
+Rendered manifest validation now runs under pytest in `charts/tests/test_manifest_contracts.py`, so it benefits from the repository's parallel pytest configuration.
 
-- Uses `yaml.safe_load_all()` to handle multi-document YAML files
-- Runs on templated manifests (not templates themselves)
-- Exit code 2 = no files found (didn't run `make dump`), code 1 = syntax errors
-
-**When adding new charts**: Always run `make test` after template changes—don't rely on `helm lint` alone.
+**When adding new charts**: Always run `make test` after template changes. Do not rely on `helm lint` alone.
 
 ### Helm Dependencies
 
-Charts with subcharts (e.g., `charts/meilisearch/charts/`) require `helm dependency update` before templating. The Makefile **automatically runs** `helm dependency update` in `dump` and `build` targets. Subcharts are listed in `Chart.yaml`:
+Charts with subcharts or local library dependencies must commit `Chart.lock`. Normal `make dump`, `make test`, and `make build` use lockfile-driven `helm dependency build --skip-refresh`. Use `make deps-update` only when you intentionally refresh dependency versions or need to re-vendor updated local library charts. Subcharts are listed in `Chart.yaml`:
 
 ```yaml
 dependencies:
@@ -145,7 +144,7 @@ Multi-node applications (PostgreSQL, Meilisearch) use **StatefulSets**, not Depl
 
 **Critical for multi-dependent resources**: Always implement resource ordering to ensure prerequisites exist before dependents.
 
-**Pattern**: Combine Helm hooks (template-level) with Argo CD sync waves (deployment-level):
+**Pattern**: Use the repository's Argo CD sync-wave phase model for GitOps ordering, and add Helm hooks only when a resource must run in a Helm lifecycle phase.
 
 1. **Helm Hooks** (in template metadata annotations):
 
@@ -159,24 +158,36 @@ Multi-node applications (PostgreSQL, Meilisearch) use **StatefulSets**, not Depl
 2. **Argo Sync Waves** (for GitOps ordering):
    ```yaml
    annotations:
-     argocd.argoproj.io/sync-wave: "0" # Wave execution order (0, 1, 2...)
+     argocd.argoproj.io/sync-wave: "30"
    ```
 
-**Implementation pattern** (example: PostgreSQL passwords → StatefulSet → init Job):
+**Standard phase model**:
 
-- **Wave 0** (weight -10): Secrets (passwords, keys)
-  - `postgres-password-secret.yaml`
-  - `meilisearch-master-key` secret
-- **Wave 1** (weight 0): Workloads (StatefulSets, Deployments)
-  - `postgres-statefulset.yaml`
-  - `meilisearch-statefulset.yaml`
-- **Wave 2** (weight 5, hook: post-install): Jobs (provisioning, init)
-  - `provisioning-job.yaml`
-  - `password-sync-job.yaml`
+- `foundation` = `0`: Secrets, PVCs, service accounts, bootstrap ConfigMaps, and other prerequisites
+- `database` = `10`: Databases and other stateful data-layer workloads
+- `supporting` = `20`: Supporting jobs or workloads that prepare dependencies for the main app
+- `release` = `30`: The primary application Deployment or StatefulSet
+- `ingress` = `40`: Services, Ingresses, VirtualServices, and other traffic-routing config
 
-**When to add**: Every Secret, ConfigMap, Job, or Deployment that depends on prior resources. **Always add sync wave annotations**—default (wave 0) creates ordering ambiguity.
+**Chart design rules**:
 
-**See**: charts/postgres (password-secret.yaml, statefulset.yaml) and charts/meilisearch (secret.yaml, provisioning-job.yaml) for reference implementations.
+1. If a chart already depends on `gitops-tools`, use `gitops-tools.argocd.annotations` with a named `phase` instead of hard-coded wave numbers.
+2. If a chart does not yet use `gitops-tools`, keep numeric sync waves aligned to the same five phases.
+3. Do not invent one-off wave values like `33` when one of the standard phases already applies.
+4. For integrated charts, place dependency resources earlier than the main release workload. Example: database `10` → provisioning job `20` → application `30` → service/ingress `40`.
+5. If you change a local library helper used via `file://` dependencies, run `make deps-update` so consuming charts vendor the new helper before testing.
+
+**Implementation pattern** (example: PostgreSQL + Meilisearch + application release):
+
+- **foundation 0**: passwords, keys, PVCs, service accounts, bootstrap ConfigMaps
+- **database 10**: `postgres-statefulset.yaml`, `meilisearch-statefulset.yaml`
+- **supporting 20**: `provisioning-job.yaml`, `password-sync-job.yaml`
+- **release 30**: `wikijs` / `vaultwarden` / `vein` primary workload
+- **ingress 40**: Services, Ingresses, VirtualServices, route config
+
+**When to add**: Every Secret, PVC, ConfigMap, Job, Deployment, StatefulSet, Service, Ingress, or VirtualService that participates in dependency ordering. **Always add sync-wave metadata intentionally**; do not leave ordering to default wave `0` unless the resource is truly foundational.
+
+**See**: `docs/argocd-gitops.md` for the repository policy and examples.
 
 ## Common Gotchas
 

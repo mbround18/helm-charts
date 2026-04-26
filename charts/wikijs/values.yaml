@@ -36,11 +36,11 @@ istio-ingress:
           protocol: HTTP
           name: http
         hosts:
-          - '*'
+          - "*"
   tls:
     enabled: false
     mode: SIMPLE
-    credentialName: ''
+    credentialName: ""
     httpsRedirect: false
 meilisearch:
   # Dependency is available but disabled by default. Uncomment to enable and override.
@@ -71,8 +71,8 @@ meilisearch:
     enabled: true
     indexSecret: meilisearch-wikijs-data
     apiKeyDescription: Wiki.js API Key
-    apiKeyActions: ['*']
-    apiKeyIndexes: ['*']
+    apiKeyActions: ["*"]
+    apiKeyIndexes: ["*"]
 
 postgres:
   enabled: true
@@ -90,7 +90,7 @@ postgres:
     enabled: false
   image:
     repository: postgres
-    tag: '18.2'
+    tag: "18.2"
     pullPolicy: IfNotPresent
   persistence:
     enabled: true

@@ -9,25 +9,32 @@ concurrency:
   group: ${{ github.workflow }}-publish-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+defaults:
+  run:
+    shell: bash
+
 permissions:
-  pull-requests: write
-  issues: write
   contents: write
-  repository-projects: write
 
 jobs:
   validation:
     name: Helm Validation
     uses: ./.github/workflows/helm.yml
+    with:
+      run-build: false
 
   publish:
     name: Package and Publish Charts
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs:
       - validation
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # de0fac2, https://github.com/actions/checkout/releases/latest
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_TOKEN }}
@@ -38,7 +45,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # 45bfe01, https://github.com/actions/configure-pages/releases/latest
 
       - name: Setup Python
         uses: ./.github/actions/setup-python
@@ -54,7 +61,7 @@ jobs:
 
       - name: Run chart-releaser
         if: github.event_name != 'pull_request'
-        uses: helm/chart-releaser-action@v1
+        uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # cae68fe, https://github.com/helm/chart-releaser-action/releases/latest
         with:
           charts_dir: charts
           config: cr.yaml

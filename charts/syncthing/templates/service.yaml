@@ -6,6 +6,11 @@ metadata:
   name: {{ include "syncthing.fullname" . }}-http
   labels:
     {{- include "syncthing.labels" . | nindent 4 }}
+  {{- $httpAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress") }}
+  {{- if $httpAnnotations }}
+  annotations:
+    {{- $httpAnnotations | nindent 4 }}
+  {{- end }}
 spec:
   type: ClusterIP
   ports:
@@ -24,6 +29,11 @@ metadata:
   name: {{ include "syncthing.fullname" . }}-sync
   labels:
     {{- include "syncthing.labels" . | nindent 4 }}
+  {{- $syncAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress") }}
+  {{- if $syncAnnotations }}
+  annotations:
+    {{- $syncAnnotations | nindent 4 }}
+  {{- end }}
 spec:
   type: NodePort
   ports:

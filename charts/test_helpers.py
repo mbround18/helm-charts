@@ -1,3 +1,4 @@
+import fcntl
 import subprocess
 import tempfile
 from dataclasses import dataclass
@@ -35,6 +36,63 @@ def load_chart_metadata(chart_path: Path) -> dict[str, Any]:
     return yaml.safe_load((chart_path / "Chart.yaml").read_text(encoding="utf-8")) or {}
 
 
+def _vendored_dependency_present(chart_path: Path, dependency: dict[str, Any]) -> bool:
+    charts_dir = chart_path / "charts"
+    if not charts_dir.is_dir():
+        return False
+
+    dependency_name = dependency.get("name")
+    dependency_version = dependency.get("version")
+    if not dependency_name or not dependency_version:
+        return False
+
+    return (charts_dir / f"{dependency_name}-{dependency_version}.tgz").exists() or (
+        charts_dir / dependency_name
+    ).exists()
+
+
+def ensure_chart_dependencies(chart_path: Path) -> None:
+    metadata = load_chart_metadata(chart_path)
+    dependencies = metadata.get("dependencies") or []
+    if not dependencies:
+        return
+
+    lock_path = chart_path / "Chart.lock"
+    if not lock_path.is_file():
+        raise FileNotFoundError(
+            f"{chart_path.name}: dependency charts must commit Chart.lock so test renders can vendor dependencies"
+        )
+
+    lock_data = yaml.safe_load(lock_path.read_text(encoding="utf-8")) or {}
+    locked_dependencies = lock_data.get("dependencies") or []
+    if locked_dependencies and all(
+        _vendored_dependency_present(chart_path, dependency)
+        for dependency in locked_dependencies
+    ):
+        return
+
+    lock_file_path = chart_path / ".helm-dependency-build.lock"
+    lock_file_path.touch(exist_ok=True)
+
+    with lock_file_path.open("r", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            if locked_dependencies and all(
+                _vendored_dependency_present(chart_path, dependency)
+                for dependency in locked_dependencies
+            ):
+                return
+
+            subprocess.run(
+                ["helm", "dependency", "build", "--skip-refresh", str(chart_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
 def application_chart_directories(charts_root: Path | None = None) -> list[Path]:
     root = charts_root or Path(__file__).resolve().parent
     chart_dirs = sorted(path.parent for path in root.glob("*/Chart.yaml"))
@@ -45,7 +103,9 @@ def application_chart_directories(charts_root: Path | None = None) -> list[Path]
     ]
 
 
-def resource_namespace(document: dict[str, Any], default_namespace: str = DEFAULT_NAMESPACE) -> str:
+def resource_namespace(
+    document: dict[str, Any], default_namespace: str = DEFAULT_NAMESPACE
+) -> str:
     metadata = document.get("metadata") or {}
     return metadata.get("namespace") or default_namespace
 
@@ -98,7 +158,10 @@ def render_chart_documents(
     values: dict[str, Any] | None = None,
     release_name: str = DEFAULT_RELEASE_NAME,
     namespace: str = DEFAULT_NAMESPACE,
+    api_versions: list[str] | None = None,
 ) -> list[Any]:
+    ensure_chart_dependencies(chart_path)
+
     command = [
         "helm",
         "template",
@@ -107,6 +170,9 @@ def render_chart_documents(
         "--namespace",
         namespace,
     ]
+
+    for api_version in api_versions or []:
+        command.extend(["--api-versions", api_version])
 
     values_file = None
     if values:
@@ -169,13 +235,14 @@ def iter_workloads(
             pod_labels = (document.get("metadata") or {}).get("labels") or {}
         else:
             pod_labels = (
-                (((document.get("spec") or {}).get("template") or {}).get("metadata") or {}).get("labels")
+                ((document.get("spec") or {}).get("template") or {}).get("metadata")
                 or {}
-            )
+            ).get("labels") or {}
 
         claim_templates = tuple(
             template.get("metadata", {}).get("name")
-            for template in (document.get("spec") or {}).get("volumeClaimTemplates") or []
+            for template in (document.get("spec") or {}).get("volumeClaimTemplates")
+            or []
             if template.get("metadata", {}).get("name")
         )
 

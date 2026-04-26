@@ -6,6 +6,7 @@ from charts.test_helpers import (
     DEFAULT_NAMESPACE,
     application_chart_directories,
     iter_workloads,
+    load_chart_metadata,
     render_chart_documents,
     resource_identity,
     resource_name,
@@ -29,8 +30,32 @@ def _container_ports(container):
     ports = container.get("ports") or []
     return {
         "names": {port.get("name") for port in ports if port.get("name")},
-        "numbers": {port.get("containerPort") for port in ports if port.get("containerPort") is not None},
+        "numbers": {
+            port.get("containerPort")
+            for port in ports
+            if port.get("containerPort") is not None
+        },
     }
+
+
+@pytest.mark.skipif(not HELM_AVAILABLE, reason="helm not installed")
+@pytest.mark.parametrize("chart_path", APPLICATION_CHARTS, ids=_chart_id)
+def test_rendered_templates_parse_as_yaml(chart_path):
+    documents = render_chart_documents(chart_path)
+
+    assert isinstance(documents, list)
+
+
+@pytest.mark.parametrize("chart_path", APPLICATION_CHARTS, ids=_chart_id)
+def test_charts_with_dependencies_have_lockfiles(chart_path):
+    metadata = load_chart_metadata(chart_path)
+
+    if not metadata.get("dependencies"):
+        return
+
+    assert (chart_path / "Chart.lock").is_file(), (
+        f"{chart_path.name}: dependency charts must commit Chart.lock so normal make targets can use helm dependency build"
+    )
 
 
 @pytest.mark.skipif(not HELM_AVAILABLE, reason="helm not installed")

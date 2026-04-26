@@ -57,7 +57,7 @@ endpoint:
   consolePort: 7000
 pvc:
   size: 20Gi
-  mountPath: "/data/server"  # or "/data" for legacy behavior
+  mountPath: "/data/server" # or "/data" for legacy behavior
 ```
 
 ### Run with ClusterIP Only

@@ -5,12 +5,15 @@ metadata:
   name: {{ include "foundryvtt.fullname" . }}
   labels:
     {{- include "foundryvtt.labels" . | nindent 4 }}
+  {{- $extraAnnotations := dict "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" "nginx.ingress.kubernetes.io/proxy-body-size" "100m" }}
+  {{- range $key, $value := .Values.ingress.annotations }}
+  {{- $_ := set $extraAnnotations $key $value }}
+  {{- end }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" $extraAnnotations) }}
+  {{- if $annotations }}
   annotations:
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    {{- with .Values.ingress.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- $annotations | nindent 4 }}
+  {{- end }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className | quote }}

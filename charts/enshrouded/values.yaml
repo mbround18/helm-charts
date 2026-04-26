@@ -11,7 +11,7 @@ environment: []
 #   value: my-env-var-value
 
 # The name of the storage class to use. If not set, the default storage class will be used.
-storageClassName: ''
+storageClassName: ""
 
 # Configuration for backups
 backups:
@@ -20,7 +20,7 @@ backups:
   # The image to use for backups
   image: mbround18/backup-cron:v1.0.0
   # The schedule for backups, in cron format
-  schedule: '*/5 * * * *'
+  schedule: "*/5 * * * *"
   # The number of days to retain backups
   retentionDays: 7
   # The number of backup files to keep. If 0, all backup files are kept.
@@ -39,8 +39,8 @@ image:
 
 # The secrets to use for pulling images
 imagePullSecrets: []
-nameOverride: ''
-fullnameOverride: ''
+nameOverride: ""
+fullnameOverride: ""
 
 # Configuration for the service account
 serviceAccount:
@@ -52,7 +52,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ''
+  name: ""
 
 # Annotations to add to the pod
 podAnnotations: {}
@@ -74,7 +74,7 @@ securityContext: {}
 
 # Configuration for the application endpoint
 endpoint:
-  externalIP: ''
+  externalIP: ""
   gamePort: 15636
   queryPort: 15637
 

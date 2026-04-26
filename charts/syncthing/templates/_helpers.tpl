@@ -28,6 +28,7 @@ Usage:
 {{- define "syncthing.labels" -}}
 helm.sh/chart: {{ include "syncthing.chart" . }}
 {{ include "syncthing.selectorLabels" . }}
+{{- include "gitops-tools.argocd.labels" (dict "context" .) }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
