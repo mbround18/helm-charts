@@ -18,10 +18,16 @@ async def build_chart_dependencies(
     async with semaphore:
         start_time = time.perf_counter()
 
+        charts_dir = chart_path / "charts"
+        charts_dir.mkdir(exist_ok=True)
+        (charts_dir / ".gitkeep").touch(exist_ok=True)
+
         proc = await asyncio.create_subprocess_exec(
             "helm",
             "dependency",
             "build",
+            "--skip-refresh",
+            ".",
             cwd=chart_path,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -47,6 +53,9 @@ def pytest_sessionstart(session) -> None:
     Build Helm chart dependencies asynchronously before running tests.
     This runs once before xdist distributes the tests.
     """
+    if hasattr(session.config, "workerinput"):
+        return
+
     charts_dir = ROOT / "charts"
     charts_to_build: List[Path] = []
 
@@ -61,8 +70,7 @@ def pytest_sessionstart(session) -> None:
             print(f"Warning: Failed to parse {chart_yaml_path}: {e}")
 
     async def main() -> None:
-        # Limit concurrency to prevent CPU/Network overloading
-        semaphore = asyncio.Semaphore(5)
+        semaphore = asyncio.Semaphore(1)
         tasks = [
             build_chart_dependencies(chart, semaphore) for chart in charts_to_build
         ]

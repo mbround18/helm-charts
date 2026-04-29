@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "forgej.fullname" . }}
+  name: {{ include "forgejo.fullname" . }}
   labels:
-    {{- include "forgej.labels" . | nindent 4 }}
+    {{- include "forgejo.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "forgej.fullname" . }}
+    name: {{ include "forgejo.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

@@ -15,8 +15,8 @@ sources:
 dependencies:
   - name: postgres
     alias: postgresql
-    version: ">=0.1.17"
+    version: "0.1.17"
     repository: "file://../postgres"
     condition: postgresql.enabled
 maintainers:
-- name: mbround18
+  - name: mbround18
