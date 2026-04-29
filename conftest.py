@@ -1,9 +1,10 @@
 from pathlib import Path
 import sys
 import asyncio
+import hashlib
 import yaml
 import time
-from typing import List
+from typing import List, Set
 
 ROOT = Path(__file__).resolve().parent
 root_str = str(ROOT)
@@ -48,6 +49,30 @@ async def build_chart_dependencies(
         )
 
 
+async def ensure_helm_repositories(repository_urls: Set[str]) -> None:
+    """Ensure all required remote Helm repositories are configured."""
+    if not repository_urls:
+        return
+
+    for url in sorted(repository_urls):
+        alias = f"ci-{hashlib.sha1(url.encode('utf-8')).hexdigest()[:10]}"
+        proc = await asyncio.create_subprocess_exec(
+            "helm",
+            "repo",
+            "add",
+            alias,
+            url,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        _, stderr = await proc.communicate()
+
+        if proc.returncode != 0 and "already exists" not in stderr.decode():
+            raise RuntimeError(
+                f"Failed to add helm repo '{url}' with alias '{alias}': {stderr.decode()}"
+            )
+
+
 def pytest_sessionstart(session) -> None:
     """
     Build Helm chart dependencies asynchronously before running tests.
@@ -58,18 +83,29 @@ def pytest_sessionstart(session) -> None:
 
     charts_dir = ROOT / "charts"
     charts_to_build: List[Path] = []
+    repository_urls: Set[str] = set()
 
     for chart_yaml_path in charts_dir.glob("*/Chart.yaml"):
         try:
             with open(chart_yaml_path, "r") as f:
                 chart_yaml = yaml.safe_load(f) or {}
 
-            if "dependencies" in chart_yaml:
+            dependencies = chart_yaml.get("dependencies") or []
+            if dependencies:
                 charts_to_build.append(chart_yaml_path.parent)
+
+            for dependency in dependencies:
+                repository = dependency.get("repository")
+                if isinstance(repository, str) and repository.startswith(
+                    ("http://", "https://")
+                ):
+                    repository_urls.add(repository)
         except Exception as e:
             print(f"Warning: Failed to parse {chart_yaml_path}: {e}")
 
     async def main() -> None:
+        await ensure_helm_repositories(repository_urls)
+
         semaphore = asyncio.Semaphore(1)
         tasks = [
             build_chart_dependencies(chart, semaphore) for chart in charts_to_build
