@@ -5,7 +5,7 @@ fullnameOverride: ""
 
 image:
   repository: codeberg.org/forgejo/forgejo
-  tag: "9"
+  tag: "15"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
