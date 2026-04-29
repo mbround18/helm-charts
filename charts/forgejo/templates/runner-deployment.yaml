@@ -1,0 +1,47 @@
+{{- if .Values.runner.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forgejo.fullname" . }}-runner
+  labels:
+    {{- include "forgejo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "forgejo.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: runner
+  template:
+    metadata:
+      labels:
+        {{- include "forgejo.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: runner
+    spec:
+      containers:
+        - name: runner
+          image: "{{ .Values.runner.image.repository }}:{{ .Values.runner.image.tag }}"
+          imagePullPolicy: {{ .Values.runner.image.pullPolicy }}
+          env:
+            - name: FORGEJO_INSTANCE_URL
+              value: "http://{{ include "forgejo.fullname" . }}:{{ .Values.service.http.port }}"
+            - name: FORGEJO_RUNNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "forgejo.fullname" . }}
+                  key: runner-token
+            - name: FORGEJO_RUNNER_LABELS
+              value: {{ .Values.runner.labels | quote }}
+          volumeMounts:
+          {{- if .Values.runner.dockerSocket.mount }}
+            - name: docker-sock
+              mountPath: {{ .Values.runner.dockerSocket.path }}
+          {{- end }}
+      volumes:
+      {{- if .Values.runner.dockerSocket.mount }}
+        - name: docker-sock
+          hostPath:
+            path: {{ .Values.runner.dockerSocket.path }}
+            type: Socket
+      {{- end }}
+{{- end }}

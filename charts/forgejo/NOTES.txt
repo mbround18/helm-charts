@@ -1,0 +1,57 @@
+{{- /*
+Welcome to the Forgejo Helm chart.
+This file contains instructions on how to use and configure your Forgejo installation.
+*/}}
+Your Forgejo instance has been deployed.
+
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+  export APP_HOST=$(kubectl get ingress {{ include "forgejo.fullname" . }} --template "{{ (index .spec.hosts 0).name }}")
+  echo "http://$APP_HOST"
+{{- else if contains "NodePort" .Values.service.ssh.type }}
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "forgejo.fullname" . }})
+  echo "http://$NODE_IP:$NODE_PORT"
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "forgejo.fullname" . }} --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
+  echo "http://$SERVICE_IP:{{ .Values.service.http.port }}"
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "forgejo.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:3000
+{{- end }}
+
+2. SSH Access:
+   Your Git repositories can be accessed via SSH. If you are using a LoadBalancer for SSH, the address is:
+   {{- if eq .Values.service.ssh.type "LoadBalancer" }}
+   export SSH_HOST=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "forgejo.fullname" . }}-ssh --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
+   echo "ssh://git@$SSH_HOST:{{ .Values.service.ssh.port }}"
+   {{- else if eq .Values.service.ssh.type "NodePort" }}
+   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+   echo "ssh://git@$NODE_IP:{{ .Values.service.ssh.nodePort }}"
+   {{- else }}
+   echo "SSH service is not exposed via LoadBalancer or NodePort. You can use port-forwarding to access it."
+   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "forgejo.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 2222:22
+   echo "ssh://git@localhost:2222"
+   {{- end }}
+
+3. Configure Forgejo Runner:
+   The Forgejo runner requires a token to register with the main instance.
+   - Log in to your Forgejo instance.
+   - Go to Site Administration -> Actions -> Runners.
+   - Create a new runner and copy the token.
+   - Update the `secrets.runnerToken` value in your `values.yaml` with this token.
+   - Upgrade the Helm release: `helm upgrade {{ .Release.Name }} . -f values.yaml`
+
+4. Configure GitHub Mirroring:
+   {{- if .Values.mirrorCronJob.enabled }}
+   The mirroring cronjob is enabled. It requires a Forgejo API token.
+   - Log in to your Forgejo instance.
+   - Go to Settings -> Applications and generate a new token.
+   - Update the `mirrorCronJob.forgejo_token` value in your `values.yaml` (or the secret directly).
+   - If you are mirroring a private GitHub repository or a large organization, create a GitHub Personal Access Token (PAT) with `repo` scope and update `mirrorCronJob.github_token`.
+   - Upgrade the Helm release.
+   {{- else }}
+   The mirroring cronjob is disabled. To enable it, set `mirrorCronJob.enabled` to `true` in your `values.yaml` and provide the necessary configuration.
+   {{- end }}
