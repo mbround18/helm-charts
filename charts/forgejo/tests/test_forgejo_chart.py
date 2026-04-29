@@ -72,7 +72,7 @@ def test_persistence_disabled(chart_path):
     assert "emptyDir" in deployment["spec"]["template"]["spec"]["volumes"][0]
 
     with pytest.raises(ValueError):
-        _document_by_kind(documents, "PersistentVolumeClaim")
+        _document_by_kind(documents, "PersistentVolumeClaim", "release-name-forgejo")
 
 
 def test_runner_disabled(chart_path):

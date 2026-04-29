@@ -103,7 +103,7 @@ config:
     enable_notify_mail: "false"
 
 runner:
-  enabled: false
+  enabled: true
   image:
     repository: code.forgejo.org/forgejo/runner
     tag: "3.5.1"
