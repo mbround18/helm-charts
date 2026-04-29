@@ -3,20 +3,20 @@ name: forgejo
 description: A Helm chart for Forgejo, a self-hosted lightweight software forge.
 type: application
 version: 0.1.0
-appVersion: "9"
+appVersion: '9'
 keywords:
-  - forgejo
-  - git
-  - devops
+- forgejo
+- git
+- devops
 home: https://forgejo.org/
 sources:
-  - https://codeberg.org/forgejo/forgejo
-  - https://github.com/PatNei/GITHUB2FORGEJO
+- https://codeberg.org/forgejo/forgejo
+- https://github.com/PatNei/GITHUB2FORGEJO
 dependencies:
-  - name: postgres
-    alias: postgresql
-    version: "0.1.17"
-    repository: "file://../postgres"
-    condition: postgresql.enabled
+- name: postgres
+  alias: postgresql
+  version: 0.1.18
+  repository: file://../postgres
+  condition: postgresql.enabled
 maintainers:
-  - name: mbround18
+- name: mbround18
