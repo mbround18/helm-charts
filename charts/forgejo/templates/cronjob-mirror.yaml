@@ -1,0 +1,47 @@
+{{- if .Values.mirrorCronJob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "forgejo.fullname" . }}-mirror
+  labels:
+    {{- include "forgejo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mirror-cronjob
+spec:
+  schedule: {{ .Values.mirrorCronJob.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: github2forgejo
+              image: "{{ .Values.mirrorCronJob.image.repository }}:{{ .Values.mirrorCronJob.image.tag }}"
+              env:
+                - name: GITHUB_USER_OR_ORG
+                  value: {{ .Values.mirrorCronJob.github_user_or_org | quote }}
+                - name: FORGEJO_USER
+                  value: {{ .Values.mirrorCronJob.forgejo_user | quote }}
+                - name: FORGEJO_URL
+                  value: "http://{{ include "forgejo.fullname" . }}:{{ .Values.service.http.port }}"
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "forgejo.fullname" . }}-mirror
+                      key: github-token
+                - name: FORGEJO_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "forgejo.fullname" . }}-mirror
+                      key: forgejo-token
+{{- end }}
+---
+{{- if .Values.mirrorCronJob.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "forgejo.fullname" . }}-mirror
+type: Opaque
+stringData:
+  github-token: {{ .Values.mirrorCronJob.github_token | quote }}
+  forgejo-token: {{ .Values.mirrorCronJob.forgejo_token | quote }}
+{{- end }}

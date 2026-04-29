@@ -1,0 +1,188 @@
+replicaCount: 1
+fullnameOverride: foundryvtt-dnd-boop-ninja
+
+########################################################
+# Main Foundry container settings
+########################################################
+image:
+  repository: mbround18/foundryvtt-docker
+  tag: v3.0.27
+  pullPolicy: IfNotPresent
+
+sslProxy: false
+
+network:
+  host: dnd.boop.ninja
+  tls:
+    enabled: true
+    credentialName: foundry-tls
+
+ingress:
+  enabled: false
+  annotations: {}
+  className: ""
+  hosts:
+    - host: foundry.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    route:
+      host: foundry
+      port: 80
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 80
+
+imagePullSecrets: []
+priorityClassName: ""
+terminationGracePeriodSeconds: 30
+
+resources:
+  limits:
+    cpu: "0.3"
+    memory: 1024Mi
+  requests:
+    cpu: "0.2"
+    memory: 512Mi
+
+########################################################
+# Pod security and service account
+########################################################
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop: [ALL]
+
+podAnnotations: {}
+commonLabels: {}
+
+nodeSelector: {}
+affinity: {}
+tolerations: []
+
+env: []
+
+initImage:
+  repository: busybox
+  tag: 1.37.0
+cleanupImage:
+  repository: alpine
+  tag: "20260127"
+
+updateStrategy: {}
+
+pdb:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 0
+
+########################################################
+# Probes
+########################################################
+probes:
+  liveness:
+    enabled: true
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    enabled: true
+    path: /
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+########################################################
+# Key Foundry volumes
+# (Each results in a volumeClaimTemplate if enabled)
+########################################################
+volumeClaimTemplates:
+  backups:
+    enabled: true
+    storageClassName: longhorn
+    size: 10Gi
+    accessModes: [ReadWriteMany]
+  config:
+    enabled: true
+    storageClassName: longhorn
+    size: 1Gi
+    accessModes: [ReadWriteOnce]
+  data:
+    enabled: true
+    storageClassName: longhorn
+    size: 20Gi
+    accessModes: [ReadWriteMany]
+  core:
+    enabled: true
+    storageClassName: longhorn
+    size: 2Gi
+    accessModes: [ReadWriteOnce]
+  app:
+    enabled: true
+    storageClassName: longhorn
+    size: 4Gi
+    accessModes: [ReadWriteOnce]
+
+########################################################
+# Extra Persistent Volumes
+########################################################
+# If you need additional volumes (beyond backups/config/data/core/app),
+# define them here. You can mount them in the main Foundry container
+# OR in extra containers, or both.
+extraVolumeClaimTemplates: []
+#  - name: "custom-logs"
+#    enabled: false
+#    storageClassName: "longhorn"
+#    size: "1Gi"
+#    accessModes: ["ReadWriteOnce"]
+
+########################################################
+# Extra Containers
+########################################################
+# Provide a list of additional containers you want in the same Pod,
+# e.g. sidecars for backups, logging, or metrics.
+extraContainers: []
+# - name: fluent-bit
+#   image: "fluent/fluent-bit:latest"
+#   volumeMounts:
+#     - name: custom-logs
+#       mountPath: /logs
+#   env:
+#     - name: FLUENT_ELASTICSEARCH_HOST
+#       value: "elasticsearch.logging.svc.cluster.local"
+
+########################################################
+# Backup settings
+########################################################
+backup_cleanup:
+  enabled: true
+  schedule: 0 2 * * *
+  olderThanDays: 30
