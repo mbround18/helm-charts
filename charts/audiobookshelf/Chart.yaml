@@ -2,7 +2,7 @@ apiVersion: v2
 name: audiobookshelf
 description: Helm chart for Audiobookshelf (self-hosted audiobook & podcast server)
 type: application
-version: 0.1.7
+version: 0.1.8
 appVersion: 2.19.0
 dependencies:
 - name: istio-ingress
