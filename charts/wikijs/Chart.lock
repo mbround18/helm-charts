@@ -4,7 +4,7 @@ dependencies:
   version: 0.1.17
 - name: istio-ingress
   repository: https://mbround18.github.io/helm-charts
-  version: 0.1.0
+  version: 0.1.4
 - name: meilisearch
   repository: https://mbround18.github.io/helm-charts
   version: 0.1.16

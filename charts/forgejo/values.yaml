@@ -5,7 +5,7 @@ fullnameOverride: ""
 
 image:
   repository: codeberg.org/forgejo/forgejo
-  tag: "9"
+  tag: "15"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -106,7 +106,7 @@ runner:
   enabled: true
   image:
     repository: code.forgejo.org/forgejo/runner
-    tag: "3.5.1"
+    tag: "12.9.0"
     pullPolicy: IfNotPresent
   labels: docker
   dockerSocket:
