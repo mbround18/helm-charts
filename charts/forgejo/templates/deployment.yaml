@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "forgejo.fullname" . }}
+  labels:
+    {{- include "forgejo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "forgejo.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "forgejo.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "forgejo.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: USER_UID
+              value: "1000"
+            - name: USER_GID
+              value: "1000"
+            - name: FORGEJO__database__DB_TYPE
+              value: {{ .Values.config.database.db_type | quote }}
+            - name: FORGEJO__database__HOST
+              value: {{ .Values.config.database.host | quote }}
+            - name: FORGEJO__database__NAME
+              value: {{ .Values.config.database.name | quote }}
+            - name: FORGEJO__database__USER
+              value: {{ .Values.config.database.user | quote }}
+            - name: FORGEJO__database__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "forgejo.fullname" . }}
+                  key: database-password
+            - name: FORGEJO__server__DOMAIN
+              value: {{ .Values.config.server.domain | quote }}
+            - name: FORGEJO__server__SSH_DOMAIN
+              value: {{ .Values.config.server.ssh_domain | quote }}
+            - name: FORGEJO__server__ROOT_URL
+              value: {{ .Values.config.server.root_url | quote }}
+            - name: FORGEJO__server__HTTP_PORT
+              value: {{ .Values.config.server.http_port | quote }}
+            - name: FORGEJO__mirror__DEFAULT_INTERVAL
+              value: {{ .Values.config.mirror.default_interval | quote }}
+            - name: FORGEJO__mirror__MIN_INTERVAL
+              value: {{ .Values.config.mirror.min_interval | quote }}
+            - name: FORGEJO__actions__ENABLED
+              value: {{ .Values.config.actions.enabled | quote }}
+            - name: FORGEJO__security__INSTALL_LOCK
+              value: {{ .Values.config.security.install_lock | quote }}
+            - name: FORGEJO__service__DISABLE_REGISTRATION
+              value: {{ .Values.config.service.disable_registration | quote }}
+            - name: FORGEJO__service__ENABLE_NOTIFY_MAIL
+              value: {{ .Values.config.service.enable_notify_mail | quote }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: ssh
+              containerPort: 22
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "forgejo.fullname" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -23,6 +23,7 @@ dump: ## Dump all chart templates to ./tmp
 	@$(CHART_TASKS) dump --output-dir ./tmp
 
 deps-update:
+	@find ./charts -maxdepth 2 -name "Chart.yaml" -execdir mkdir -p charts \;
 	@$(CHART_TASKS) deps-update
 
 validate: ## Validate Python syntax and rendered chart manifests via pytest
@@ -36,7 +37,7 @@ update-readme:
 	@uv run tools/update_readme_charts.py docs/README.md
 	@$(MAKE) lint
 
-build: ## Build all charts
+build: deps-update ## Build all charts
 	@$(CHART_TASKS) build --output-dir ./tmp
 
 upgrade: ## Upgrade container image tags in all charts

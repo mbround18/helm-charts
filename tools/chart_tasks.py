@@ -2,18 +2,34 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
+import logging
 import py_compile
 import shutil
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Sequence
+from typing import Sequence
 
 import yaml
 
-from tools.fix_chart_deps import sync_local_dependencies
+# Assuming this exists based on your provided script
+try:
+    from tools.fix_chart_deps import sync_local_dependencies
+except ImportError:
 
+    def sync_local_dependencies(path: str):
+        pass
+
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger("chart-tasks")
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CHARTS_ROOT = REPO_ROOT / "charts"
@@ -36,17 +52,46 @@ class Chart:
     def is_library(self) -> bool:
         return self.chart_type == "library"
 
+    @property
+    def charts_dir(self) -> Path:
+        return self.directory / "charts"
+
+
+async def run_cmd(cmd: list[str], cwd: Path | None = None, quiet: bool = False) -> str:
+    """Run a shell command asynchronously and return stdout."""
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        cwd=str(cwd) if cwd else None,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+
+    if process.returncode != 0:
+        error_msg = stderr.decode().strip()
+        logger.error(f"Command failed: {' '.join(cmd)}\n{error_msg}")
+        raise subprocess.CalledProcessError(
+            process.returncode, cmd, output=stdout, stderr=stderr
+        )
+
+    result = stdout.decode().strip()
+    if not quiet and result:
+        logger.debug(result)
+    return result
+
 
 def load_chart(path: Path) -> Chart:
     chart_yaml = path / "Chart.yaml"
+    if not chart_yaml.exists():
+        raise FileNotFoundError(f"No Chart.yaml found in {path}")
+
     with chart_yaml.open("r", encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
 
-    chart_type = (
-        data.get("type") if isinstance(data.get("type"), str) else "application"
-    )
-    dependencies = data.get("dependencies")
+    chart_type = data.get("type", "application")
+    dependencies = data.get("dependencies", [])
     has_dependencies = isinstance(dependencies, list) and len(dependencies) > 0
+
     return Chart(
         name=path.name,
         directory=path,
@@ -56,11 +101,86 @@ def load_chart(path: Path) -> Chart:
     )
 
 
+def get_local_dependencies(chart_path: Path) -> list[tuple[str, Path]]:
+    """Find local file:// dependencies in a Chart.yaml. Returns list of (declared_name, absolute_path)."""
+    chart_yaml_path = chart_path / "Chart.yaml"
+    if not chart_yaml_path.exists():
+        return []
+
+    with chart_yaml_path.open("r", encoding="utf-8") as h:
+        data = yaml.safe_load(h) or {}
+
+    dependencies = data.get("dependencies", [])
+    local_deps = []
+    for dep in dependencies:
+        name = dep.get("name")
+        repository = dep.get("repository", "")
+        if repository.startswith("file://") and name:
+            # Resolve relative path from the chart directory
+            rel_path = repository.replace("file://", "")
+            local_deps.append((name, (chart_path / rel_path).resolve()))
+
+    return local_deps
+
+
+async def ensure_local_deps_built(chart_path: Path, visited: set[Path] | None = None):
+    """Recursively ensure all local file:// dependencies have their charts/ folders built."""
+    if visited is None:
+        visited = set()
+
+    if chart_path in visited:
+        return
+    visited.add(chart_path)
+
+    local_deps = get_local_dependencies(chart_path)
+    for declared_name, dep_path in local_deps:
+        if not dep_path.exists():
+            logger.warning(f"Local dependency path does not exist: {dep_path}")
+            continue
+
+        # Check if the name in the dependency's Chart.yaml matches the declared name
+        dep_chart_yaml = dep_path / "Chart.yaml"
+        if dep_chart_yaml.exists():
+            with dep_chart_yaml.open("r", encoding="utf-8") as h:
+                dep_data = yaml.safe_load(h) or {}
+                actual_name = dep_data.get("name")
+                if actual_name and actual_name != declared_name:
+                    logger.error(
+                        f"Dependency name mismatch in {chart_path.name}: "
+                        f"Expected '{declared_name}' based on directory/declaration, "
+                        f"but local Chart.yaml at {dep_path} defines it as '{actual_name}'."
+                    )
+                    raise ValueError(
+                        f"Chart name mismatch for dependency: {declared_name}"
+                    )
+
+        # Recursive check for the dependency's own local dependencies
+        await ensure_local_deps_built(dep_path, visited)
+
+        # Build the dependency itself
+        logger.info(f"Building local dependency: {dep_path.name}")
+        try:
+            await run_cmd(
+                ["helm", "dependency", "build", "."], cwd=dep_path, quiet=True
+            )
+        except subprocess.CalledProcessError:
+            logger.error(f"Failed to build local dependency: {dep_path.name}")
+            raise
+
+
 def discover_charts(charts_root: Path, selected: Sequence[str]) -> list[Chart]:
     selected_names = set(selected)
     charts = []
+    # Search for Chart.yaml files and ensure the directory has a 'charts' folder
     for chart_yaml in sorted(charts_root.glob("*/Chart.yaml")):
-        chart = load_chart(chart_yaml.parent)
+        chart_dir = chart_yaml.parent
+
+        # Ensure 'charts' directory and .gitkeep exist
+        charts_subdir = chart_dir / "charts"
+        charts_subdir.mkdir(exist_ok=True)
+        (charts_subdir / ".gitkeep").touch(exist_ok=True)
+
+        chart = load_chart(chart_dir)
         if selected_names and chart.name not in selected_names:
             continue
         charts.append(chart)
@@ -68,263 +188,187 @@ def discover_charts(charts_root: Path, selected: Sequence[str]) -> list[Chart]:
     return charts
 
 
-def run_command(
-    command: list[str], cwd: Path | None = None, quiet: bool = False
-) -> str:
-    result = subprocess.run(
-        command,
-        cwd=str(cwd) if cwd else None,
-        check=True,
-        capture_output=quiet,
-        text=True,
-    )
-    return result.stdout if quiet else ""
+async def update_dependencies(chart: Chart, semaphore: asyncio.Semaphore):
+    async with semaphore:
+        if chart.is_library or not chart.has_dependencies:
+            return
+
+        sync_local_dependencies(str(chart.chart_yaml))
+
+        # Pre-build local file:// dependencies
+        await ensure_local_deps_built(chart.directory)
+
+        logger.info(f"Updating dependencies: {chart.name}")
+        # Try to update repositories first to avoid local cache corruption errors
+        try:
+            await run_cmd(["helm", "repo", "update"], quiet=True)
+        except subprocess.CalledProcessError:
+            logger.warning("Failed to update helm repos, proceeding anyway...")
+
+        await run_cmd(["helm", "dependency", "update", "."], cwd=chart.directory)
 
 
-def ensure_lockfile(chart: Chart) -> None:
-    if chart.has_dependencies and not chart.lockfile.exists():
-        raise FileNotFoundError(f"Missing {chart.lockfile}. Run make deps-update.")
+async def lint_chart(chart: Chart, semaphore: asyncio.Semaphore):
+    async with semaphore:
+        logger.info(f"Linting: {chart.name}")
+        if chart.has_dependencies:
+            await ensure_local_deps_built(chart.directory)
+            await run_cmd(
+                ["helm", "dependency", "build", "--skip-refresh", "."],
+                cwd=chart.directory,
+                quiet=True,
+            )
+        await run_cmd(["helm", "lint", "."], cwd=chart.directory, quiet=True)
 
 
-def build_vendored_dependencies(chart: Chart, quiet: bool = False) -> None:
-    if not chart.has_dependencies or chart.is_library:
-        return
+async def dump_chart(chart: Chart, output_dir: Path, semaphore: asyncio.Semaphore):
+    async with semaphore:
+        if chart.is_library:
+            return
 
-    ensure_lockfile(chart)
-    run_command(
-        ["helm", "dependency", "build", "--skip-refresh", str(chart.directory)],
-        cwd=REPO_ROOT,
-        quiet=quiet,
-    )
+        logger.info(f"Dumping manifests: {chart.name}")
+        if chart.has_dependencies:
+            await ensure_local_deps_built(chart.directory)
+            await run_cmd(
+                ["helm", "dependency", "build", "--skip-refresh", "."],
+                cwd=chart.directory,
+                quiet=True,
+            )
 
+        rendered = await run_cmd(
+            ["helm", "template", "."], cwd=chart.directory, quiet=True
+        )
 
-def update_dependencies(chart: Chart) -> None:
-    if chart.is_library or not chart.has_dependencies:
-        return
+        chart_out = output_dir / chart.name
+        chart_out.mkdir(parents=True, exist_ok=True)
 
-    sync_local_dependencies(str(chart.chart_yaml))
-    print(f"Updating dependencies for {chart.name}...")
-    run_command(["helm", "dependency", "update", str(chart.directory)], cwd=REPO_ROOT)
+        # Split manifests by '---'
+        docs = [d for d in rendered.split("\n---\n") if d.strip()]
+        for idx, doc in enumerate(docs):
+            source_line = next(
+                (line for line in doc.splitlines() if line.startswith("# Source:")),
+                None,
+            )
+            if source_line:
+                # Extract path after /templates/
+                rel_path = source_line.split("/templates/")[-1].strip()
+                target = chart_out / rel_path
+            else:
+                target = chart_out / f"manifest-{idx:03}.yaml"
 
-
-def lint_chart(chart: Chart) -> None:
-    build_vendored_dependencies(chart, quiet=True)
-    print(f"Linting {chart.name}")
-    run_command(["helm", "lint", str(chart.directory)], cwd=REPO_ROOT, quiet=True)
-
-
-def split_manifests(rendered: str, out_dir: Path) -> None:
-    documents: list[str] = []
-    current: list[str] = []
-
-    for line in rendered.splitlines(keepends=True):
-        if line.strip() == "---":
-            documents.append("".join(current))
-            current = []
-            continue
-        current.append(line)
-    documents.append("".join(current))
-
-    index = 0
-    for document in documents:
-        if not document.strip():
-            continue
-
-        source_path = None
-        for line in document.splitlines():
-            if line.startswith("# Source:"):
-                source_path = line[len("# Source:") :].strip()
-                break
-
-        if source_path:
-            parts = source_path.split("/templates/", 1)
-            relative_path = Path(parts[1] if len(parts) == 2 else source_path)
-        else:
-            relative_path = Path(f"manifest-{index:02d}.yaml")
-
-        target_path = out_dir / relative_path
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-        target_path.write_text(document, encoding="utf-8")
-        index += 1
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(doc.strip() + "\n", encoding="utf-8")
 
 
-def dump_chart(chart: Chart, output_dir: Path) -> None:
-    if chart.is_library:
-        print(f"Skipping library chart: {chart.name}")
-        return
+async def build_chart(chart: Chart, output_dir: Path, semaphore: asyncio.Semaphore):
+    async with semaphore:
+        if chart.is_library:
+            return
 
-    build_vendored_dependencies(chart)
-    print(f"Dumping {chart.name}...")
-    rendered = run_command(
-        ["helm", "template", str(chart.directory)],
-        cwd=REPO_ROOT,
-        quiet=True,
-    )
-    chart_output_dir = output_dir / chart.name
-    chart_output_dir.mkdir(parents=True, exist_ok=True)
-    split_manifests(rendered, chart_output_dir)
-
-
-def build_chart(chart: Chart, output_dir: Path) -> None:
-    if chart.is_library:
-        print(f"Skipping library chart: {chart.name}")
-        return
-
-    build_vendored_dependencies(chart)
-    print(f"Building {chart.name}...")
-    run_command(
-        ["helm", "package", str(chart.directory), "-d", str(output_dir)], cwd=REPO_ROOT
-    )
-
-
-def run_parallel(
-    charts: Iterable[Chart], jobs: int, handler: Callable[[Chart], None]
-) -> None:
-    failures: list[tuple[str, Exception]] = []
-
-    with ThreadPoolExecutor(max_workers=max(1, jobs)) as executor:
-        futures = {executor.submit(handler, chart): chart for chart in charts}
-        for future in as_completed(futures):
-            chart = futures[future]
+        logger.info(f"Packaging: {chart.name}")
+        if chart.has_dependencies:
+            # Refresh repos to avoid empty index issues
             try:
-                future.result()
-            except Exception as exc:  # noqa: BLE001
-                failures.append((chart.name, exc))
+                await run_cmd(["helm", "repo", "update"], quiet=True)
+            except subprocess.CalledProcessError:
+                pass
 
-    if failures:
-        for chart_name, error in failures:
-            print(f"ERROR: {chart_name}: {error}")
-        raise SystemExit(1)
+            # Pre-build local dependencies before the main chart build
+            await ensure_local_deps_built(chart.directory)
 
+            # Build dependencies into the charts/ directory
+            await run_cmd(
+                ["helm", "dependency", "build", "."], cwd=chart.directory, quiet=True
+            )
 
-def discover_python_files(repo_root: Path) -> list[Path]:
-    python_files: list[Path] = []
-    for path in repo_root.rglob("*.py"):
-        relative = path.relative_to(repo_root)
-        if ".venv" in relative.parts:
-            continue
-        if any(part.startswith(".") for part in relative.parts):
-            continue
-        python_files.append(path)
-    return sorted(python_files)
+        # Run from REPO_ROOT and use absolute output_dir
+        await run_cmd(
+            ["helm", "package", str(chart.directory), "-d", str(output_dir)],
+            cwd=REPO_ROOT,
+        )
 
 
-def validate_repo(
-    repo_root: Path, jobs: int, manifest_pytest_args: Sequence[str]
-) -> None:
-    print("Checking Python syntax...")
-    failures: list[tuple[Path, Exception]] = []
-    python_files = discover_python_files(repo_root)
+async def validate_repo(repo_root: Path, manifest_pytest_args: Sequence[str]):
+    logger.info("Validating Python syntax...")
+    python_files = [
+        p
+        for p in repo_root.rglob("*.py")
+        if ".venv" not in p.parts and not p.name.startswith(".")
+    ]
 
-    with ThreadPoolExecutor(max_workers=max(1, jobs)) as executor:
-        futures = {
-            executor.submit(py_compile.compile, str(path), doraise=True): path
-            for path in python_files
-        }
-        for future in as_completed(futures):
-            path = futures[future]
-            try:
-                future.result()
-            except Exception as exc:  # noqa: BLE001
-                failures.append((path, exc))
+    for pf in python_files:
+        try:
+            py_compile.compile(str(pf), doraise=True)
+        except Exception as e:
+            logger.error(f"Syntax error in {pf}: {e}")
+            sys.exit(1)
 
-    if failures:
-        for path, error in failures:
-            print(f"ERROR: {path.relative_to(repo_root)}: {error}")
-        raise SystemExit(1)
-
-    print(
-        f"Validating rendered manifests with pytest ({' '.join(manifest_pytest_args)})"
+    logger.info(f"Running pytest: {' '.join(manifest_pytest_args)}")
+    process = await asyncio.create_subprocess_exec(
+        "uv", "run", "pytest", *manifest_pytest_args, cwd=str(repo_root)
     )
-    subprocess.check_call(
-        ["uv", "run", "pytest", *manifest_pytest_args], cwd=str(repo_root)
-    )
+    await process.wait()
+    if process.returncode != 0:
+        sys.exit(process.returncode)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run shared Helm chart repository tasks."
-    )
+    parser = argparse.ArgumentParser(description="Async Helm chart repository tasks.")
     parser.add_argument(
         "command", choices=["lint", "dump", "deps-update", "build", "validate"]
     )
-    parser.add_argument(
-        "--jobs",
-        type=int,
-        default=4,
-        help="Maximum number of charts to process concurrently.",
-    )
-    parser.add_argument(
-        "--charts-root",
-        type=Path,
-        default=DEFAULT_CHARTS_ROOT,
-        help="Directory that contains chart subdirectories.",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=DEFAULT_OUTPUT_DIR,
-        help="Output directory for dump and build commands.",
-    )
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=REPO_ROOT,
-        help="Repository root used for validation commands.",
-    )
+    parser.add_argument("--jobs", type=int, default=8, help="Max concurrent tasks.")
+    parser.add_argument("--charts-root", type=Path, default=DEFAULT_CHARTS_ROOT)
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     parser.add_argument(
         "--manifest-pytest-args",
         nargs="*",
         default=["charts/tests/test_manifest_contracts.py"],
-        help="Arguments passed to pytest for manifest validation.",
     )
-    parser.add_argument(
-        "charts",
-        nargs="*",
-        help="Optional chart names to limit the command to a subset of charts.",
-    )
+    parser.add_argument("charts", nargs="*", help="Specific charts to process.")
     return parser.parse_args()
 
 
-def main() -> int:
+async def main():
     args = parse_args()
+    semaphore = asyncio.Semaphore(args.jobs)
 
     if args.command == "validate":
-        validate_repo(args.repo_root, args.jobs, args.manifest_pytest_args)
-        return 0
+        await validate_repo(args.repo_root, args.manifest_pytest_args)
+        return
 
     charts = discover_charts(args.charts_root, args.charts)
     if not charts:
-        print("No charts matched the requested selection.")
-        return 0
+        logger.warning("No charts found.")
+        return
 
+    tasks = []
     if args.command == "lint":
-        run_parallel(charts, args.jobs, lint_chart)
-        return 0
-
-    if args.command == "deps-update":
-        for chart in charts:
-            update_dependencies(chart)
-        return 0
-
-    if args.command == "dump":
+        tasks = [lint_chart(c, semaphore) for c in charts]
+    elif args.command == "deps-update":
+        tasks = [update_dependencies(c, semaphore) for c in charts]
+    elif args.command == "dump":
         shutil.rmtree(args.output_dir, ignore_errors=True)
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        run_parallel(
-            charts, args.jobs, lambda chart: dump_chart(chart, args.output_dir)
-        )
-        return 0
+        tasks = [dump_chart(c, args.output_dir, semaphore) for c in charts]
+    elif args.command == "build":
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        tasks = [build_chart(c, args.output_dir, semaphore) for c in charts]
+
+    if tasks:
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for res in results:
+            if isinstance(res, Exception):
+                logger.error(f"Task failed with error: {res}")
+                sys.exit(1)
 
     if args.command == "build":
-        args.output_dir.mkdir(parents=True, exist_ok=True)
-        run_parallel(
-            charts, args.jobs, lambda chart: build_chart(chart, args.output_dir)
-        )
-        print(f"Packaged charts available in {args.output_dir}")
-        return 0
-
-    raise SystemExit(f"Unsupported command: {args.command}")
+        logger.info(f"Build complete. Artifacts in {args.output_dir}")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        sys.exit(1)

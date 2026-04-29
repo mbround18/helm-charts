@@ -8,6 +8,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "ruff>=0.15.12",
     "pytest",
+    "pluggy",
     "meilisearch",
     "rich",
     "kubernetes",
@@ -16,6 +17,8 @@ dependencies = [
     "pytest-sugar",
     "pytest-xdist",
     "packaging",
+    "pygments",
+    "iniconfig",
 ]
 
 [tool.uv.workspace]
