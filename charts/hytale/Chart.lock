@@ -1,0 +1,6 @@
+dependencies:
+- name: gitops-tools
+  repository: file://../gitops-tools
+  version: 0.1.0
+digest: sha256:f45604b11ae360272b38d99ae382482cacab5ce48d9eaa22c8c210a8692b8f53
+generated: "2026-04-29T16:47:46.035724905-07:00"

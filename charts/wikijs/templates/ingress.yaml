@@ -5,6 +5,7 @@ metadata:
   name: wikijs
   namespace: {{ .Release.Namespace }}
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
     kubernetes.io/ingress.class: "nginx"
 spec:
   rules:

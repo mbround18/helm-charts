@@ -10,10 +10,11 @@ metadata:
   namespace: {{ include "istio-ingress.namespace" . }}
   labels:
     {{- include "istio-ingress.labels" . | nindent 4 }}
-  {{- if .Values.externalDns.enabled }}
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
+    {{- if .Values.externalDns.enabled }}
     {{- toYaml .Values.externalDns.annotations | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   selector:
     {{- toYaml .Values.gateway.selector | nindent 4 }}

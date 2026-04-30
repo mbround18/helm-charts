@@ -3,6 +3,12 @@ replicaCount: 1
 nameOverride: ""
 fullnameOverride: ""
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 image:
   repository: codeberg.org/forgejo/forgejo
   tag: "15"

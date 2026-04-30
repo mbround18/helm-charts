@@ -5,9 +5,10 @@ metadata:
   name: {{ include "forgejo.fullname" . }}
   labels:
     {{- include "forgejo.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" .Values.ingress.annotations) }}
+  {{- if $annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
+    {{- $annotations | nindent 4 }}
   {{- end }}
 spec:
   {{- if .Values.ingress.className }}

@@ -3,6 +3,11 @@ kind: Deployment
 metadata:
   name: {{ .Values.deployment.name | default "pvc-scaler" }}
   namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
 spec:
   strategy:
     type: {{ .Values.deployment.strategy | default "Recreate" }}

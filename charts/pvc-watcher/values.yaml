@@ -4,6 +4,12 @@ namespace:
   # Set to true to create the namespace if it doesn't already exist
   create: true
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 serviceAccount:
   # The name of the ServiceAccount to be used by the Deployment
   name: pvc-scaler

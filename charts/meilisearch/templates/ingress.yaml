@@ -5,10 +5,11 @@ metadata:
   name: {{ include "meilisearch.fullname" . }}
   labels:
     {{- include "meilisearch.labels" . | nindent 4 }}
-  {{- if .Values.ingress.annotations }}
   annotations:
+    argocd.argoproj.io/sync-wave: "40"
+    {{- if .Values.ingress.annotations }}
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}

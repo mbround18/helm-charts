@@ -42,6 +42,12 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 # Configuration for the service account
 serviceAccount:
   # Specifies whether a service account should be created

@@ -4,6 +4,8 @@ metadata:
   name: {{ include "meilisearch.fullname" . }}
   labels:
     {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
 spec:
   type: {{ .Values.service.type }}
   ports:

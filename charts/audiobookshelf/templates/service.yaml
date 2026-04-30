@@ -4,7 +4,7 @@ metadata:
   name: {{ include "audiobookshelf.fullname" . }}
   labels:
     {{- include "audiobookshelf.labels" . | nindent 4 }}
-  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress") }}
   {{- if $annotations }}
   annotations:
     {{- $annotations | nindent 4 }}

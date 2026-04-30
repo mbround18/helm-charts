@@ -7,6 +7,11 @@ metadata:
   name: {{ $.Release.Name }}-{{ $pvc.name }}
   labels:
     {{- include "valheim.labels" $ | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" $ "phase" "foundation") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
   namespace: {{ $.Release.Namespace }}
 spec:
   accessModes:
