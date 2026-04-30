@@ -14,7 +14,7 @@ maintainers:
 - name: mbround18
 dependencies:
 - name: istio-ingress
-  version: 0.1.4
+  version: 0.1.5
   repository: https://mbround18.github.io/helm-charts
   condition: istio-ingress.enabled
 - name: gitops-tools
