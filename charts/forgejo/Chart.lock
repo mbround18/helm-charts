@@ -1,6 +1,9 @@
 dependencies:
 - name: postgres
   repository: file://../postgres
-  version: 0.1.18
-digest: sha256:1a1eff693a11ca44ed9e331e42a7b7fea353ab7be33bb2905e4730e51ea2618c
-generated: "2026-04-29T21:48:36.364328868Z"
+  version: 0.1.19
+- name: gitops-tools
+  repository: file://../gitops-tools
+  version: 0.1.0
+digest: sha256:347fb55e48554c64a9ce6ee70aabfbc6716315c603d642d60a1a85a93912ec25
+generated: "2026-04-29T18:06:58.719207354-07:00"

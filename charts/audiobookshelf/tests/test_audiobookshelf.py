@@ -40,7 +40,7 @@ def test_argocd_metadata_renders_when_application_api_is_available():
     assert (
         statefulset["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "30"
     )
-    assert service["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "0"
+    assert service["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "40"
     assert (
         service_account["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"]
         == "0"

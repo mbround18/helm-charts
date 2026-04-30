@@ -4,6 +4,11 @@ metadata:
   name: {{ include "fvtt-dndbeyond-companion.fullname" . }}
   labels:
     {{- include "fvtt-dndbeyond-companion.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:

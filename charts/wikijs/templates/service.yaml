@@ -5,6 +5,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app: wikijs
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
 spec:
   type: {{ .Values.service.type }}
   ports:

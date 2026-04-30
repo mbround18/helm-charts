@@ -5,4 +5,6 @@ metadata:
   name: {{ include "meilisearch.fullname" . }}-provisioner
   labels:
     {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 {{- end }}

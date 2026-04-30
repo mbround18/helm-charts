@@ -5,18 +5,21 @@ type: application
 version: 0.1.1
 appVersion: '9'
 keywords:
-- forgejo
-- git
-- devops
+  - forgejo
+  - git
+  - devops
 home: https://forgejo.org/
 sources:
-- https://codeberg.org/forgejo/forgejo
-- https://github.com/PatNei/GITHUB2FORGEJO
+  - https://codeberg.org/forgejo/forgejo
+  - https://github.com/PatNei/GITHUB2FORGEJO
 dependencies:
-- name: postgres
-  alias: postgresql
-  version: 0.1.18
-  repository: file://../postgres
-  condition: postgresql.enabled
+  - name: postgres
+    alias: postgresql
+    version: 0.1.19
+    repository: file://../postgres
+    condition: postgresql.enabled
+  - name: gitops-tools
+    version: 0.1.0
+    repository: file://../gitops-tools
 maintainers:
-- name: mbround18
+  - name: mbround18

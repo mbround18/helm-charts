@@ -46,6 +46,12 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

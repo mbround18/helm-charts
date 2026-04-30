@@ -5,10 +5,10 @@ type: application
 version: 0.1.7
 appVersion: 2.0.16
 dependencies:
-- name: istio-ingress
-  version: 0.1.4
-  repository: https://mbround18.github.io/helm-charts
-  condition: istio-ingress.enabled
-- name: gitops-tools
-  version: 0.1.0
-  repository: file://../gitops-tools
+  - name: istio-ingress
+    version: 0.1.4
+    repository: https://mbround18.github.io/helm-charts
+    condition: istio-ingress.enabled
+  - name: gitops-tools
+    version: 0.1.0
+    repository: file://../gitops-tools

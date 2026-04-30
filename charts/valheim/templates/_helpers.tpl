@@ -40,6 +40,7 @@ helm.sh/chart: {{ include "valheim.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- include "gitops-tools.argocd.labels" (dict "context" .) }}
 {{- end }}
 
 {{/*

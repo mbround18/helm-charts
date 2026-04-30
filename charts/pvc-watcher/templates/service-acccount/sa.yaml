@@ -3,3 +3,8 @@ kind: ServiceAccount
 metadata:
   name: {{ .Values.serviceAccount.name | default "pvc-scaler" }}
   namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}

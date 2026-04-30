@@ -5,6 +5,8 @@ metadata:
   name: {{ include "meilisearch.fullname" . }}-provisioner
   labels:
     {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
@@ -16,6 +18,8 @@ metadata:
   name: {{ include "meilisearch.fullname" . }}-provisioner
   labels:
     {{- include "meilisearch.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
