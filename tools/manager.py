@@ -96,12 +96,6 @@ class VersionBumpManager:
             log("WARNING", f"Chart.yaml not found for {chart_name}, skipping.")
             return None
 
-        if load_chart_type(chart_yaml) == "library":
-            message = f"Chart: {chart_name} - Library chart, skipping version bump."
-            log("INFO", message)
-            append_summary(self.config.summary_file, f"- {message}")
-            return None
-
         latest = latest_tags.get(chart_name)
         if latest is None:
             message = (

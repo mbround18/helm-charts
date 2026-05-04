@@ -2,7 +2,7 @@ apiVersion: v2
 name: vaultwarden
 description: Helm chart for Vaultwarden with safety-first persistent storage defaults
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: 1.35.4
 dependencies:
 - name: gitops-tools

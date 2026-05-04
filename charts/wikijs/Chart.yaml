@@ -1,7 +1,7 @@
 apiVersion: v2
 name: wikijs
 description: Wiki.js Helm chart with Meilisearch and Postgres integration
-version: 0.2.34
+version: 0.2.35
 appVersion: '2.5'
 dependencies:
 - name: postgres
