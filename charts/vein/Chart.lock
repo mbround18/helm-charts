@@ -1,9 +1,9 @@
 dependencies:
 - name: game-tools
-  repository: file://../game-tools
+  repository: https://mbround18.github.io/helm-charts
   version: 0.1.6
 - name: gitops-tools
-  repository: file://../gitops-tools
+  repository: https://mbround18.github.io/helm-charts
   version: 0.1.0
 digest: sha256:1b565d6bf3fb710b19ec6da3e85099258a875d04ac078328fe17df2cf37c012d
 generated: "2026-04-26T07:04:43.483738626Z"

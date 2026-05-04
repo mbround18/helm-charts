@@ -16,10 +16,10 @@ dependencies:
 - name: postgres
   alias: postgresql
   version: 0.1.20
-  repository: file://../postgres
+  repository: https://mbround18.github.io/helm-charts
   condition: postgresql.enabled
 - name: gitops-tools
   version: 0.1.0
-  repository: file://../gitops-tools
+  repository: https://mbround18.github.io/helm-charts
 maintainers:
 - name: mbround18
