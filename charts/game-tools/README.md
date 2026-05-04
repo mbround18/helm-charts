@@ -39,7 +39,7 @@ version: 1.0.0
 dependencies:
   - name: game-tools
     version: 0.1.0
-    repository: file://../game-tools
+    repository: https://mbround18.github.io/helm-charts
 ```
 
 ### 2. Update Dependencies

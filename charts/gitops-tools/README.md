@@ -29,7 +29,7 @@ Add it as a file dependency:
 dependencies:
   - name: gitops-tools
     version: 0.1.0
-    repository: file://../gitops-tools
+    repository: https://mbround18.github.io/helm-charts
 ```
 
 Then call helpers from a chart template or helper file:

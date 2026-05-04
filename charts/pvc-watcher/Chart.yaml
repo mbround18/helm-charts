@@ -25,4 +25,4 @@ appVersion: "latest"
 dependencies:
   - name: gitops-tools
     version: 0.1.0
-    repository: file://../gitops-tools
+    repository: https://mbround18.github.io/helm-charts
