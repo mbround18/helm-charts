@@ -5,7 +5,7 @@ fullnameOverride: ""
 
 image:
   repository: vaultwarden/server
-  tag: 1.35.4
+  tag: 1.36.0
   pullPolicy: IfNotPresent
 
 revisionHistoryLimit: 10
