@@ -1,9 +1,9 @@
 dependencies:
 - name: postgres
-  repository: file://../postgres
+  repository: https://mbround18.github.io/helm-charts
   version: 0.1.21
 - name: gitops-tools
   repository: https://mbround18.github.io/helm-charts
   version: 0.1.0
-digest: sha256:57ba58adc72387579fe42d35a7cbe9560018a90768faa40013a5b76608d455f8
-generated: "2026-05-04T22:29:11.971019602Z"
+digest: sha256:d1c771d5e9c09ec12313efafee2c56d74564da9c8ab4d656c3b1763d9314f941
+generated: "2026-05-04T15:48:05.053195462-07:00"

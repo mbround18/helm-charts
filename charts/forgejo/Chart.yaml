@@ -15,8 +15,8 @@ sources:
 dependencies:
 - name: postgres
   alias: postgresql
-  version: 0.1.21
-  repository: file://../postgres
+  version: 0.1.*
+  repository: https://mbround18.github.io/helm-charts
   condition: postgresql.enabled
 - name: gitops-tools
   version: 0.1.0

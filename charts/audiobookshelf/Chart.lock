@@ -5,5 +5,5 @@ dependencies:
 - name: gitops-tools
   repository: https://mbround18.github.io/helm-charts
   version: 0.1.0
-digest: sha256:0503e3ab1edc970c8efb06371bafb36fe9799fb1b232f65fa565c3a63a5b6bbe
-generated: "2026-04-29T21:49:45.594996599Z"
+digest: sha256:5cd761d7d10824f948cceff82e9f3167bf3e018e2a62ea698ee48b5848c3f539
+generated: "2026-05-04T15:48:05.050795482-07:00"
