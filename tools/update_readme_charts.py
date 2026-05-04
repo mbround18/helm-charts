@@ -4,11 +4,11 @@ Generate a charts table and inject into docs/README.md between markers.
 
 Usage: python3 tools/update_readme_charts.py docs/README.md
 
-This scans the `charts/` directory, skips charts whose Chart.yaml has
-`type: library`, and produces a markdown table with columns:
+This scans the `charts/` directory and produces a markdown table with columns:
 - Chart (name/link)
+- Type
 - Version
-- Setup (HTML `<details>` with first paragraph of chart README if present)
+- Setup
 - Values (helm show values command)
 
 It replaces the region between `## CHARTS:START` and `## CHARTS:END`.
@@ -58,31 +58,35 @@ def build_table(charts_root="charts"):
         meta = read_chart_yaml(chart_dir)
         if not meta:
             continue
-        if meta.get("type") == "library":
-            continue
         chart_name = meta.get("name") or name
+        chart_type = meta.get("type", "application")
         version = meta.get("version", "-")
         # chart link: link to the chart's README.md (relative to docs/ directory)
         readme_path = f"../charts/{name}/README.md"
         chart_link = f'<a href="{readme_path}">' + escape_html(chart_name) + "</a>"
-        # produce install and values shell commands (inline code)
-        install_cmd = f"helm install {name} mbround18/{name} --namespace {name} --create-namespace"
+        if chart_type == "library":
+            setup_cmd = (
+                "dependencies:\n"
+                f"  - name: {chart_name}\n"
+                f"    version: {version}\n"
+                "    repository: https://mbround18.github.io/helm-charts/"
+            )
+        else:
+            setup_cmd = f"helm install {name} mbround18/{name} --namespace {name} --create-namespace"
         values_cmd = f"helm show values mbround18/{name}"
-        rows.append((chart_link, version, install_cmd, values_cmd))
+        rows.append((chart_link, chart_type, version, setup_cmd, values_cmd))
     # build HTML table
     lines = []
     lines.append("<table>")
     lines.append("  <thead>")
     lines.append(
-        "    <tr><th>name</th><th>version</th><th>setup</th><th>values</th></tr>"
+        "    <tr><th>name</th><th>type</th><th>version</th><th>setup</th><th>values</th></tr>"
     )
     lines.append("  </thead>")
     lines.append("  <tbody>")
-    for c, v, install_cmd, values_cmd in rows:
-        install_html = (
-            '<pre><code class="language-sh">'
-            + escape_html(install_cmd)
-            + "</code></pre>"
+    for c, t, v, setup_cmd, values_cmd in rows:
+        setup_html = (
+            '<pre><code class="language-sh">' + escape_html(setup_cmd) + "</code></pre>"
         )
         values_html = (
             '<pre><code class="language-sh">'
@@ -90,7 +94,7 @@ def build_table(charts_root="charts"):
             + "</code></pre>"
         )
         lines.append(
-            f"    <tr><td>{c}</td><td>{v}</td><td>{install_html}</td><td>{values_html}</td></tr>"
+            f"    <tr><td>{c}</td><td>{escape_html(str(t))}</td><td>{v}</td><td>{setup_html}</td><td>{values_html}</td></tr>"
         )
     lines.append("  </tbody>")
     lines.append("</table>")

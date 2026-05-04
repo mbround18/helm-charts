@@ -5,6 +5,6 @@ type: application
 version: 0.3.10
 appVersion: latest
 dependencies:
-- name: gitops-tools
-  version: 0.1.0
-  repository: file://../gitops-tools
+  - name: gitops-tools
+    version: 0.1.0
+    repository: file://../gitops-tools

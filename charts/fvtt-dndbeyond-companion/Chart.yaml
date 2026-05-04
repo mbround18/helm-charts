@@ -6,6 +6,6 @@ type: application
 version: 0.0.10
 appVersion: v1.1.0
 dependencies:
-- name: gitops-tools
-  version: 0.1.0
-  repository: file://../gitops-tools
+  - name: gitops-tools
+    version: 0.1.0
+    repository: file://../gitops-tools

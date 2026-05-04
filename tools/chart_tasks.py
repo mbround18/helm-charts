@@ -161,7 +161,9 @@ async def ensure_local_deps_built(chart_path: Path, visited: set[Path] | None = 
         logger.info(f"Building local dependency: {dep_path.name}")
         try:
             await run_cmd(
-                ["helm", "dependency", "build", "."], cwd=dep_path, quiet=True
+                ["helm", "dependency", "build", "--skip-refresh", "."],
+                cwd=dep_path,
+                quiet=True,
             )
         except subprocess.CalledProcessError:
             logger.error(f"Failed to build local dependency: {dep_path.name}")
@@ -199,13 +201,9 @@ async def update_dependencies(chart: Chart, semaphore: asyncio.Semaphore):
         await ensure_local_deps_built(chart.directory)
 
         logger.info(f"Updating dependencies: {chart.name}")
-        # Try to update repositories first to avoid local cache corruption errors
-        try:
-            await run_cmd(["helm", "repo", "update"], quiet=True)
-        except subprocess.CalledProcessError:
-            logger.warning("Failed to update helm repos, proceeding anyway...")
-
-        await run_cmd(["helm", "dependency", "update", "."], cwd=chart.directory)
+        await run_cmd(
+            ["helm", "dependency", "update", "--skip-refresh", "."], cwd=chart.directory
+        )
 
 
 async def lint_chart(chart: Chart, semaphore: asyncio.Semaphore):
@@ -262,23 +260,16 @@ async def dump_chart(chart: Chart, output_dir: Path, semaphore: asyncio.Semaphor
 
 async def build_chart(chart: Chart, output_dir: Path, semaphore: asyncio.Semaphore):
     async with semaphore:
-        if chart.is_library:
-            return
-
         logger.info(f"Packaging: {chart.name}")
         if chart.has_dependencies:
-            # Refresh repos to avoid empty index issues
-            try:
-                await run_cmd(["helm", "repo", "update"], quiet=True)
-            except subprocess.CalledProcessError:
-                pass
-
             # Pre-build local dependencies before the main chart build
             await ensure_local_deps_built(chart.directory)
 
             # Build dependencies into the charts/ directory
             await run_cmd(
-                ["helm", "dependency", "build", "."], cwd=chart.directory, quiet=True
+                ["helm", "dependency", "build", "--skip-refresh", "."],
+                cwd=chart.directory,
+                quiet=True,
             )
 
         # Run from REPO_ROOT and use absolute output_dir
@@ -337,6 +328,14 @@ async def main():
     if args.command == "validate":
         await validate_repo(args.repo_root, args.manifest_pytest_args)
         return
+
+    if args.command in ["deps-update", "build"]:
+        logger.info("Updating helm repositories...")
+        try:
+            await run_cmd(["helm", "repo", "update"])
+        except subprocess.CalledProcessError:
+            logger.error("Failed to update helm repositories. Aborting.")
+            sys.exit(1)
 
     charts = discover_charts(args.charts_root, args.charts)
     if not charts:
