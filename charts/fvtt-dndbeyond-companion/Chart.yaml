@@ -3,9 +3,9 @@ name: fvtt-dndbeyond-companion
 description: A Helm chart for Kubernetes
 icon: https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png
 type: application
-version: 0.0.10
+version: 0.0.11
 appVersion: v1.1.0
 dependencies:
-  - name: gitops-tools
-    version: 0.1.0
-    repository: file://../gitops-tools
+- name: gitops-tools
+  version: 0.1.0
+  repository: file://../gitops-tools

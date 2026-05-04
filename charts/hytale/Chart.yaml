@@ -2,9 +2,9 @@ apiVersion: v2
 name: hytale
 description: A Helm chart for the Hytale dedicated server
 type: application
-version: 0.1.18
+version: 0.1.19
 appVersion: v0.0.1
 dependencies:
-  - name: gitops-tools
-    version: 0.1.0
-    repository: file://../gitops-tools
+- name: gitops-tools
+  version: 0.1.0
+  repository: file://../gitops-tools

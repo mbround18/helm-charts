@@ -2,9 +2,9 @@ apiVersion: v2
 name: palworld
 description: A Helm chart for Kubernetes
 type: application
-version: 0.3.10
+version: 0.3.11
 appVersion: latest
 dependencies:
-  - name: gitops-tools
-    version: 0.1.0
-    repository: file://../gitops-tools
+- name: gitops-tools
+  version: 0.1.0
+  repository: file://../gitops-tools
