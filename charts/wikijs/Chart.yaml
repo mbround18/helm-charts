@@ -8,7 +8,7 @@ dependencies:
   version: 0.1.17
   repository: https://mbround18.github.io/helm-charts
 - name: istio-ingress
-  version: 0.1.4
+  version: 0.1.8
   repository: https://mbround18.github.io/helm-charts
   condition: istio-ingress.enabled
 - name: meilisearch
