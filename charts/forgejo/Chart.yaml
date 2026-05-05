@@ -19,7 +19,7 @@ dependencies:
   repository: https://mbround18.github.io/helm-charts
   condition: postgresql.enabled
 - name: gitops-tools
-  version: 0.1.0
+  version: 0.1.1
   repository: https://mbround18.github.io/helm-charts
 maintainers:
 - name: mbround18
