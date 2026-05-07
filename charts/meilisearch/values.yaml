@@ -4,7 +4,7 @@ global:
 
 image:
   repository: getmeili/meilisearch
-  tag: v1.41.0
+  tag: v1.42.1
   pullPolicy: IfNotPresent
 
 # Optional Meilisearch UI sidecar
@@ -21,9 +21,19 @@ ui:
   # Enable ingress for UI
   ingress:
     enabled: false
-  resources: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
 
-resources: {}
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    memory: 2Gi
 
 persistence:
   enabled: true

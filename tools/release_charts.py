@@ -320,6 +320,88 @@ def ensure_git_worktree(repo_root: Path, branch: str, worktree_path: Path) -> No
                 path.unlink()
 
 
+def read_values_yaml_from_archive(package_path: Path) -> str:
+    with tarfile.open(package_path, mode="r:gz") as archive:
+        member = next(
+            (
+                m
+                for m in archive.getmembers()
+                if m.name.endswith("/values.yaml") or m.name == "values.yaml"
+            ),
+            None,
+        )
+        if member is None:
+            return ""
+        extracted = archive.extractfile(member)
+        if extracted is None:
+            return ""
+        return extracted.read().decode("utf-8")
+
+
+def load_charts_data(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    return data if isinstance(data, dict) else {}
+
+
+def merge_charts_data(
+    existing: dict[str, Any], packages: list[ChartPackage]
+) -> dict[str, Any]:
+    merged: dict[str, Any] = {
+        k: dict(v) for k, v in existing.items() if isinstance(v, dict)
+    }
+    for package in packages:
+        chart_versions = merged.setdefault(package.name, {})
+        chart_versions[package.version] = read_values_yaml_from_archive(package.path)
+    return merged
+
+
+def generate_index_html(
+    merged_index: dict[str, Any],
+    charts_data: dict[str, Any],
+    owner: str,
+    repo: str,
+) -> str:
+    entries: dict[str, list[dict[str, Any]]] = merged_index.get("entries", {})
+
+    charts_json_list = []
+    for chart_name, versions in sorted(entries.items()):
+        if not versions:
+            continue
+        latest = versions[0]
+        all_versions = [v.get("version", "") for v in versions]
+        values_by_version = charts_data.get(chart_name, {})
+        charts_json_list.append(
+            {
+                "name": chart_name,
+                "description": latest.get("description", ""),
+                "appVersion": latest.get("appVersion", ""),
+                "latestVersion": latest.get("version", ""),
+                "icon": latest.get("icon", ""),
+                "home": latest.get("home", ""),
+                "keywords": latest.get("keywords", []),
+                "versions": all_versions,
+                "valuesByVersion": values_by_version,
+            }
+        )
+
+    charts_json = json.dumps(charts_json_list, indent=None, separators=(",", ":"))
+    repo_url = f"https://github.com/{owner}/{repo}"
+    helm_repo_url = f"https://{owner}.github.io/{repo}"
+
+    template_path = Path(__file__).resolve().parent / "static" / "index.html.template"
+    template = template_path.read_text(encoding="utf-8")
+    return (
+        template.replace("__CHARTS_JSON__", charts_json)
+        .replace("__HELM_REPO_URL__", helm_repo_url)
+        .replace("__REPO_URL__", repo_url)
+        .replace("__OWNER__", owner)
+        .replace("__REPO__", repo)
+    )
+
+
 def update_pages_index(
     repo_root: Path,
     packages: list[ChartPackage],
@@ -332,20 +414,39 @@ def update_pages_index(
     ensure_git_worktree(repo_root, branch, worktree_path)
     try:
         index_path = worktree_path / index_relative_path
+        charts_data_path = worktree_path / "charts-data.json"
+        html_path = worktree_path / "index.html"
+
         existing_index = load_yaml(index_path)
+        existing_charts_data = load_charts_data(charts_data_path)
+
         merged_index = merge_index(existing_index, packages, owner, repo)
+        merged_charts_data = merge_charts_data(existing_charts_data, packages)
+
         index_path.parent.mkdir(parents=True, exist_ok=True)
         dump_yaml(index_path, merged_index)
 
-        status = git(
-            "status", "--porcelain", "--", str(index_relative_path), cwd=worktree_path
+        with charts_data_path.open("w", encoding="utf-8") as handle:
+            json.dump(merged_charts_data, handle, separators=(",", ":"))
+
+        html_content = generate_index_html(
+            merged_index, merged_charts_data, owner, repo
         )
+        with html_path.open("w", encoding="utf-8") as handle:
+            handle.write(html_content)
+
+        changed_files = [
+            str(index_relative_path),
+            "charts-data.json",
+            "index.html",
+        ]
+        status = git("status", "--porcelain", "--", *changed_files, cwd=worktree_path)
         if not status:
-            log("No gh-pages index changes detected")
+            log("No gh-pages changes detected")
             return
 
-        git("add", str(index_relative_path), cwd=worktree_path)
-        git("commit", "-m", "Update index.yaml", cwd=worktree_path)
+        git("add", *changed_files, cwd=worktree_path)
+        git("commit", "-m", "Update index.yaml and index.html", cwd=worktree_path)
         git("push", "origin", f"HEAD:{branch}", cwd=worktree_path)
     finally:
         if worktree_path.exists():

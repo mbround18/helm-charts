@@ -1,0 +1,50 @@
+{{- /*
+Welcome to the production-grade OpenTelemetry Collector Helm chart.
+This chart is designed with security, performance, and operational excellence in mind.
+*/}}
+
+{{- define "opentelemetry-collector.notes" }}
+Your OpenTelemetry Collector deployment '{{ include "opentelemetry-collector.fullname" . }}' is ready.
+
+Key Features Enabled:
+---------------------
+
+1.  **Configuration Engine**:
+    Your `otel-config.yaml` is dynamically generated from your `values.yaml` file.
+    - **Dynamic Env Vars**: You can use syntax like `endpoint: "${MY_ENV_VAR}:4317"` in your values, and the chart will resolve them. Remember to define `MY_ENV_VAR` in the pod's `extraEnv` section.
+    - **Modular Pipelines**: Processors like `memory_limiter` and `batch` are automatically added based on your values.
+
+2.  **Air-Gap & Security**:
+    - **RBAC**: A minimal-privilege ClusterRole and ServiceAccount have been created to allow `resourcedetection` and `k8sattributes` to function securely.
+    - **NetworkPolicy**: Ingress traffic is restricted to OTLP, health-check, and metrics ports, providing a strong security posture.
+
+3.  **Performance & Buffer Management**:
+    - **Dynamic Memory Calculation**: The `memory_limiter` is automatically set to {{ .Values.memory_limiter.percentage_of_limit }}% of the pod's memory limit ({{ .Values.resources.limits.memory }}).
+    - **Batch Processor**: Tuned for high-throughput gRPC traffic to minimize syscalls and improve performance.
+
+4.  **Self-Observability**:
+    - The collector's own metrics are exposed on port 8888.
+    {{- if .Values.observability.serviceMonitor.enabled }}
+    - A **ServiceMonitor** has been created to scrape these metrics into your Prometheus instance.
+    {{- else if .Values.observability.podAnnotations }}
+    - **Prometheus annotations** have been added to the pod for scraping.
+    {{- end }}
+
+5.  **Advanced Deployment Logic**:
+    - **Config Reloads**: The deployment is annotated with a checksum of the ConfigMap. Any change to your `values.yaml` config section will trigger a rolling update of your collectors.
+    {{- if .Values.service.headless.enabled }}
+    - **Headless Service**: A headless service named '{{ include "opentelemetry-collector.fullname" . }}-headless' has been created. This is ideal for client-side load balancing if you are using this collector as a gateway. Your clients can discover all collector pod IPs by doing a DNS lookup on this service name.
+    {{- end }}
+
+Get started by sending OTLP data to the following service:
+{{- if .Values.service.main.enabled }}
+  **ClusterIP Service:** {{ include "opentelemetry-collector.fullname" . }}:{{ .Values.service.main.ports.grpc.port }} (gRPC) / {{ .Values.service.main.ports.http.port }} (HTTP)
+{{- end }}
+{{- if .Values.service.headless.enabled }}
+  **Headless Service:** {{ include "opentelemetry-collector.fullname" . }}-headless:{{ .Values.service.headless.ports.grpc.port }} (gRPC) / {{ .Values.service.headless.ports.http.port }} (HTTP)
+{{- end }}
+
+Thank you for using this chart!
+{{- end }}
+
+{{- include "opentelemetry-collector.notes" . }}

@@ -1,0 +1,143 @@
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: "26.4.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+revisionHistoryLimit: 10
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+resources: {}
+
+bootstrapAdmin:
+  existingSecret: ""
+  create: true
+  annotations: {}
+  labels: {}
+  usernameKey: KC_BOOTSTRAP_ADMIN_USERNAME
+  passwordKey: KC_BOOTSTRAP_ADMIN_PASSWORD
+  username: admin
+  password: change_me
+
+database:
+  vendor: postgres
+  host: postgres
+  port: 5432
+  name: keycloak
+  username: keycloak
+  existingSecret: keycloak-db
+  passwordKey: password
+  createSecret: false
+  password: ""
+
+keycloak:
+  production: true
+  hostname: keycloak.local
+  proxyHeaders: xforwarded
+  cache: ispn
+  http:
+    enabled: true
+    relativePath: /
+  health:
+    enabled: true
+  metrics:
+    enabled: true
+  features: []
+  extraArgs: []
+  extraEnv: []
+  extraSecretEnv: []
+  importRealm:
+    enabled: false
+    existingConfigMap: ""
+    mountPath: /opt/keycloak/data/import
+    startupArg: --import-realm
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: http
+  annotations: {}
+  managementPort:
+    enabled: false
+    port: 9000
+    targetPort: management
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: keycloak.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+persistence:
+  enabled: true
+  mountPath: /opt/keycloak/data
+  subPath: ""
+  existingClaim: ""
+  create: true
+  claimName: ""
+  accessMode: ReadWriteOnce
+  size: 8Gi
+  storageClassName: ""
+  volumeName: ""
+  annotations: {}
+  labels: {}
+  keep: true
+
+probes:
+  liveness:
+    enabled: true
+    path: /health/live
+    initialDelaySeconds: 40
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 6
+  readiness:
+    enabled: true
+    path: /health/ready
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 6
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+nodeSelector: {}
+affinity: {}
+tolerations: []

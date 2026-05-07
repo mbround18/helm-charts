@@ -1,0 +1,23 @@
+{{- $upstream := index .Values "upstream-grafana" }}
+{{- if $upstream.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "grafana.fullname" . }}-wrapper
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+    {{- with $upstream.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "grafana.selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: http-grafana
+      path: /metrics
+      interval: 15s
+{{- end }}

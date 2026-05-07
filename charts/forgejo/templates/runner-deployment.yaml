@@ -33,7 +33,7 @@ spec:
             - name: FORGEJO_RUNNER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "forgejo.fullname" . }}
+                  name: {{ include "forgejo.fullname" . }}-secrets
                   key: runner-token
             - name: FORGEJO_RUNNER_LABELS
               value: {{ .Values.runner.labels | quote }}

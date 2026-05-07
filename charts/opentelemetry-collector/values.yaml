@@ -1,0 +1,222 @@
+#
+# PRODUCTION-GRADE OTEL COLLECTOR VALUES
+#
+
+nameOverride: "otel-collector"
+fullnameOverride: "otel-collector"
+
+# -- Deployment strategy, can be 'deployment' or 'daemonset'
+# For gateway a 'deployment' is preferred
+# For agent-per-node a 'daemonset' is preferred
+kind: "deployment"
+
+replicaCount: 1
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  pullPolicy: IfNotPresent
+  # Default tag is .Chart.AppVersion
+  tag: "0.150.1-386"
+
+imagePullSecrets: []
+
+# -- Annotations for the Collector Pods
+podAnnotations: {}
+
+# -- Security Context for the Pod
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
+# -- Security Context for the Collector container
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# -- Kubernetes resource requests and limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+# -- The core configuration for the OpenTelemetry Collector
+# This section directly translates to the otel-config.yaml
+# See: https://opentelemetry.io/docs/collector/configuration/
+config:
+  #
+  # RECEIVERS
+  #
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+
+  #
+  # PROCESSORS
+  #
+  # NOTE: The 'memory_limiter' and 'batch' processors are automatically added with sane defaults.
+  processors:
+    # Example:
+    # k8sattributes:
+    #   auth_type: "serviceAccount"
+    #   passthrough: false
+    #   filter:
+    #     node_from_env_var: KUBE_NODE_NAME
+    #   extract:
+    #     metadata:
+    #       - "k8s.pod.name"
+    #       - "k8s.pod.uid"
+    #       - "k8s.deployment.name"
+    #       - "k8s.namespace.name"
+    #       - "k8s.node.name"
+    #       - "k8s.pod.start_time"
+    resourcedetection:
+      detectors: ["env", "gcp", "ec2", "ecs", "eks"]
+      timeout: 2s
+      override: false
+
+  #
+  # EXPORTERS
+  #
+  exporters:
+    # Example:
+    # otlp/tempo:
+    #   endpoint: "tempo.mimir.svc.cluster.local:4317"
+    #   tls:
+    #     insecure: true
+    logging:
+      loglevel: debug
+
+  #
+  # EXTENSIONS
+  #
+  extensions:
+    health_check: {}
+    memory_ballast:
+      # In general, this should be set to 1/3 of the memory allocated to the collector.
+      # It is not used by default but can be enabled.
+      size_mib: 0
+
+  #
+  # SERVICE (PIPELINES)
+  #
+  service:
+    extensions: [health_check]
+    pipelines:
+      # -- Traces pipeline
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [logging]
+      # -- Metrics pipeline
+      metrics:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [logging]
+      # -- Logs pipeline
+      logs:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [logging]
+
+# -- Dynamic Memory Limiter
+# Automatically calculates the memory_limiter's `limit_mib` based on a percentage
+# of the Kubernetes memory limit, ensuring they never drift apart.
+memory_limiter:
+  # -- Enable the dynamic memory limiter processor
+  enabled: true
+  # -- The percentage of `resources.limits.memory` to use for the memory limiter
+  percentage_of_limit: 75
+  # -- The spike limit as a percentage of the limit
+  spike_percentage: 25
+
+# -- Batch Processor Tuning
+# Provides sane defaults for high-throughput scenarios to minimize syscalls.
+batch_processor:
+  # -- Enable the batch processor
+  enabled: true
+  # -- Timeout for sending a batch
+  timeout: 1s
+  # -- Number of events to buffer before sending a batch
+  send_batch_size: 8192
+
+# -- Hot-reloading of config via a ConfigMap checksum annotation on the deployment
+config_reload:
+  enabled: true
+
+# -- RBAC settings for processors like `k8sattributes` and `resourcedetection`
+rbac:
+  # -- Specifies whether RBAC resources should be created
+  create: true
+  serviceAccount:
+    # -- Specifies whether a service account should be created
+    create: true
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+    annotations: {}
+
+# -- NetworkPolicy to lock down ingress traffic
+networkPolicy:
+  # -- Keep disabled by default so collector endpoints are open within the cluster.
+  enabled: false
+  # -- Allows traffic from the Prometheus operator namespace for scraping metrics
+  allowPrometheusScraping: false
+  # -- Namespace names allowed to scrape when allowPrometheusScraping=true.
+  prometheusNamespaces:
+    - monitoring
+
+# -- Service definitions
+service:
+  main:
+    enabled: true
+    type: ClusterIP
+    ports:
+      grpc:
+        port: 4317
+        targetPort: 4317
+        protocol: TCP
+      http:
+        port: 4318
+        targetPort: 4318
+        protocol: TCP
+
+  # -- A headless service for client-side load balancing (useful for gateway deployments)
+  headless:
+    enabled: false
+    ports:
+      grpc:
+        port: 4317
+        protocol: TCP
+      http:
+        port: 4318
+        protocol: TCP
+
+# -- Self-Observability Settings
+observability:
+  # -- Enable scraping the collector's own metrics
+  enabled: true
+  # -- Create a ServiceMonitor for the Prometheus Operator
+  serviceMonitor:
+    enabled: true
+    namespace: "" # Defaults to .Release.Namespace
+    interval: 15s
+    scrapeTimeout: 10s
+    labels: {}
+    annotations: {}
+  # -- Alternatively, use pod annotations for scraping
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8888" # Default telemetry port
+    prometheus.io/path: "/metrics"

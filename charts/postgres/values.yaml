@@ -11,7 +11,7 @@ authMethod: scram-sha-256
 
 image:
   repository: postgres
-  tag: "18.2"
+  tag: "18.3"
   pullPolicy: IfNotPresent
 
 ha:
@@ -33,7 +33,12 @@ postgresql:
   # Superuser configuration
   superuser: postgres
 
-resources: {}
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    memory: 1Gi
 
 service:
   type: ClusterIP

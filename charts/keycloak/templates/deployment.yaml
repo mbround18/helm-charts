@@ -1,0 +1,176 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "keycloak.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "keycloak.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "keycloak.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: keycloak
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        command:
+        - /opt/keycloak/bin/kc.sh
+        args:
+        {{- if .Values.keycloak.production }}
+        - start
+        - --optimized
+        {{- else }}
+        - start-dev
+        {{- end }}
+        {{- if .Values.keycloak.importRealm.enabled }}
+        - {{ .Values.keycloak.importRealm.startupArg }}
+        {{- end }}
+        {{- range .Values.keycloak.extraArgs }}
+        - {{ . | quote }}
+        {{- end }}
+        env:
+        - name: KC_BOOTSTRAP_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "keycloak.bootstrapAdminSecretName" . }}
+              key: {{ .Values.bootstrapAdmin.usernameKey }}
+        - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "keycloak.bootstrapAdminSecretName" . }}
+              key: {{ .Values.bootstrapAdmin.passwordKey }}
+        - name: KC_DB
+          value: {{ .Values.database.vendor | quote }}
+        - name: KC_DB_URL_HOST
+          value: {{ .Values.database.host | quote }}
+        - name: KC_DB_URL_PORT
+          value: {{ .Values.database.port | quote }}
+        - name: KC_DB_URL_DATABASE
+          value: {{ .Values.database.name | quote }}
+        - name: KC_DB_USERNAME
+          value: {{ .Values.database.username | quote }}
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "keycloak.dbSecretName" . }}
+              key: {{ .Values.database.passwordKey }}
+        - name: KC_HOSTNAME
+          value: {{ .Values.keycloak.hostname | quote }}
+        - name: KC_PROXY_HEADERS
+          value: {{ .Values.keycloak.proxyHeaders | quote }}
+        - name: KC_HTTP_ENABLED
+          value: {{ .Values.keycloak.http.enabled | quote }}
+        - name: KC_HTTP_RELATIVE_PATH
+          value: {{ .Values.keycloak.http.relativePath | quote }}
+        - name: KC_HEALTH_ENABLED
+          value: {{ .Values.keycloak.health.enabled | quote }}
+        - name: KC_METRICS_ENABLED
+          value: {{ .Values.keycloak.metrics.enabled | quote }}
+        - name: KC_CACHE
+          value: {{ .Values.keycloak.cache | quote }}
+        {{- if .Values.keycloak.features }}
+        - name: KC_FEATURES
+          value: {{ join "," .Values.keycloak.features | quote }}
+        {{- end }}
+        {{- with .Values.keycloak.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- range .Values.keycloak.extraSecretEnv }}
+        - name: {{ .name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .secretName }}
+              key: {{ .key }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: management
+          containerPort: 9000
+          protocol: TCP
+        {{- if .Values.probes.liveness.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probes.liveness.path }}
+            port: management
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+        {{- end }}
+        {{- if .Values.probes.readiness.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probes.readiness.path }}
+            port: management
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        volumeMounts:
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          mountPath: {{ .Values.persistence.mountPath }}
+          {{- with .Values.persistence.subPath }}
+          subPath: {{ . | quote }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.keycloak.importRealm.enabled }}
+        - name: realm-import
+          mountPath: {{ .Values.keycloak.importRealm.mountPath }}
+          readOnly: true
+        {{- end }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "keycloak.persistenceClaimName" . }}
+      {{- end }}
+      {{- if .Values.keycloak.importRealm.enabled }}
+      - name: realm-import
+        configMap:
+          name: {{ required "keycloak.importRealm.existingConfigMap is required when keycloak.importRealm.enabled=true" .Values.keycloak.importRealm.existingConfigMap }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

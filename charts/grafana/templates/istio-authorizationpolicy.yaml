@@ -1,0 +1,17 @@
+{{- if (index .Values "istio-ingress").enabled }}
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ include "grafana.fullname" . }}-telemetry-deny
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "grafana.selectorLabels" . | nindent 6 }}
+  action: DENY
+  rules:
+    - to:
+        - operation:
+            paths: ["/metrics", "/api/live/ws"]
+{{- end }}

@@ -57,7 +57,7 @@ Generate HTTP routes for Istio VirtualService with optional UI route
 - name: "meilisearch-api"
   route:
     - destination:
-        host: meilisearch.default.svc.cluster.local
+        host: {{ printf "%s.%s.svc.cluster.local" (include "meilisearch.fullname" .) .Release.Namespace }}
         port:
           number: 7700
 {{- if .Values.ui.enabled }}
@@ -67,7 +67,7 @@ Generate HTTP routes for Istio VirtualService with optional UI route
         prefix: {{ .Values.ui.basePath }}
   route:
     - destination:
-        host: meilisearch.default.svc.cluster.local
+        host: {{ printf "%s.%s.svc.cluster.local" (include "meilisearch.fullname" .) .Release.Namespace }}
         port:
           number: 24900
 {{- end }}

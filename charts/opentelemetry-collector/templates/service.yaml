@@ -1,0 +1,25 @@
+{{- if .Values.service.main.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.main.type }}
+  ports:
+    - port: {{ .Values.service.main.ports.grpc.port }}
+      targetPort: grpc
+      protocol: {{ .Values.service.main.ports.grpc.protocol }}
+      name: grpc
+    - port: {{ .Values.service.main.ports.http.port }}
+      targetPort: http
+      protocol: {{ .Values.service.main.ports.http.protocol }}
+      name: http
+    - port: 8888
+      targetPort: http-metrics
+      protocol: TCP
+      name: http-metrics
+  selector:
+    {{- include "opentelemetry-collector.selectorLabels" . | nindent 4 }}
+{{- end }}
