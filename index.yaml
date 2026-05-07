@@ -14,6 +14,24 @@ entries:
     description: Helm chart for Audiobookshelf (self-hosted audiobook & podcast server)
     name: audiobookshelf
     type: application
+    version: 0.1.12
+    digest: a9a3ebdb658e3db49464b03fb0dc419633fea39fc2d6b86134cf5c549a17eb24
+    created: '2026-05-07T16:05:41.666299Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/audiobookshelf-0.1.12/audiobookshelf-0.1.12.tgz
+  - apiVersion: v2
+    appVersion: 2.19.0
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.4
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: Helm chart for Audiobookshelf (self-hosted audiobook & podcast server)
+    name: audiobookshelf
+    type: application
     version: 0.1.11
     digest: 0524162b9c1a07bf342c9b740d69fb30a3f97ef4a0471516a2ff26e4b8a38fb1
     created: '2026-05-04T22:52:05.710792Z'
@@ -164,6 +182,20 @@ entries:
     description: A Helm chart for Kubernetes
     name: enshrouded
     type: application
+    version: 0.3.13
+    digest: 8aea9b0854493491ccce45a5cdcd0f4822d4a12c36f59ed8c9df2d5aed4d8a04
+    created: '2026-05-07T16:05:41.667747Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.13/enshrouded-0.3.13.tgz
+  - apiVersion: v2
+    appVersion: latest
+    dependencies:
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    name: enshrouded
+    type: application
     version: 0.3.12
     digest: 12dfcac448dad37d6859256cf5430c968ffe3ed1a1b2163d5bd9a94a12ceee5e
     created: '2026-05-04T22:52:05.712087Z'
@@ -258,6 +290,36 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.0/enshrouded-0.3.0.tgz
     version: 0.3.0
   forgejo:
+  - apiVersion: v2
+    appVersion: '15'
+    dependencies:
+    - alias: postgresql
+      condition: postgresql.enabled
+      name: postgres
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.*
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Forgejo, a self-hosted lightweight software forge.
+    home: https://forgejo.org/
+    icon: https://forgejo.org/images/forgejo-wordmark.svg
+    keywords:
+    - forgejo
+    - git
+    - devops
+    maintainers:
+    - name: mbround18
+    name: forgejo
+    sources:
+    - https://codeberg.org/forgejo/forgejo
+    - https://github.com/PatNei/GITHUB2FORGEJO
+    type: application
+    version: 0.1.5
+    digest: c7c8e7ab1c224c5a7734e9a79da8315a45969f0706303819c5b3b5392bfe3e61
+    created: '2026-05-07T16:05:41.670595Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/forgejo-0.1.5/forgejo-0.1.5.tgz
   - apiVersion: v2
     appVersion: '9'
     dependencies:
@@ -398,6 +460,32 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/forgejo-0.1.0/forgejo-0.1.0.tgz
   foundryvtt:
+  - apiVersion: v2
+    appVersion: '1.0'
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.4
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Foundry Virtual Tabletop
+    home: https://foundryvtt.com/
+    keywords:
+    - foundry
+    - foundryvtt
+    - tabletop
+    - gaming
+    maintainers:
+    - name: mbround18
+    name: foundryvtt
+    type: application
+    version: 0.2.20
+    digest: 610fa036baa9dab4f918442230b58422a346b4dd0e0483f10a2a9e9afc14beb4
+    created: '2026-05-07T16:05:41.672992Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.2.20/foundryvtt-0.2.20.tgz
   - apiVersion: v2
     appVersion: '1.0'
     dependencies:
@@ -773,6 +861,21 @@ entries:
     icon: https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png
     name: fvtt-dndbeyond-companion
     type: application
+    version: 0.0.13
+    digest: 43a90af4b4539e0bdb4f9d9d9e1615d15fadc5ff351526d89b60983f17473797
+    created: '2026-05-07T16:05:41.675990Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/fvtt-dndbeyond-companion-0.0.13/fvtt-dndbeyond-companion-0.0.13.tgz
+  - apiVersion: v2
+    appVersion: v1.1.0
+    dependencies:
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    icon: https://raw.githubusercontent.com/mbround18/helm-charts/main/charts/fvtt-dndbeyond-companion/logo/logo.png
+    name: fvtt-dndbeyond-companion
+    type: application
     version: 0.0.12
     digest: bf3ce1d58dc79e5ad6bc9090bc30a52ba7679d45100d544143299472b037aaf6
     created: '2026-05-04T22:52:05.719577Z'
@@ -869,8 +972,8 @@ entries:
     name: game-tools
     type: library
     version: 0.1.8
-    digest: e0b1e305aaeeb1aee1a34492e74dd6af149780ef2b176df1797c5b6514139b95
-    created: '2026-05-04T22:52:05.720184Z'
+    digest: ea7c4a32a3ef0d753870f7de4ff08dac8b2c004f8d4aea22c683a6e42054a4fe
+    created: '2026-05-07T16:05:41.676683Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/game-tools-0.1.8/game-tools-0.1.8.tgz
   - apiVersion: v2
@@ -897,8 +1000,8 @@ entries:
     name: gitops-tools
     type: library
     version: 0.1.1
-    digest: 455d0f91154d19dc4228928f0242e2184ccd5083562bc6bbcd449f6035ba7f88
-    created: '2026-05-04T22:52:05.720761Z'
+    digest: 8bd8b30d80c3358a3f072322c78df72676fafbf5e4a8d1c5d69ab3ccd0d3d1bf
+    created: '2026-05-07T16:05:41.677316Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/gitops-tools-0.1.1/gitops-tools-0.1.1.tgz
   - apiVersion: v2
@@ -910,7 +1013,43 @@ entries:
     created: '2026-05-04T22:29:57.455992Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/gitops-tools-0.1.0/gitops-tools-0.1.0.tgz
+  grafana:
+  - apiVersion: v2
+    appVersion: 10.4.1
+    dependencies:
+    - alias: upstream-grafana
+      name: grafana
+      repository: https://grafana.github.io/helm-charts
+      version: 7.3.11
+    - name: istio-ingress
+      repository: file://../istio-ingress
+      version: 0.1.9
+    - name: gitops-tools
+      repository: file://../gitops-tools
+      version: 0.1.1
+    description: A wrapper chart for Grafana with opinionated Istio and GitOps integrations.
+    name: grafana
+    type: application
+    version: 0.1.0
+    digest: 6e45dbbb81441e36ade109b2106baecac5bca8207e99b77b925d5612577f3a87
+    created: '2026-05-07T16:05:41.681543Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/grafana-0.1.0/grafana-0.1.0.tgz
   hytale:
+  - apiVersion: v2
+    appVersion: v0.0.1
+    dependencies:
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for the Hytale dedicated server
+    name: hytale
+    type: application
+    version: 0.1.21
+    digest: 8abc8a2ecd982b7370f89296cae941ad4eaf736300c27a74bd3300dc75adcdaf
+    created: '2026-05-07T16:05:41.682865Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/hytale-0.1.21/hytale-0.1.21.tgz
   - apiVersion: v2
     appVersion: v0.0.1
     dependencies:
@@ -1100,6 +1239,17 @@ entries:
       resources
     name: istio-ingress
     type: application
+    version: 0.1.9
+    digest: 61015a2e915d32a6a92435bd880aed8ac44b9f04aa2b2ecf875762f5fe51b58b
+    created: '2026-05-07T16:05:41.683748Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/istio-ingress-0.1.9/istio-ingress-0.1.9.tgz
+  - apiVersion: v2
+    appVersion: 1.0.0
+    description: A flexible Istio ingress subchart for managing Gateway and VirtualService
+      resources
+    name: istio-ingress
+    type: application
     version: 0.1.8
     digest: 489508792f6b4ee21ea4b89a9fbbf004e57e3c5f9458cf566dd184a51b95aade
     created: '2026-05-04T22:52:05.722692Z'
@@ -1149,7 +1299,38 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/istio-ingress-0.1.0/istio-ingress-0.1.0.tgz
     version: 0.1.0
+  keycloak:
+  - apiVersion: v2
+    appVersion: 26.4.0
+    dependencies:
+    - name: gitops-tools
+      repository: file://../gitops-tools
+      version: 0.1.1
+    description: A production-ready Keycloak chart with GitOps-aware ordering and
+      secure defaults
+    name: keycloak
+    type: application
+    version: 0.1.0
+    digest: 2fc488cd9673ae33710f6c4c5b304d19a5c407bb8efda1538b55136c79bc53eb
+    created: '2026-05-07T16:05:41.685123Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/keycloak-0.1.0/keycloak-0.1.0.tgz
   meilisearch:
+  - apiVersion: v2
+    appVersion: v1.30.0
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.4
+    description: A Helm chart for Meilisearch
+    name: meilisearch
+    type: application
+    version: 0.1.21
+    digest: d46d0581336eb3daf8c50909a49fd3dcfac78d2e661e03555bcc7fdfab083092
+    created: '2026-05-07T16:05:41.687085Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/meilisearch-0.1.21/meilisearch-0.1.21.tgz
   - apiVersion: v2
     appVersion: v1.30.0
     dependencies:
@@ -1360,7 +1541,49 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/meilisearch-0.1.0/meilisearch-0.1.0.tgz
     version: 0.1.0
+  openobserve:
+  - apiVersion: v2
+    appVersion: latest
+    dependencies:
+    - name: gitops-tools
+      repository: file://../gitops-tools
+      version: 0.1.1
+    description: A Helm chart for OpenObserve in single-binary mode.
+    icon: https://openobserve.ai/img/logo/logo_horizontal.svg
+    name: openobserve
+    type: application
+    version: 0.1.0
+    digest: c49923458d5a21ecfe82f0adc71f685e4df46f1cefd9b9c67a4419e8755e4e0c
+    created: '2026-05-07T16:05:41.688547Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/openobserve-0.1.0/openobserve-0.1.0.tgz
+  opentelemetry-collector:
+  - apiVersion: v2
+    appVersion: 0.150.1-386
+    description: A Helm chart for Kubernetes
+    icon: https://github.com/cncf/artwork/blob/main/projects/opentelemetry/icon/color/opentelemetry-icon-color.svg
+    name: opentelemetry-collector
+    type: application
+    version: 0.1.0
+    digest: 63253980ce7ab9d0d1c71f2b786f6d818aac0e9b2fa3d582ba4d9773ac13a4a1
+    created: '2026-05-07T16:05:41.689791Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/opentelemetry-collector-0.1.0/opentelemetry-collector-0.1.0.tgz
   palworld:
+  - apiVersion: v2
+    appVersion: latest
+    dependencies:
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    name: palworld
+    type: application
+    version: 0.3.13
+    digest: 26d6d77eef95db0d42078c35faf9ec5b8924bae700562b9fc0d4f7f08b83b4d1
+    created: '2026-05-07T16:05:41.691036Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/palworld-0.3.13/palworld-0.3.13.tgz
   - apiVersion: v2
     appVersion: latest
     dependencies:
@@ -1475,6 +1698,15 @@ entries:
     version: 0.2.0
   postgres:
   - apiVersion: v2
+    appVersion: '18.3'
+    description: PostgreSQL Helm chart with HA and secret management
+    name: postgres
+    version: 0.1.22
+    digest: c6ab706229c82056098de275f63fbb9fff321d3097a5b9d84b177882ccb7c26f
+    created: '2026-05-07T16:05:41.691951Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/postgres-0.1.22/postgres-0.1.22.tgz
+  - apiVersion: v2
     appVersion: '18.2'
     description: PostgreSQL Helm chart with HA and secret management
     name: postgres
@@ -1565,6 +1797,20 @@ entries:
     description: A Helm chart for Kubernetes
     name: pvc-watcher
     type: application
+    version: 0.3.3
+    digest: ebf3dcb60bf05302e92569dea4c00ace9183e505325be5f4beca79b741c605eb
+    created: '2026-05-07T16:05:41.693167Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/pvc-watcher-0.3.3/pvc-watcher-0.3.3.tgz
+  - apiVersion: v2
+    appVersion: latest
+    dependencies:
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    name: pvc-watcher
+    type: application
     version: 0.3.2
     digest: 2187f73d5530aa06262b2ef34189ef4c83954b0a59345bb4b231671b3e4ac839
     created: '2026-05-04T22:52:05.727465Z'
@@ -1585,6 +1831,24 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/pvc-watcher-0.3.1/pvc-watcher-0.3.1.tgz
   syncthing:
+  - apiVersion: v2
+    appVersion: 2.0.16
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.4
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: Helm chart for syncthing
+    name: syncthing
+    type: application
+    version: 0.1.11
+    digest: 1c06037fd1196a63d84b959facc6be9a78c2837c837debc4d96c7f07902ecf11
+    created: '2026-05-07T16:05:41.695020Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/syncthing-0.1.11/syncthing-0.1.11.tgz
   - apiVersion: v2
     appVersion: 2.0.16
     dependencies:
@@ -1733,6 +1997,20 @@ entries:
     description: A Helm chart for Kubernetes
     name: valheim
     type: application
+    version: 0.4.13
+    digest: 3041a899afa327966b877f4df5cb531494e826dae58c3fa8888a2c8c7bbc8799
+    created: '2026-05-07T16:05:41.696358Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.13/valheim-0.4.13.tgz
+  - apiVersion: v2
+    appVersion: '3.6'
+    dependencies:
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    name: valheim
+    type: application
     version: 0.4.12
     digest: 3c68506b3441b5fc995dd098aa9f120024a571f62e91441104f23dbd7b0114e5
     created: '2026-05-04T22:52:05.730365Z'
@@ -1828,6 +2106,20 @@ entries:
     version: 0.4.0
   vaultwarden:
   - apiVersion: v2
+    appVersion: 1.35.7
+    dependencies:
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: Helm chart for Vaultwarden with safety-first persistent storage defaults
+    name: vaultwarden
+    type: application
+    version: 0.1.5
+    digest: ed3843681f1bdb50306eb7991bcbb458c537b7485d7f4d2e0934d61e55df5521
+    created: '2026-05-07T16:05:41.697756Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/vaultwarden-0.1.5/vaultwarden-0.1.5.tgz
+  - apiVersion: v2
     appVersion: 1.35.4
     dependencies:
     - name: gitops-tools
@@ -1898,6 +2190,32 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/vaultwarden-0.1.0/vaultwarden-0.1.0.tgz
   vein:
+  - apiVersion: v2
+    appVersion: v0.0.3
+    dependencies:
+    - name: game-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.*
+    - name: gitops-tools
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.0
+    description: A Helm chart for Vein dedicated game server
+    home: https://github.com/mbround18/vein-docker
+    keywords:
+    - vein
+    - game-server
+    - valheim-inspired
+    maintainers:
+    - name: mbruno
+    name: vein
+    sources:
+    - https://github.com/mbround18/vein-docker
+    type: application
+    version: 0.1.19
+    digest: db97eaba5bc8bb1dd19b73d1a7d4f71e2e039ec4a46d951041bbf4007c795947
+    created: '2026-05-07T16:05:41.699819Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.19/vein-0.1.19.tgz
   - apiVersion: v2
     appVersion: v0.0.3
     dependencies:
@@ -2239,6 +2557,27 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.0/vein-0.1.0.tgz
     version: 0.1.0
   wikijs:
+  - apiVersion: v2
+    appVersion: '2.5'
+    dependencies:
+    - name: postgres
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.17
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.4
+    - condition: meilisearch.enabled
+      name: meilisearch
+      repository: https://mbround18.github.io/helm-charts
+      version: 0.1.16
+    description: Wiki.js Helm chart with Meilisearch and Postgres integration
+    name: wikijs
+    version: 0.2.36
+    digest: be0e928a8c597d96136c99b4cc5bbba3d8a2d02b164e1098f28681e1b4f0a81d
+    created: '2026-05-07T16:05:41.703508Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.36/wikijs-0.2.36.tgz
   - apiVersion: v2
     appVersion: '2.5'
     dependencies:
@@ -2785,4 +3124,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: '2026-05-04T22:52:27.687129Z'
+generated: '2026-05-07T16:06:32.259311Z'
