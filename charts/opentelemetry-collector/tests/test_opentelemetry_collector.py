@@ -50,5 +50,11 @@ def test_network_policy_namespace_allowlist_rendering():
 
     selectors = metrics_rule["from"]
     assert len(selectors) == 2
-    assert selectors[0]["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"] == "monitoring"
-    assert selectors[1]["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"] == "observability"
+    assert (
+        selectors[0]["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"]
+        == "monitoring"
+    )
+    assert (
+        selectors[1]["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"]
+        == "observability"
+    )

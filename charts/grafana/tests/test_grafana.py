@@ -14,7 +14,9 @@ def _render(values=None, api_versions=None):
 
 
 def _documents_by_kind(documents, kind):
-    return [doc for doc in documents if isinstance(doc, dict) and doc.get("kind") == kind]
+    return [
+        doc for doc in documents if isinstance(doc, dict) and doc.get("kind") == kind
+    ]
 
 
 def test_wrapper_servicemonitor_renders_with_unique_name():

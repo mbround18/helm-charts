@@ -32,10 +32,7 @@ def test_defaults_render_production_workload_and_foundation_resources():
         deployment["spec"]["template"]["spec"]["containers"][0]["args"][1]
         == "--optimized"
     )
-    assert (
-        admin_secret["stringData"]["KC_BOOTSTRAP_ADMIN_USERNAME"]
-        == "admin"
-    )
+    assert admin_secret["stringData"]["KC_BOOTSTRAP_ADMIN_USERNAME"] == "admin"
     assert pvc["metadata"]["annotations"]["helm.sh/resource-policy"] == "keep"
 
 

@@ -75,7 +75,9 @@ def test_runner_disabled(chart_path):
 def test_cronjob_enabled(chart_path):
     """Test that CronJob is created and ExternalSecret includes mirror keys."""
     documents = _render(chart_path, values={"mirrorCronJob": {"enabled": True}})
-    external_secret = _document_by_kind(documents, "ExternalSecret", "release-name-forgejo")
+    external_secret = _document_by_kind(
+        documents, "ExternalSecret", "release-name-forgejo"
+    )
 
     assert _document_by_kind(documents, "CronJob", "release-name-forgejo-mirror")
     secret_keys = [entry["secretKey"] for entry in external_secret["spec"]["data"]]
