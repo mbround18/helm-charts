@@ -21,16 +21,19 @@ make refresh       # deps-update + upgrade image tags + update README
 ```
 
 Run a single chart's tests:
+
 ```bash
 uv run pytest charts/forgejo/tests/ -v
 ```
 
 Run a single test file:
+
 ```bash
 uv run pytest charts/tests/test_manifest_contracts.py -v
 ```
 
 Render a chart for debugging without the full pipeline:
+
 ```bash
 helm template release-name charts/forgejo
 ```
@@ -54,31 +57,35 @@ Charts with subcharts commit `Chart.lock`. Normal `make dump/test/build` use loc
 
 ### Python Tooling (`tools/`)
 
-| Script | Purpose |
-|---|---|
-| `chart_tasks.py` | CLI driver for `make` targets (lint, dump, build, validate, deps-update) |
-| `upgrade.py` | Bumps container image tags across all charts |
-| `manager.py` | Version management and release automation |
-| `update_readme_charts.py` | Regenerates docs/README.md chart table |
-| `validate_yaml.py` | YAML syntax validation |
-| `version_checker.py` | Detects upstream version updates |
+| Script                    | Purpose                                                                  |
+| ------------------------- | ------------------------------------------------------------------------ |
+| `chart_tasks.py`          | CLI driver for `make` targets (lint, dump, build, validate, deps-update) |
+| `upgrade.py`              | Bumps container image tags across all charts                             |
+| `manager.py`              | Version management and release automation                                |
+| `update_readme_charts.py` | Regenerates docs/README.md chart table                                   |
+| `validate_yaml.py`        | YAML syntax validation                                                   |
+| `version_checker.py`      | Detects upstream version updates                                         |
 
 ## GitOps Sync-Wave Model
 
 Every resource must be assigned to one of five Argo CD sync-wave phases. Do not invent custom wave numbers.
 
-| Phase | Wave | Resources |
-|---|---|---|
-| `foundation` | `0` | Secrets, PVCs, ServiceAccounts, bootstrap ConfigMaps |
-| `database` | `10` | StatefulSets for databases and data stores |
+| Phase        | Wave | Resources                                                   |
+| ------------ | ---- | ----------------------------------------------------------- |
+| `foundation` | `0`  | Secrets, PVCs, ServiceAccounts, bootstrap ConfigMaps        |
+| `database`   | `10` | StatefulSets for databases and data stores                  |
 | `supporting` | `20` | Jobs that run after a dependency is up (e.g. password sync) |
-| `release` | `30` | Primary application Deployment or StatefulSet |
-| `ingress` | `40` | Services, Ingresses, VirtualServices |
+| `release`    | `30` | Primary application Deployment or StatefulSet               |
+| `ingress`    | `40` | Services, Ingresses, VirtualServices                        |
 
 Charts that depend on `gitops-tools` should use the helper instead of hard-coding numbers:
 
 ```yaml
-{{- include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+{
+  {
+    - include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release"),
+  },
+}
 ```
 
 Charts without `gitops-tools` must still use the same numeric values. See `docs/argocd-gitops.md` for full policy.

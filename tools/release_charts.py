@@ -349,7 +349,9 @@ def load_charts_data(path: Path) -> dict[str, Any]:
 def merge_charts_data(
     existing: dict[str, Any], packages: list[ChartPackage]
 ) -> dict[str, Any]:
-    merged: dict[str, Any] = {k: dict(v) for k, v in existing.items() if isinstance(v, dict)}
+    merged: dict[str, Any] = {
+        k: dict(v) for k, v in existing.items() if isinstance(v, dict)
+    }
     for package in packages:
         chart_versions = merged.setdefault(package.name, {})
         chart_versions[package.version] = read_values_yaml_from_archive(package.path)
@@ -371,17 +373,19 @@ def generate_index_html(
         latest = versions[0]
         all_versions = [v.get("version", "") for v in versions]
         values_by_version = charts_data.get(chart_name, {})
-        charts_json_list.append({
-            "name": chart_name,
-            "description": latest.get("description", ""),
-            "appVersion": latest.get("appVersion", ""),
-            "latestVersion": latest.get("version", ""),
-            "icon": latest.get("icon", ""),
-            "home": latest.get("home", ""),
-            "keywords": latest.get("keywords", []),
-            "versions": all_versions,
-            "valuesByVersion": values_by_version,
-        })
+        charts_json_list.append(
+            {
+                "name": chart_name,
+                "description": latest.get("description", ""),
+                "appVersion": latest.get("appVersion", ""),
+                "latestVersion": latest.get("version", ""),
+                "icon": latest.get("icon", ""),
+                "home": latest.get("home", ""),
+                "keywords": latest.get("keywords", []),
+                "versions": all_versions,
+                "valuesByVersion": values_by_version,
+            }
+        )
 
     charts_json = json.dumps(charts_json_list, indent=None, separators=(",", ":"))
     repo_url = f"https://github.com/{owner}/{repo}"
@@ -390,8 +394,7 @@ def generate_index_html(
     template_path = Path(__file__).resolve().parent / "static" / "index.html.template"
     template = template_path.read_text(encoding="utf-8")
     return (
-        template
-        .replace("__CHARTS_JSON__", charts_json)
+        template.replace("__CHARTS_JSON__", charts_json)
         .replace("__HELM_REPO_URL__", helm_repo_url)
         .replace("__REPO_URL__", repo_url)
         .replace("__OWNER__", owner)
@@ -426,7 +429,9 @@ def update_pages_index(
         with charts_data_path.open("w", encoding="utf-8") as handle:
             json.dump(merged_charts_data, handle, separators=(",", ":"))
 
-        html_content = generate_index_html(merged_index, merged_charts_data, owner, repo)
+        html_content = generate_index_html(
+            merged_index, merged_charts_data, owner, repo
+        )
         with html_path.open("w", encoding="utf-8") as handle:
             handle.write(html_content)
 
@@ -435,9 +440,7 @@ def update_pages_index(
             "charts-data.json",
             "index.html",
         ]
-        status = git(
-            "status", "--porcelain", "--", *changed_files, cwd=worktree_path
-        )
+        status = git("status", "--porcelain", "--", *changed_files, cwd=worktree_path)
         if not status:
             log("No gh-pages changes detected")
             return

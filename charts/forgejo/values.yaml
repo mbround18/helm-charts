@@ -93,11 +93,11 @@ externalSecrets:
     # Key for the database password.
     databasePassword: "forgejo/data/databasePassword" # Example path in Vault
     # Key for the runner registration token.
-    runnerToken: "forgejo/data/runnerToken"           # Example path in Vault
+    runnerToken: "forgejo/data/runnerToken" # Example path in Vault
     # Key for the GitHub token used by the mirror cron job.
-    githubToken: "forgejo/data/githubToken"           # Example path in Vault
+    githubToken: "forgejo/data/githubToken" # Example path in Vault
     # Key for the Forgejo token used by the mirror cron job.
-    forgejoToken: "forgejo/data/forgejoToken"         # Example path in Vault
+    forgejoToken: "forgejo/data/forgejoToken" # Example path in Vault
 
 config:
   database:

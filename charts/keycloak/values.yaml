@@ -33,7 +33,7 @@ securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
-    - ALL
+      - ALL
 
 resources: {}
 
@@ -95,10 +95,10 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-  - host: keycloak.local
-    paths:
-    - path: /
-      pathType: Prefix
+    - host: keycloak.local
+      paths:
+        - path: /
+          pathType: Prefix
   tls: []
 
 persistence:

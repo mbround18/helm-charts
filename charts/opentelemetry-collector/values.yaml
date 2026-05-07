@@ -16,7 +16,7 @@ image:
   repository: otel/opentelemetry-collector-contrib
   pullPolicy: IfNotPresent
   # Default tag is .Chart.AppVersion
-  tag: ""
+  tag: "0.150.1-386"
 
 imagePullSecrets: []
 
