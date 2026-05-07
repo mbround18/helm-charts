@@ -38,7 +38,12 @@ ingress:
       paths:
         - /
 
-resources: {}
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
 
 serviceAccount:
   create: true

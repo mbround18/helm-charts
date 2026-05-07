@@ -1,0 +1,84 @@
+{{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "openobserve.fullname" . }}
+  labels:
+    {{- include "openobserve.labels" . | nindent 4 }}
+  {{- $gatewayAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" .Values.istio.gatewayAnnotations) }}
+  {{- if $gatewayAnnotations }}
+  annotations:
+    {{- $gatewayAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    istio: ingressgateway # use istio default ingress gateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    {{- range .Values.istio.hosts }}
+      - "{{ . }}"
+    {{- end }}
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: {{ (first .Values.istio.tls).secretName | default "openobserve-tls-cert" }}
+    hosts:
+    {{- range .Values.istio.hosts }}
+      - "{{ . }}"
+    {{- end }}
+  - port:
+      number: {{ .Values.service.ports.grpc }}
+      name: grpc
+      protocol: GRPC
+    hosts:
+    {{- range .Values.istio.hosts }}
+      - "{{ . }}"
+    {{- end }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "openobserve.fullname" . }}
+  labels:
+    {{- include "openobserve.labels" . | nindent 4 }}
+  {{- $vsAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" .Values.istio.virtualServiceAnnotations) }}
+  {{- if $vsAnnotations }}
+  annotations:
+    {{- $vsAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  hosts:
+  {{- range .Values.istio.hosts }}
+    - "{{ . }}"
+  {{- end }}
+  gateways:
+  - {{ include "openobserve.fullname" . }}
+  http:
+  - match:
+    {{- range .Values.istio.grpcPaths }}
+    - uri:
+        prefix: "{{ . }}"
+    {{- end }}
+    route:
+    - destination:
+        host: {{ include "openobserve.fullname" . }}
+        port:
+          number: {{ .Values.service.ports.grpc }}
+      weight: 100
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: {{ include "openobserve.fullname" . }}
+        port:
+          number: {{ .Values.service.ports.http }}
+      weight: 100
+{{- end }}

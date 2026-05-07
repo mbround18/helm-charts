@@ -82,9 +82,22 @@ persistence:
 postgresql:
   enabled: true
 
-secrets:
-  databasePassword: ""
-  runnerToken: ""
+externalSecrets:
+  enabled: true
+  # Specifies the name of the ClusterSecretStore or SecretStore to use.
+  secretStore: vault-kv
+  # The name of the Kubernetes Secret resource that will be created by ExternalSecrets.
+  secretName: forgejo-external-secrets
+  # Maps the keys in the generated Kubernetes Secret to the remote secret provider's keys.
+  keys:
+    # Key for the database password.
+    databasePassword: "forgejo/data/databasePassword" # Example path in Vault
+    # Key for the runner registration token.
+    runnerToken: "forgejo/data/runnerToken"           # Example path in Vault
+    # Key for the GitHub token used by the mirror cron job.
+    githubToken: "forgejo/data/githubToken"           # Example path in Vault
+    # Key for the Forgejo token used by the mirror cron job.
+    forgejoToken: "forgejo/data/forgejoToken"         # Example path in Vault
 
 config:
   database:
@@ -118,6 +131,13 @@ runner:
   dockerSocket:
     mount: true
     path: /var/run/docker.sock
+    # WARNING: Mounting the Docker socket (docker.sock) directly into a container
+    # can pose a significant security risk. It effectively gives the container
+    # root access to the host's Docker daemon, allowing it to create, manage,
+    # and even escape containers, potentially compromising the host system.
+    # Consider alternatives like Docker-in-Docker (dind) or other secure build
+    # mechanisms if possible. Only enable this if you understand and accept
+    # the security implications.
 
 mirrorCronJob:
   enabled: false

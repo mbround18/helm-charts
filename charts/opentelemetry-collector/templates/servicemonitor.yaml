@@ -1,0 +1,32 @@
+{{- if and .Values.observability.enabled .Values.observability.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}
+  namespace: {{ .Values.observability.serviceMonitor.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+    {{- with .Values.observability.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.observability.serviceMonitor.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      {{- if .Values.observability.serviceMonitor.interval }}
+      interval: {{ .Values.observability.serviceMonitor.interval }}
+      {{- end }}
+      {{- if .Values.observability.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ .Values.observability.serviceMonitor.scrapeTimeout }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "opentelemetry-collector.selectorLabels" . | nindent 6 }}
+{{- end }}

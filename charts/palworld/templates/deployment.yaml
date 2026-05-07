@@ -42,7 +42,7 @@ spec:
       containers:
         {{- if .Values.backups.enabled }}
         - name: save-backups
-          image: "mbround18/backup-cron:latest"
+          image: {{ .Values.backups.image | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: SCHEDULE
@@ -93,6 +93,18 @@ spec:
               containerPort: {{ $.Values.endpoint.queryPort }}
               protocol: {{ . }}
             {{ end }}
+          livenessProbe:
+            tcpSocket:
+              port: game-tcp
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: game-tcp
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:

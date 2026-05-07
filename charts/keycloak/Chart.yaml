@@ -1,0 +1,10 @@
+apiVersion: v2
+name: keycloak
+description: A production-ready Keycloak chart with GitOps-aware ordering and secure defaults
+type: application
+version: 0.1.0
+appVersion: "26.4.0"
+dependencies:
+- name: gitops-tools
+  version: 0.1.1
+  repository: file://../gitops-tools

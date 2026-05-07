@@ -24,16 +24,11 @@ spec:
     spec:
       initContainers:
         - name: ensure-postgres-password-secret
-          image: alpine:3.22
+          image: bitnami/kubectl:1.32
           command:
-            - sh
+            - /bin/sh
             - -c
             - |
-              set -e
-              apk add --no-cache curl
-              curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.2/bin/linux/amd64/kubectl
-              chmod +x kubectl
-              mv kubectl /usr/local/bin/
               SECRET_NAME="{{ .Values.postgresql.passwordSecret }}"
               NAMESPACE="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)"
               until kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" >/dev/null 2>&1 && \
@@ -42,14 +37,12 @@ spec:
                 sleep 2
               done
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          volumeMounts:
-            - name: data
-              mountPath: /tmp
-    spec:
+            capabilities:
+              drop: [ALL]
       containers:
         - name: postgres
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

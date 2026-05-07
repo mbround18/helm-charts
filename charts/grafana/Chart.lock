@@ -1,0 +1,12 @@
+dependencies:
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 7.3.11
+- name: istio-ingress
+  repository: file://../istio-ingress
+  version: 0.1.8
+- name: gitops-tools
+  repository: file://../gitops-tools
+  version: 0.1.1
+digest: sha256:e402c76329292b537c820255f415de1cd295f5247dc2963d2614b01685a806f1
+generated: "2026-05-06T15:19:33.403609535-07:00"

@@ -1,11 +1,8 @@
 from pathlib import Path
 
 import pytest
-from ruamel.yaml import YAML
 
 from charts.test_helpers import DEFAULT_NAMESPACE, render_chart_documents
-
-yaml = YAML()
 
 
 @pytest.fixture
@@ -41,11 +38,10 @@ def test_default_render(chart_path):
     """Test rendering the chart with default values."""
     documents = _render(chart_path)
 
-    assert _document_by_kind(documents, "Deployment", "release-name-forgejo")
+    assert _document_by_kind(documents, "StatefulSet", "release-name-forgejo")
     assert _document_by_kind(documents, "Service", "release-name-forgejo")
     assert _document_by_kind(documents, "Service", "release-name-forgejo-ssh")
-    assert _document_by_kind(documents, "Secret", "release-name-forgejo")
-    assert _document_by_kind(documents, "PersistentVolumeClaim", "release-name-forgejo")
+    assert _document_by_kind(documents, "ExternalSecret", "release-name-forgejo")
     assert _document_by_kind(documents, "Deployment", "release-name-forgejo-runner")
 
     with pytest.raises(ValueError):
@@ -61,18 +57,12 @@ def test_ingress_enabled(chart_path):
 
 
 def test_persistence_disabled(chart_path):
-    """Test that no PVC is created when persistence is disabled."""
+    """Test that persistence settings are reflected in StatefulSet templates."""
     documents = _render(chart_path, values={"persistence": {"enabled": False}})
 
-    deployment = _document_by_kind(documents, "Deployment")
-    assert (
-        "persistentVolumeClaim"
-        not in deployment["spec"]["template"]["spec"]["volumes"][0]
-    )
-    assert "emptyDir" in deployment["spec"]["template"]["spec"]["volumes"][0]
-
-    with pytest.raises(ValueError):
-        _document_by_kind(documents, "PersistentVolumeClaim", "release-name-forgejo")
+    statefulset = _document_by_kind(documents, "StatefulSet", "release-name-forgejo")
+    assert statefulset["spec"]["volumeClaimTemplates"]
+    assert statefulset["spec"]["volumeClaimTemplates"][0]["metadata"]["name"] == "data"
 
 
 def test_runner_disabled(chart_path):
@@ -83,10 +73,14 @@ def test_runner_disabled(chart_path):
 
 
 def test_cronjob_enabled(chart_path):
-    """Test that CronJob and its secret are created when mirrorCronJob is enabled."""
+    """Test that CronJob is created and ExternalSecret includes mirror keys."""
     documents = _render(chart_path, values={"mirrorCronJob": {"enabled": True}})
+    external_secret = _document_by_kind(documents, "ExternalSecret", "release-name-forgejo")
+
     assert _document_by_kind(documents, "CronJob", "release-name-forgejo-mirror")
-    assert _document_by_kind(documents, "Secret", "release-name-forgejo-mirror")
+    secret_keys = [entry["secretKey"] for entry in external_secret["spec"]["data"]]
+    assert "github-token" in secret_keys
+    assert "forgejo-token" in secret_keys
 
 
 @pytest.mark.parametrize("ssh_type", ["LoadBalancer", "NodePort", "ClusterIP"])
@@ -100,8 +94,8 @@ def test_ssh_service_type(chart_path, ssh_type):
 def test_service_account_disabled(chart_path):
     """Test that no service account is created when serviceAccount.create is false."""
     documents = _render(chart_path, values={"serviceAccount": {"create": False}})
-    deployment = _document_by_kind(documents, "Deployment")
-    assert "serviceAccountName" not in deployment["spec"]["template"]["spec"]
+    statefulset = _document_by_kind(documents, "StatefulSet", "release-name-forgejo")
+    assert "serviceAccountName" not in statefulset["spec"]["template"]["spec"]
     with pytest.raises(ValueError):
         _document_by_kind(documents, "ServiceAccount")
 
@@ -111,10 +105,10 @@ def test_postgresql_disabled(chart_path):
     documents = _render(chart_path, values={"postgresql": {"enabled": False}})
     # We can't easily check that the dependency chart is not rendered,
     # but we can check that our app is configured to use an external DB.
-    deployment = _document_by_kind(documents, "Deployment", "release-name-forgejo")
+    statefulset = _document_by_kind(documents, "StatefulSet", "release-name-forgejo")
     db_host_env = next(
         env
-        for env in deployment["spec"]["template"]["spec"]["containers"][0]["env"]
+        for env in statefulset["spec"]["template"]["spec"]["containers"][0]["env"]
         if env["name"] == "FORGEJO__database__HOST"
     )
     assert db_host_env["value"] != "release-name-forgejo-postgresql:5432"

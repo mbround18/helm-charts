@@ -31,27 +31,12 @@ spec:
                 - name: GITHUB_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: {{ include "forgejo.fullname" . }}-mirror
+                      name: {{ include "forgejo.fullname" . }}-secrets
                       key: github-token
                 - name: FORGEJO_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: {{ include "forgejo.fullname" . }}-mirror
+                      name: {{ include "forgejo.fullname" . }}-secrets
                       key: forgejo-token
 {{- end }}
----
-{{- if .Values.mirrorCronJob.enabled }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ include "forgejo.fullname" . }}-mirror
-  {{- $secretAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
-  {{- if $secretAnnotations }}
-  annotations:
-    {{- $secretAnnotations | nindent 4 }}
-  {{- end }}
-type: Opaque
-stringData:
-  github-token: {{ .Values.mirrorCronJob.github_token | quote }}
-  forgejo-token: {{ .Values.mirrorCronJob.forgejo_token | quote }}
-{{- end }}
+

@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "forgejo.fullname" . }}
   labels:
@@ -11,6 +11,7 @@ metadata:
   {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  serviceName: {{ include "forgejo.fullname" . }}
   selector:
     matchLabels:
       {{- include "forgejo.selectorLabels" . | nindent 6 }}
@@ -54,14 +55,14 @@ spec:
             - name: FORGEJO__database__PASSWD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "forgejo.fullname" . }}
+                  name: {{ include "forgejo.fullname" . }}-secrets
                   key: database-password
             - name: FORGEJO__server__DOMAIN
-              value: {{ .Values.config.server.domain | quote }}
+              value: {{ if .Values.ingress.enabled }}{{ (first .Values.ingress.hosts).host | quote }}{{ else }}{{ .Values.config.server.domain | quote }}{{ end }}
             - name: FORGEJO__server__SSH_DOMAIN
-              value: {{ .Values.config.server.ssh_domain | quote }}
+              value: {{ if .Values.ingress.enabled }}{{ (first .Values.ingress.hosts).host | quote }}{{ else }}{{ .Values.config.server.ssh_domain | quote }}{{ end }}
             - name: FORGEJO__server__ROOT_URL
-              value: {{ .Values.config.server.root_url | quote }}
+              value: {{ if .Values.ingress.enabled }}http://{{ (first .Values.ingress.hosts).host }}/{{ else }}{{ .Values.config.server.root_url | quote }}{{ end }}
             - name: FORGEJO__server__HTTP_PORT
               value: {{ .Values.config.server.http_port | quote }}
             - name: FORGEJO__mirror__DEFAULT_INTERVAL
@@ -85,25 +86,21 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/v1/healthz
               port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/v1/healthz
               port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: data
               mountPath: /data
-      volumes:
-        - name: data
-          {{- if .Values.persistence.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ include "forgejo.fullname" . }}
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -115,4 +112,20 @@ spec:
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+        {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+      {{- if .Values.persistence.storageClass }}
+      {{- if (eq "-" .Values.persistence.storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: "{{ .Values.persistence.storageClass }}"
+      {{- end }}
       {{- end }}

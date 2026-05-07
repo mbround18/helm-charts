@@ -3,7 +3,8 @@ name: forgejo
 description: A Helm chart for Forgejo, a self-hosted lightweight software forge.
 type: application
 version: 0.1.4
-appVersion: '9'
+appVersion: '15'
+icon: https://forgejo.org/images/forgejo-wordmark.svg
 keywords:
 - forgejo
 - git

@@ -21,9 +21,19 @@ ui:
   # Enable ingress for UI
   ingress:
     enabled: false
-  resources: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
 
-resources: {}
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    memory: 2Gi
 
 persistence:
   enabled: true

@@ -1,0 +1,102 @@
+# Global settings for the entire application stack
+global:
+  domain: "example.com"
+  environment: "production"
+  # Global Istio settings
+  istio:
+    namespace: "istio-system"
+
+# Main Grafana application configuration
+grafana:
+  # Controls anonymous access to Grafana
+  anonymous:
+    enabled: false
+  # Admin user password management. Create a secret with a 'password' key.
+  # Example: kubectl create secret generic grafana-admin-creds --from-literal=password='your-secret-password'
+  admin:
+    existingSecret: "grafana-admin-creds"
+  # Persistence configuration using a PVC
+  persistence:
+    enabled: true
+    size: "10Gi"
+    storageClassName: "standard"
+  # External database configuration (PostgreSQL)
+  database:
+    type: "postgres"
+    host: "postgres-postgresql.database.svc.cluster.local"
+    port: 5432
+    name: "grafana"
+    user: "grafana"
+    existingSecret: "grafana-db-credentials" # Secret with 'password' key
+
+# Istio Ingress configuration
+istio-ingress:
+  enabled: true
+  virtualService:
+    hosts:
+      - "grafana.example.com"
+  tls:
+    enabled: true
+    mode: "SIMPLE" # Assumes TLS termination at the gateway
+    credentialName: "grafana-tls-cert" # Secret containing tls.crt and tls.key
+
+# GitOps Tools (ArgoCD) configuration
+gitops-tools:
+  argoCd:
+    mode: "auto" # 'enabled', 'disabled', or 'auto'
+    instanceLabel: "primary"
+    commonAnnotations:
+      notifications.argoproj.io/subscribe.on-deployed: "grafana-deploys"
+
+# Upstream Grafana chart values
+# We alias it to 'upstream-grafana' to avoid conflicts and make it clear
+# which values are being passed to the subchart.
+upstream-grafana:
+  # Pass admin password from our secret
+  admin:
+    existingSecret: "grafana-admin-creds"
+    userKey: "user" # Assuming user is also in the secret, otherwise remove
+    passwordKey: "password"
+
+  # Enable provisioning of dashboards and datasources from ConfigMaps
+  sidecar:
+    dashboards:
+      enabled: true
+      label: "grafana_dashboard"
+    datasources:
+      enabled: true
+      label: "grafana_datasource"
+
+  # Configure persistence
+  persistence:
+    enabled: true
+    type: "pvc"
+    size: "10Gi"
+    storageClassName: "standard"
+    accessModes:
+      - ReadWriteOnce
+
+  # Use an external database
+  grafana.ini:
+    database:
+      type: "postgres"
+      host: "postgres-postgresql.database.svc.cluster.local"
+      port: 5432
+      name: "grafana"
+      user: "grafana"
+      # Password will be mounted from the secret
+    auth.anonymous:
+      enabled: false
+
+  # ServiceMonitor settings for Prometheus
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: "prometheus" # Label to match your Prometheus Operator
+
+  # Mount the database password secret
+  extraSecretMounts:
+    - name: grafana-db-secret-mount
+      secretName: "grafana-db-credentials"
+      mountPath: "/etc/grafana/secrets"
+      readOnly: true

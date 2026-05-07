@@ -1,0 +1,19 @@
+{{- if .Values.service.headless.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-headless
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.service.headless.ports.grpc.port }}
+      protocol: {{ .Values.service.headless.ports.grpc.protocol }}
+      name: grpc
+    - port: {{ .Values.service.headless.ports.http.port }}
+      protocol: {{ .Values.service.headless.ports.http.protocol }}
+      name: http
+  selector:
+    {{- include "opentelemetry-collector.selectorLabels" . | nindent 4 }}
+{{- end }}
