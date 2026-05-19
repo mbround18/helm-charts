@@ -22,6 +22,13 @@ gateway:
         name: http
       hosts:
         - "*"
+    # Example HTTPS server (uncomment and configure tls block)
+    # - port:
+    #     number: 443
+    #     protocol: HTTPS
+    #     name: https
+    #   hosts:
+    #     - "*"
 
 # VirtualService configuration
 virtualService:
@@ -65,7 +72,8 @@ tls:
   mode: SIMPLE # SIMPLE, MUTUAL, AUTO_PASSTHROUGH, ISTIO_MUTUAL
 
   # For Kubernetes: secret name with tls.crt and tls.key
-  credentialName: ""
+  # Cluster default: cloudflare-client-tls
+  credentialName: "cloudflare-client-tls"
 
   # For file paths (non-Kubernetes)
   serverCertificate: ""
@@ -89,7 +97,10 @@ externalDns:
   # Annotations to add for DNS
   annotations:
     external-dns.alpha.kubernetes.io/hostname: ""
-    external-dns.alpha.kubernetes.io/ttl: "3600"
+    external-dns.alpha.kubernetes.io/ttl: "300"
+
+argoCd:
+  syncWave: "40"
 
 # Helpers
 helpers:

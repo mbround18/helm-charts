@@ -11,7 +11,7 @@ metadata:
   labels:
     {{- include "istio-ingress.labels" . | nindent 4 }}
   annotations:
-    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-wave: {{ .Values.argoCd.syncWave | quote }}
     {{- if .Values.externalDns.enabled }}
     {{- toYaml .Values.externalDns.annotations | nindent 4 }}
     {{- end }}
@@ -19,51 +19,26 @@ spec:
   selector:
     {{- toYaml .Values.gateway.selector | nindent 4 }}
   servers:
-    {{- range $index, $server := .Values.gateway.servers }}
-    - name: {{ $server.port.name | default (printf "server-%d" $index) }}
+    {{- range $server := .Values.gateway.servers }}
+    - name: {{ $server.port.name }}
       port:
         number: {{ $server.port.number | required "port.number is required" }}
         protocol: {{ $server.port.protocol | default "HTTP" }}
         name: {{ $server.port.name | default (printf "port-%d" $server.port.number) }}
       hosts:
         {{- toYaml $server.hosts | nindent 8 }}
-      {{- with $.Values.tls }}
-      {{- if and .enabled (eq $server.port.protocol "HTTPS") }}
+      {{- if or (eq (upper $server.port.protocol) "HTTPS") (eq (upper $server.port.protocol) "TLS") }}
       tls:
-        mode: {{ .mode }}
-        {{- if or (and .credentialName) (and .serverCertificate) }}
-        {{- if .credentialName }}
-        credentialName: {{ .credentialName }}
-        {{- end }}
-        {{- if and .serverCertificate .privateKey }}
-        serverCertificate: {{ .serverCertificate }}
-        privateKey: {{ .privateKey }}
-        {{- end }}
-        {{- end }}
-        {{- if .httpsRedirect }}
-        httpsRedirect: {{ .httpsRedirect }}
-        {{- end }}
-        {{- if .minProtocolVersion }}
-        minProtocolVersion: {{ .minProtocolVersion }}
-        {{- end }}
-        {{- if .maxProtocolVersion }}
-        maxProtocolVersion: {{ .maxProtocolVersion }}
-        {{- end }}
-        {{- if .cipherSuites }}
-        cipherSuites:
-          {{- toYaml .cipherSuites | nindent 10 }}
-        {{- end }}
-        {{- if and .mode (or (eq .mode "MUTUAL") (eq .mode "OPTIONAL_MUTUAL")) }}
-        {{- if or .caCertificates .caCertCredentialName }}
-        {{- if .caCertCredentialName }}
-        caCertCredentialName: {{ .caCertCredentialName }}
-        {{- end }}
-        {{- if .caCertificates }}
-        caCertificates: {{ .caCertificates }}
+        {{- if $server.tls }}
+        {{- toYaml $server.tls | nindent 8 }}
+        {{- else }}
+        mode: {{ $.Values.tls.mode | default "SIMPLE" }}
+        credentialName: {{ $.Values.tls.credentialName | default "cloudflare-client-tls" }}
+        {{- if and $.Values.tls.serverCertificate $.Values.tls.privateKey }}
+        serverCertificate: {{ $.Values.tls.serverCertificate }}
+        privateKey: {{ $.Values.tls.privateKey }}
         {{- end }}
         {{- end }}
-        {{- end }}
-      {{- end }}
       {{- end }}
     {{- end }}
 {{- end }}

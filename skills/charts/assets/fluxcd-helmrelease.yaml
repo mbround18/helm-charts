@@ -1,0 +1,45 @@
+# FluxCD manifests for mbround18 helm charts
+# Apply the HelmRepository once per cluster, then one HelmRelease per chart.
+---
+# Step 1: Register the Helm repository (apply once to flux-system or your namespace)
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: mbround18
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://mbround18.github.io/helm-charts
+---
+# Step 2: HelmRelease — one per chart installation
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: <release-name>        # e.g. forgejo
+  namespace: <namespace>      # e.g. forgejo
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: <chart-name>     # e.g. forgejo
+      version: "<version>"    # e.g. "0.1.4"  (semver constraint supported)
+      sourceRef:
+        kind: HelmRepository
+        name: mbround18
+        namespace: flux-system
+  # Override values inline (or use valuesFrom to reference a ConfigMap/Secret)
+  values:
+    {}
+  # Uncomment to pull sensitive values from a Secret
+  # valuesFrom:
+  #   - kind: Secret
+  #     name: <chart-name>-values
+  #     valuesKey: values.yaml
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true

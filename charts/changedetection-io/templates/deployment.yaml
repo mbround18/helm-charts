@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "changedetection-io.fullname" . }}
+  labels:
+    {{- include "changedetection-io.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release" "annotations" .Values.deploymentAnnotations) }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "changedetection-io.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "changedetection-io.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "changedetection-io.fullname" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.browser.sockpuppet.enabled }}
+            - name: PLAYWRIGHT_DRIVER_URL
+              value: "ws://localhost:3000"
+            {{- end }}
+            {{- if .Values.browser.selenium.enabled }}
+            - name: WEBDRIVER_URL
+              value: "http://localhost:4444/wd/hub"
+            {{- end }}
+          {{- if .Values.secrets }}
+          envFrom:
+            - secretRef:
+                name: {{ include "changedetection-io.fullname" . }}
+          {{- end }}
+          volumeMounts:
+            - name: datastore
+              mountPath: {{ .Values.persistence.mountPath }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.browser.sockpuppet.enabled }}
+        - name: sockpuppet
+          image: "{{ .Values.browser.sockpuppet.image.repository }}:{{ .Values.browser.sockpuppet.image.tag }}"
+          imagePullPolicy: {{ .Values.browser.sockpuppet.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.browser.sockpuppet.securityContext | nindent 12 }}
+          ports:
+            - name: browser
+              containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            {{- toYaml .Values.browser.sockpuppet.resources | nindent 12 }}
+        {{- end }}
+        {{- if .Values.browser.selenium.enabled }}
+        - name: selenium
+          image: "{{ .Values.browser.selenium.image.repository }}:{{ .Values.browser.selenium.image.tag }}"
+          imagePullPolicy: {{ .Values.browser.selenium.image.pullPolicy }}
+          ports:
+            - name: selenium
+              containerPort: 4444
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.browser.selenium.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            {{- toYaml .Values.browser.selenium.resources | nindent 12 }}
+        {{- end }}
+      volumes:
+        - name: datastore
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "changedetection-io.fullname" .) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: shm
+          emptyDir:
+            medium: Memory
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,4 +1,4 @@
-{{- if and .Values.enabled .Values.virtualService.enabled }}
+{{- if and .Values.enabled .Values.virtualService.enabled (or .Values.virtualService.http .Values.virtualService.tls .Values.virtualService.tcp) }}
 {{- if .Values.virtualServiceOverride }}
 # Custom VirtualService (via override)
 {{ toYaml .Values.virtualServiceOverride }}
@@ -11,7 +11,7 @@ metadata:
   labels:
     {{- include "istio-ingress.labels" . | nindent 4 }}
   annotations:
-    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-wave: {{ .Values.argoCd.syncWave | quote }}
     {{- if .Values.externalDns.enabled }}
     {{- toYaml .Values.externalDns.annotations | nindent 4 }}
     {{- end }}

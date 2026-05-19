@@ -1,0 +1,14 @@
+apiVersion: v2
+name: changedetection-io
+description: A Helm chart for changedetection.io - the best tool for monitoring website changes.
+type: application
+version: 0.1.0
+appVersion: 0.49.3
+dependencies:
+  - name: gitops-tools
+    version: 0.1.1
+    repository: "file://../gitops-tools"
+  - name: istio-ingress
+    version: 0.1.8
+    repository: "file://../istio-ingress"
+    condition: istio-ingress.enabled

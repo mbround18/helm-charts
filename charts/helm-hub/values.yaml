@@ -1,0 +1,141 @@
+replicaCount: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+image:
+  repository: mbround18/helmhub
+  tag: latest
+  pullPolicy: Always
+  command: ["/app/helm-hub"]
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+  annotations: {}
+
+metrics:
+  enabled: true
+  port: 9090
+
+persistence:
+  enabled: true
+  storageClassName: ""
+  size: 10Gi
+  accessMode: ReadWriteMany
+  mountPath: /data
+  annotations: {}
+  # existingClaim: ""
+
+# Database configuration
+database:
+  # If enabled, uses the postgres subchart
+  enabled: true
+  host: ""
+  port: 5432
+  name: helmhub
+  user: helmhub
+  # password: ""
+  # existingSecret: ""
+
+env:
+  # JWT_SECRET: ""
+  # FARO_URL: ""
+  # OTEL_EXPORTER_OTLP_ENDPOINT: ""
+  TZ: "UTC"
+  CLAMAV_ENABLED: "false"
+  CHOWN: "false"
+  ADMIN_USERNAME: "changeme"
+
+secrets: {}
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    enabled: false
+    hosts:
+      - helm-hub.local
+  # Example for production clusters:
+  # externalDns:
+  #   enabled: true
+  #   annotations:
+  #     external-dns.alpha.kubernetes.io/hostname: "helm.example.com"
+  # tls:
+  #   enabled: true
+  #   # credentialName: "cloudflare-client-tls" # Now the default if enabled
+  # gateway:
+  #   servers:
+  #     - port:
+  #         number: 80
+  #         protocol: HTTP
+  #         name: http
+  #       hosts: ["helm.example.com"]
+  #     - port:
+  #         number: 443
+  #         protocol: HTTPS
+  #         name: https
+  #       hosts: ["helm.example.com"]
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: helm-hub.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+deploymentAnnotations: {}
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+
+# Dependency: Postgres subchart settings
+postgres:
+  enabled: true
+  fullnameOverride: helm-hub-db
+  auth:
+    database: helmhub
+    username: helmhub
+    password: "helmhub-password"
+  postgresql:
+    db: helmhub
+    user: helmhub
+  persistence:
+    size: 5Gi
+    storageClass: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

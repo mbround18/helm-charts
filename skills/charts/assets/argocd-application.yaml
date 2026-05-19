@@ -1,0 +1,31 @@
+# ArgoCD Application template for mbround18 helm charts
+# Replace <PLACEHOLDERS> before applying.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: <chart-name>          # e.g. forgejo
+  namespace: argocd
+  # Sync wave — set to the wave appropriate for this chart's role
+  # foundation=0, database=10, supporting=20, release=30, ingress=40
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: default
+  source:
+    repoURL: https://mbround18.github.io/helm-charts
+    chart: <chart-name>       # e.g. forgejo
+    targetRevision: <version> # e.g. 0.1.4
+    helm:
+      valuesObject:
+        # Paste chart-specific values here (see references/charts.json for keys)
+        {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: <namespace>    # e.g. forgejo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

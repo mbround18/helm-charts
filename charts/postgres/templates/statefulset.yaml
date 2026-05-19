@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres
+  name: {{ include "postgres.fullname" . }}
   labels:
-    app: postgres
+    {{- include "postgres.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "10"
 spec:
-  serviceName: postgres
+  serviceName: {{ include "postgres.fullname" . }}
   replicas: {{ if .Values.ha.enabled }}3{{ else }}1{{ end }}
   selector:
     matchLabels:
-      app: postgres
+      {{- include "postgres.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -20,16 +20,25 @@ spec:
         checksum/superuser-secret: {{ include (print $.Template.BasePath "/postgres-superuser-secret.yaml") . | sha256sum }}
         {{- end }}
       labels:
-        app: postgres
+        {{- include "postgres.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: ensure-postgres-password-secret
-          image: bitnami/kubectl:1.32
+          image: alpine:3.22
           command:
             - /bin/sh
             - -c
             - |
-              SECRET_NAME="{{ .Values.postgresql.passwordSecret }}"
+              set -e
+              apk add --no-cache curl
+              curl -LO "https://dl.k8s.io/release/v1.32.2/bin/linux/amd64/kubectl"
+              chmod +x kubectl
+              mv kubectl /usr/local/bin/
+              SECRET_NAME="{{ .Values.secrets.password.name }}"
               NAMESPACE="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)"
               until kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" >/dev/null 2>&1 && \
                 [ "$(kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" -o jsonpath='{.data.POSTGRES_PASSWORD}')" != "" ]; do
@@ -37,14 +46,14 @@ spec:
                 sleep 2
               done
           securityContext:
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
+            runAsUser: 0
+            runAsGroup: 0
             seccompProfile:
               type: RuntimeDefault
-            capabilities:
-              drop: [ALL]
       containers:
         - name: postgres
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
@@ -101,7 +110,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: postgres-data
+            claimName: {{ include "postgres.fullname" . }}-data
         - name: init-scripts
           configMap:
-            name: postgres-init-scripts
+            name: {{ include "postgres.fullname" . }}-init-scripts
