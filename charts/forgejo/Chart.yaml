@@ -2,25 +2,25 @@ apiVersion: v2
 name: forgejo
 description: A Helm chart for Forgejo, a self-hosted lightweight software forge.
 type: application
-version: 0.1.4
-appVersion: "15"
+version: 0.1.5
+appVersion: '15'
 icon: https://forgejo.org/images/forgejo-wordmark.svg
 keywords:
-  - forgejo
-  - git
-  - devops
+- forgejo
+- git
+- devops
 home: https://forgejo.org/
 sources:
-  - https://codeberg.org/forgejo/forgejo
-  - https://github.com/PatNei/GITHUB2FORGEJO
+- https://codeberg.org/forgejo/forgejo
+- https://github.com/PatNei/GITHUB2FORGEJO
 dependencies:
-  - name: postgres
-    alias: postgresql
-    version: 0.1.*
-    repository: https://mbround18.github.io/helm-charts
-    condition: postgresql.enabled
-  - name: gitops-tools
-    version: 0.1.0
-    repository: https://mbround18.github.io/helm-charts
+- name: postgres
+  alias: postgresql
+  version: 0.1.*
+  repository: https://mbround18.github.io/helm-charts
+  condition: postgresql.enabled
+- name: gitops-tools
+  version: 0.1.0
+  repository: https://mbround18.github.io/helm-charts
 maintainers:
-  - name: mbround18
+- name: mbround18
