@@ -2,7 +2,7 @@ apiVersion: v2
 name: forgejo
 description: A Helm chart for Forgejo, a self-hosted lightweight software forge.
 type: application
-version: 0.1.5
+version: 0.1.6
 appVersion: '15'
 icon: https://forgejo.org/images/forgejo-wordmark.svg
 keywords:
@@ -20,7 +20,7 @@ dependencies:
   repository: https://mbround18.github.io/helm-charts
   condition: postgresql.enabled
 - name: gitops-tools
-  version: 0.1.0
+  version: 0.1.1
   repository: https://mbround18.github.io/helm-charts
 maintainers:
 - name: mbround18
