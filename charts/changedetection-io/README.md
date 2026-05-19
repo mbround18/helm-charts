@@ -18,15 +18,15 @@ helm upgrade --install changedetection-io ./charts/changedetection-io --namespac
 
 ## Configuration
 
-| Parameter | Description | Default |
-| --------- | ----------- | ------- |
-| `image.repository` | Container image repository | `ghcr.io/dgtlmoon/changedetection.io` |
-| `image.tag` | Image tag/version | `0.55.3` |
-| `persistence.enabled` | Enable persistent storage | `true` |
-| `persistence.size` | Size of persistent volume | `10Gi` |
-| `browser.sockpuppet.enabled` | Enable Sockpuppet (Playwright) sidecar | `true` |
-| `browser.selenium.enabled` | Enable Selenium sidecar | `false` |
-| `istio-ingress.enabled` | Enable Istio VirtualService | `false` |
+| Parameter                    | Description                            | Default                               |
+| ---------------------------- | -------------------------------------- | ------------------------------------- |
+| `image.repository`           | Container image repository             | `ghcr.io/dgtlmoon/changedetection.io` |
+| `image.tag`                  | Image tag/version                      | `0.55.3`                              |
+| `persistence.enabled`        | Enable persistent storage              | `true`                                |
+| `persistence.size`           | Size of persistent volume              | `10Gi`                                |
+| `browser.sockpuppet.enabled` | Enable Sockpuppet (Playwright) sidecar | `true`                                |
+| `browser.selenium.enabled`   | Enable Selenium sidecar                | `false`                               |
+| `istio-ingress.enabled`      | Enable Istio VirtualService            | `false`                               |
 
 ## Usage Examples
 

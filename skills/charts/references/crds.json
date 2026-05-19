@@ -62,9 +62,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "kind"
-            ],
+            "required": ["kind"],
             "type": "object"
           },
           "type": "array"
@@ -80,10 +78,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "value"
-            ],
+            "required": ["name", "value"],
             "type": "object"
           },
           "type": "array"
@@ -133,10 +128,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "name",
-                          "value"
-                        ],
+                        "required": ["name", "value"],
                         "type": "object"
                       },
                       "type": "array"
@@ -163,10 +155,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "name",
-                          "value"
-                        ],
+                        "required": ["name", "value"],
                         "type": "object"
                       },
                       "type": "array"
@@ -433,10 +422,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "count",
-                      "name"
-                    ],
+                    "required": ["count", "name"],
                     "type": "object"
                   },
                   "type": "array"
@@ -473,10 +459,7 @@
                         "type": "string"
                       }
                     },
-                    "required": [
-                      "name",
-                      "value"
-                    ],
+                    "required": ["name", "value"],
                     "type": "object"
                   },
                   "type": "array"
@@ -530,9 +513,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "repoURL"
-          ],
+          "required": ["repoURL"],
           "type": "object"
         },
         "sourceHydrator": {
@@ -570,10 +551,7 @@
                                 "type": "string"
                               }
                             },
-                            "required": [
-                              "name",
-                              "value"
-                            ],
+                            "required": ["name", "value"],
                             "type": "object"
                           },
                           "type": "array"
@@ -600,10 +578,7 @@
                                 "type": "string"
                               }
                             },
-                            "required": [
-                              "name",
-                              "value"
-                            ],
+                            "required": ["name", "value"],
                             "type": "object"
                           },
                           "type": "array"
@@ -870,10 +845,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "count",
-                          "name"
-                        ],
+                        "required": ["count", "name"],
                         "type": "object"
                       },
                       "type": "array"
@@ -906,10 +878,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "name",
-                          "value"
-                        ],
+                        "required": ["name", "value"],
                         "type": "object"
                       },
                       "type": "array"
@@ -959,11 +928,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "path",
-                "repoURL",
-                "targetRevision"
-              ],
+              "required": ["path", "repoURL", "targetRevision"],
               "type": "object"
             },
             "hydrateTo": {
@@ -974,9 +939,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "targetBranch"
-              ],
+              "required": ["targetBranch"],
               "type": "object"
             },
             "syncSource": {
@@ -993,17 +956,11 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "path",
-                "targetBranch"
-              ],
+              "required": ["path", "targetBranch"],
               "type": "object"
             }
           },
-          "required": [
-            "drySource",
-            "syncSource"
-          ],
+          "required": ["drySource", "syncSource"],
           "type": "object"
         },
         "sources": {
@@ -1044,10 +1001,7 @@
                               "type": "string"
                             }
                           },
-                          "required": [
-                            "name",
-                            "value"
-                          ],
+                          "required": ["name", "value"],
                           "type": "object"
                         },
                         "type": "array"
@@ -1074,10 +1028,7 @@
                               "type": "string"
                             }
                           },
-                          "required": [
-                            "name",
-                            "value"
-                          ],
+                          "required": ["name", "value"],
                           "type": "object"
                         },
                         "type": "array"
@@ -1344,10 +1295,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "count",
-                        "name"
-                      ],
+                      "required": ["count", "name"],
                       "type": "object"
                     },
                     "type": "array"
@@ -1384,10 +1332,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "value"
-                      ],
+                      "required": ["name", "value"],
                       "type": "object"
                     },
                     "type": "array"
@@ -1441,9 +1386,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "repoURL"
-            ],
+            "required": ["repoURL"],
             "type": "object"
           },
           "type": "array"
@@ -1536,10 +1479,7 @@
           "type": "object"
         }
       },
-      "required": [
-        "destination",
-        "project"
-      ],
+      "required": ["destination", "project"],
       "type": "object"
     }
   },
@@ -1595,10 +1535,7 @@
                 "reconcileStrategy": {
                   "default": "ChartVersion",
                   "description": "Determines what enables the creation of a new artifact. Valid values are\n('ChartVersion', 'Revision').\nSee the documentation of the values for an explanation on their behavior.\nDefaults to ChartVersion when omitted.",
-                  "enum": [
-                    "ChartVersion",
-                    "Revision"
-                  ],
+                  "enum": ["ChartVersion", "Revision"],
                   "type": "string"
                 },
                 "sourceRef": {
@@ -1610,11 +1547,7 @@
                     },
                     "kind": {
                       "description": "Kind of the referent.",
-                      "enum": [
-                        "HelmRepository",
-                        "GitRepository",
-                        "Bucket"
-                      ],
+                      "enum": ["HelmRepository", "GitRepository", "Bucket"],
                       "type": "string"
                     },
                     "name": {
@@ -1630,9 +1563,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "name"
-                  ],
+                  "required": ["name"],
                   "type": "object"
                 },
                 "valuesFiles": {
@@ -1648,10 +1579,7 @@
                     "provider": {
                       "default": "cosign",
                       "description": "Provider specifies the technology used to sign the OCI Helm chart.",
-                      "enum": [
-                        "cosign",
-                        "notation"
-                      ],
+                      "enum": ["cosign", "notation"],
                       "type": "string"
                     },
                     "secretRef": {
@@ -1662,15 +1590,11 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name"
-                      ],
+                      "required": ["name"],
                       "type": "object"
                     }
                   },
-                  "required": [
-                    "provider"
-                  ],
+                  "required": ["provider"],
                   "type": "object"
                 },
                 "version": {
@@ -1679,16 +1603,11 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "chart",
-                "sourceRef"
-              ],
+              "required": ["chart", "sourceRef"],
               "type": "object"
             }
           },
-          "required": [
-            "spec"
-          ],
+          "required": ["spec"],
           "type": "object"
         },
         "chartRef": {
@@ -1700,10 +1619,7 @@
             },
             "kind": {
               "description": "Kind of the referent.",
-              "enum": [
-                "OCIRepository",
-                "HelmChart"
-              ],
+              "enum": ["OCIRepository", "HelmChart"],
               "type": "string"
             },
             "name": {
@@ -1719,10 +1635,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "kind",
-            "name"
-          ],
+          "required": ["kind", "name"],
           "type": "object"
         },
         "dependsOn": {
@@ -1739,9 +1652,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name"
-            ],
+            "required": ["name"],
             "type": "object"
           },
           "type": "array"
@@ -1796,20 +1707,14 @@
                     "type": "object"
                   }
                 },
-                "required": [
-                  "paths"
-                ],
+                "required": ["paths"],
                 "type": "object"
               },
               "type": "array"
             },
             "mode": {
               "description": "Mode defines how differences should be handled between the Helm manifest\nand the manifest currently applied to the cluster.\nIf not explicitly set, it defaults to DiffModeDisabled.",
-              "enum": [
-                "enabled",
-                "warn",
-                "disabled"
-              ],
+              "enum": ["enabled", "warn", "disabled"],
               "type": "string"
             }
           },
@@ -1820,11 +1725,7 @@
           "properties": {
             "crds": {
               "description": "CRDs upgrade CRDs from the Helm Chart's crds directory according\nto the CRD upgrade policy provided here. Valid values are `Skip`,\n`Create` or `CreateReplace`. Default is `Create` and if omitted\nCRDs are installed but not updated.\n\n\nSkip: do neither install nor replace (update) any CRDs.\n\n\nCreate: new CRDs are created, existing CRDs are neither updated nor deleted.\n\n\nCreateReplace: new CRDs are created, existing CRDs are updated (replaced)\nbut not deleted.\n\n\nBy default, CRDs are applied (installed) during Helm install action.\nWith this option users can opt in to CRD replace existing CRDs on Helm\ninstall actions, which is not (yet) natively supported by Helm.\nhttps://helm.sh/docs/chart_best_practices/custom_resource_definitions.",
-              "enum": [
-                "Skip",
-                "Create",
-                "CreateReplace"
-              ],
+              "enum": ["Skip", "Create", "CreateReplace"],
               "type": "string"
             },
             "createNamespace": {
@@ -1901,15 +1802,11 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "name"
-              ],
+              "required": ["name"],
               "type": "object"
             }
           },
-          "required": [
-            "secretRef"
-          ],
+          "required": ["secretRef"],
           "type": "object"
         },
         "maxHistory": {
@@ -1950,9 +1847,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name"
-                      ],
+                      "required": ["name"],
                       "type": "object"
                     },
                     "type": "array"
@@ -2001,9 +1896,7 @@
                           "type": "object"
                         }
                       },
-                      "required": [
-                        "patch"
-                      ],
+                      "required": ["patch"],
                       "type": "object"
                     },
                     "type": "array"
@@ -2102,9 +1995,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "type": "object"
               },
               "type": "array"
@@ -2132,11 +2023,7 @@
             "deletionPropagation": {
               "default": "background",
               "description": "DeletionPropagation specifies the deletion propagation policy when\na Helm uninstall is performed.",
-              "enum": [
-                "background",
-                "foreground",
-                "orphan"
-              ],
+              "enum": ["background", "foreground", "orphan"],
               "type": "string"
             },
             "disableHooks": {
@@ -2168,11 +2055,7 @@
             },
             "crds": {
               "description": "CRDs upgrade CRDs from the Helm Chart's crds directory according\nto the CRD upgrade policy provided here. Valid values are `Skip`,\n`Create` or `CreateReplace`. Default is `Skip` and if omitted\nCRDs are neither installed nor upgraded.\n\n\nSkip: do neither install nor replace (update) any CRDs.\n\n\nCreate: new CRDs are created, existing CRDs are neither updated nor deleted.\n\n\nCreateReplace: new CRDs are created, existing CRDs are updated (replaced)\nbut not deleted.\n\n\nBy default, CRDs are not applied during Helm upgrade action. With this\noption users can opt-in to CRD upgrade, which is not (yet) natively supported by Helm.\nhttps://helm.sh/docs/chart_best_practices/custom_resource_definitions.",
-              "enum": [
-                "Skip",
-                "Create",
-                "CreateReplace"
-              ],
+              "enum": ["Skip", "Create", "CreateReplace"],
               "type": "string"
             },
             "disableHooks": {
@@ -2216,10 +2099,7 @@
                 },
                 "strategy": {
                   "description": "Strategy to use for failure remediation. Defaults to 'rollback'.",
-                  "enum": [
-                    "rollback",
-                    "uninstall"
-                  ],
+                  "enum": ["rollback", "uninstall"],
                   "type": "string"
                 }
               },
@@ -2244,10 +2124,7 @@
             "properties": {
               "kind": {
                 "description": "Kind of the values referent, valid values are ('Secret', 'ConfigMap').",
-                "enum": [
-                  "Secret",
-                  "ConfigMap"
-                ],
+                "enum": ["Secret", "ConfigMap"],
                 "type": "string"
               },
               "name": {
@@ -2273,18 +2150,13 @@
                 "type": "string"
               }
             },
-            "required": [
-              "kind",
-              "name"
-            ],
+            "required": ["kind", "name"],
             "type": "object"
           },
           "type": "array"
         }
       },
-      "required": [
-        "interval"
-      ],
+      "required": ["interval"],
       "type": "object",
       "x-kubernetes-validations": [
         {
@@ -2323,9 +2195,7 @@
               "type": "array"
             }
           },
-          "required": [
-            "namespaceSelectors"
-          ],
+          "required": ["namespaceSelectors"],
           "type": "object"
         },
         "certSecretRef": {
@@ -2336,9 +2206,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "name"
-          ],
+          "required": ["name"],
           "type": "object"
         },
         "insecure": {
@@ -2357,12 +2225,7 @@
         "provider": {
           "default": "generic",
           "description": "Provider used for authentication, can be 'aws', 'azure', 'gcp' or 'generic'.\nThis field is optional, and only taken into account if the .spec.type field is set to 'oci'.\nWhen not specified, defaults to 'generic'.",
-          "enum": [
-            "generic",
-            "aws",
-            "azure",
-            "gcp"
-          ],
+          "enum": ["generic", "aws", "azure", "gcp"],
           "type": "string"
         },
         "secretRef": {
@@ -2373,9 +2236,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "name"
-          ],
+          "required": ["name"],
           "type": "object"
         },
         "suspend": {
@@ -2389,10 +2250,7 @@
         },
         "type": {
           "description": "Type of the HelmRepository.\nWhen this field is set to  \"oci\", the URL field value must be prefixed with \"oci://\".",
-          "enum": [
-            "default",
-            "oci"
-          ],
+          "enum": ["default", "oci"],
           "type": "string"
         },
         "url": {
@@ -2401,9 +2259,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "url"
-      ],
+      "required": ["url"],
       "type": "object"
     }
   },
@@ -2467,11 +2323,7 @@
                     "type": "integer"
                   }
                 },
-                "required": [
-                  "number",
-                  "protocol",
-                  "name"
-                ],
+                "required": ["number", "protocol", "name"],
                 "type": "object"
               },
               "tls": {
@@ -2616,10 +2468,7 @@
                 ]
               }
             },
-            "required": [
-              "port",
-              "hosts"
-            ],
+            "required": ["port", "hosts"],
             "type": "object"
           },
           "type": "array"
@@ -2697,37 +2546,25 @@
                           "not": {
                             "anyOf": [
                               {
-                                "required": [
-                                  "exact"
-                                ]
+                                "required": ["exact"]
                               },
                               {
-                                "required": [
-                                  "prefix"
-                                ]
+                                "required": ["prefix"]
                               },
                               {
-                                "required": [
-                                  "regex"
-                                ]
+                                "required": ["regex"]
                               }
                             ]
                           }
                         },
                         {
-                          "required": [
-                            "exact"
-                          ]
+                          "required": ["exact"]
                         },
                         {
-                          "required": [
-                            "prefix"
-                          ]
+                          "required": ["prefix"]
                         },
                         {
-                          "required": [
-                            "regex"
-                          ]
+                          "required": ["regex"]
                         }
                       ],
                       "properties": {
@@ -2765,11 +2602,7 @@
                   },
                   "unmatchedPreflights": {
                     "description": "Indicates whether preflight requests not matching the configured allowed origin shouldn't be forwarded to the upstream.\n\nValid Options: FORWARD, IGNORE",
-                    "enum": [
-                      "UNSPECIFIED",
-                      "FORWARD",
-                      "IGNORE"
-                    ],
+                    "enum": ["UNSPECIFIED", "FORWARD", "IGNORE"],
                     "type": "string"
                   }
                 },
@@ -2799,27 +2632,19 @@
                         "not": {
                           "anyOf": [
                             {
-                              "required": [
-                                "string"
-                              ]
+                              "required": ["string"]
                             },
                             {
-                              "required": [
-                                "bytes"
-                              ]
+                              "required": ["bytes"]
                             }
                           ]
                         }
                       },
                       {
-                        "required": [
-                          "string"
-                        ]
+                        "required": ["string"]
                       },
                       {
-                        "required": [
-                          "bytes"
-                        ]
+                        "required": ["bytes"]
                       }
                     ],
                     "properties": {
@@ -2841,9 +2666,7 @@
                     "type": "integer"
                   }
                 },
-                "required": [
-                  "status"
-                ],
+                "required": ["status"],
                 "type": "object"
               },
               "fault": {
@@ -2856,37 +2679,25 @@
                         "not": {
                           "anyOf": [
                             {
-                              "required": [
-                                "httpStatus"
-                              ]
+                              "required": ["httpStatus"]
                             },
                             {
-                              "required": [
-                                "grpcStatus"
-                              ]
+                              "required": ["grpcStatus"]
                             },
                             {
-                              "required": [
-                                "http2Error"
-                              ]
+                              "required": ["http2Error"]
                             }
                           ]
                         }
                       },
                       {
-                        "required": [
-                          "httpStatus"
-                        ]
+                        "required": ["httpStatus"]
                       },
                       {
-                        "required": [
-                          "grpcStatus"
-                        ]
+                        "required": ["grpcStatus"]
                       },
                       {
-                        "required": [
-                          "http2Error"
-                        ]
+                        "required": ["http2Error"]
                       }
                     ],
                     "properties": {
@@ -2922,27 +2733,19 @@
                         "not": {
                           "anyOf": [
                             {
-                              "required": [
-                                "fixedDelay"
-                              ]
+                              "required": ["fixedDelay"]
                             },
                             {
-                              "required": [
-                                "exponentialDelay"
-                              ]
+                              "required": ["exponentialDelay"]
                             }
                           ]
                         }
                       },
                       {
-                        "required": [
-                          "fixedDelay"
-                        ]
+                        "required": ["fixedDelay"]
                       },
                       {
-                        "required": [
-                          "exponentialDelay"
-                        ]
+                        "required": ["exponentialDelay"]
                       }
                     ],
                     "properties": {
@@ -3048,37 +2851,25 @@
                           "not": {
                             "anyOf": [
                               {
-                                "required": [
-                                  "exact"
-                                ]
+                                "required": ["exact"]
                               },
                               {
-                                "required": [
-                                  "prefix"
-                                ]
+                                "required": ["prefix"]
                               },
                               {
-                                "required": [
-                                  "regex"
-                                ]
+                                "required": ["regex"]
                               }
                             ]
                           }
                         },
                         {
-                          "required": [
-                            "exact"
-                          ]
+                          "required": ["exact"]
                         },
                         {
-                          "required": [
-                            "prefix"
-                          ]
+                          "required": ["prefix"]
                         },
                         {
-                          "required": [
-                            "regex"
-                          ]
+                          "required": ["regex"]
                         }
                       ],
                       "properties": {
@@ -3109,37 +2900,25 @@
                             "not": {
                               "anyOf": [
                                 {
-                                  "required": [
-                                    "exact"
-                                  ]
+                                  "required": ["exact"]
                                 },
                                 {
-                                  "required": [
-                                    "prefix"
-                                  ]
+                                  "required": ["prefix"]
                                 },
                                 {
-                                  "required": [
-                                    "regex"
-                                  ]
+                                  "required": ["regex"]
                                 }
                               ]
                             }
                           },
                           {
-                            "required": [
-                              "exact"
-                            ]
+                            "required": ["exact"]
                           },
                           {
-                            "required": [
-                              "prefix"
-                            ]
+                            "required": ["prefix"]
                           },
                           {
-                            "required": [
-                              "regex"
-                            ]
+                            "required": ["regex"]
                           }
                         ],
                         "properties": {
@@ -3170,37 +2949,25 @@
                           "not": {
                             "anyOf": [
                               {
-                                "required": [
-                                  "exact"
-                                ]
+                                "required": ["exact"]
                               },
                               {
-                                "required": [
-                                  "prefix"
-                                ]
+                                "required": ["prefix"]
                               },
                               {
-                                "required": [
-                                  "regex"
-                                ]
+                                "required": ["regex"]
                               }
                             ]
                           }
                         },
                         {
-                          "required": [
-                            "exact"
-                          ]
+                          "required": ["exact"]
                         },
                         {
-                          "required": [
-                            "prefix"
-                          ]
+                          "required": ["prefix"]
                         },
                         {
-                          "required": [
-                            "regex"
-                          ]
+                          "required": ["regex"]
                         }
                       ],
                       "properties": {
@@ -3234,37 +3001,25 @@
                             "not": {
                               "anyOf": [
                                 {
-                                  "required": [
-                                    "exact"
-                                  ]
+                                  "required": ["exact"]
                                 },
                                 {
-                                  "required": [
-                                    "prefix"
-                                  ]
+                                  "required": ["prefix"]
                                 },
                                 {
-                                  "required": [
-                                    "regex"
-                                  ]
+                                  "required": ["regex"]
                                 }
                               ]
                             }
                           },
                           {
-                            "required": [
-                              "exact"
-                            ]
+                            "required": ["exact"]
                           },
                           {
-                            "required": [
-                              "prefix"
-                            ]
+                            "required": ["prefix"]
                           },
                           {
-                            "required": [
-                              "regex"
-                            ]
+                            "required": ["regex"]
                           }
                         ],
                         "properties": {
@@ -3291,37 +3046,25 @@
                           "not": {
                             "anyOf": [
                               {
-                                "required": [
-                                  "exact"
-                                ]
+                                "required": ["exact"]
                               },
                               {
-                                "required": [
-                                  "prefix"
-                                ]
+                                "required": ["prefix"]
                               },
                               {
-                                "required": [
-                                  "regex"
-                                ]
+                                "required": ["regex"]
                               }
                             ]
                           }
                         },
                         {
-                          "required": [
-                            "exact"
-                          ]
+                          "required": ["exact"]
                         },
                         {
-                          "required": [
-                            "prefix"
-                          ]
+                          "required": ["prefix"]
                         },
                         {
-                          "required": [
-                            "regex"
-                          ]
+                          "required": ["regex"]
                         }
                       ],
                       "properties": {
@@ -3360,37 +3103,25 @@
                           "not": {
                             "anyOf": [
                               {
-                                "required": [
-                                  "exact"
-                                ]
+                                "required": ["exact"]
                               },
                               {
-                                "required": [
-                                  "prefix"
-                                ]
+                                "required": ["prefix"]
                               },
                               {
-                                "required": [
-                                  "regex"
-                                ]
+                                "required": ["regex"]
                               }
                             ]
                           }
                         },
                         {
-                          "required": [
-                            "exact"
-                          ]
+                          "required": ["exact"]
                         },
                         {
-                          "required": [
-                            "prefix"
-                          ]
+                          "required": ["prefix"]
                         },
                         {
-                          "required": [
-                            "regex"
-                          ]
+                          "required": ["regex"]
                         }
                       ],
                       "properties": {
@@ -3414,37 +3145,25 @@
                             "not": {
                               "anyOf": [
                                 {
-                                  "required": [
-                                    "exact"
-                                  ]
+                                  "required": ["exact"]
                                 },
                                 {
-                                  "required": [
-                                    "prefix"
-                                  ]
+                                  "required": ["prefix"]
                                 },
                                 {
-                                  "required": [
-                                    "regex"
-                                  ]
+                                  "required": ["regex"]
                                 }
                               ]
                             }
                           },
                           {
-                            "required": [
-                              "exact"
-                            ]
+                            "required": ["exact"]
                           },
                           {
-                            "required": [
-                              "prefix"
-                            ]
+                            "required": ["prefix"]
                           },
                           {
-                            "required": [
-                              "regex"
-                            ]
+                            "required": ["regex"]
                           }
                         ],
                         "properties": {
@@ -3492,9 +3211,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "host"
-                ],
+                "required": ["host"],
                 "type": "object"
               },
               "mirrorPercent": {
@@ -3546,9 +3263,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "host"
-                      ],
+                      "required": ["host"],
                       "type": "object"
                     },
                     "percentage": {
@@ -3562,9 +3277,7 @@
                       "type": "object"
                     }
                   },
-                  "required": [
-                    "destination"
-                  ],
+                  "required": ["destination"],
                   "type": "object"
                 },
                 "type": "array"
@@ -3580,27 +3293,19 @@
                     "not": {
                       "anyOf": [
                         {
-                          "required": [
-                            "port"
-                          ]
+                          "required": ["port"]
                         },
                         {
-                          "required": [
-                            "derivePort"
-                          ]
+                          "required": ["derivePort"]
                         }
                       ]
                     }
                   },
                   {
-                    "required": [
-                      "port"
-                    ]
+                    "required": ["port"]
                   },
                   {
-                    "required": [
-                      "derivePort"
-                    ]
+                    "required": ["derivePort"]
                   }
                 ],
                 "properties": {
@@ -3610,10 +3315,7 @@
                   },
                   "derivePort": {
                     "description": "On a redirect, dynamically set the port: * FROM_PROTOCOL_DEFAULT: automatically set to 80 for HTTP and 443 for HTTPS.\n\nValid Options: FROM_PROTOCOL_DEFAULT, FROM_REQUEST_PORT",
-                    "enum": [
-                      "FROM_PROTOCOL_DEFAULT",
-                      "FROM_REQUEST_PORT"
-                    ],
+                    "enum": ["FROM_PROTOCOL_DEFAULT", "FROM_REQUEST_PORT"],
                     "type": "string"
                   },
                   "port": {
@@ -3739,9 +3441,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "host"
-                      ],
+                      "required": ["host"],
                       "type": "object"
                     },
                     "headers": {
@@ -3801,9 +3501,7 @@
                       "type": "integer"
                     }
                   },
-                  "required": [
-                    "destination"
-                  ],
+                  "required": ["destination"],
                   "type": "object"
                 },
                 "type": "array"
@@ -3897,9 +3595,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "host"
-                      ],
+                      "required": ["host"],
                       "type": "object"
                     },
                     "weight": {
@@ -3908,9 +3604,7 @@
                       "type": "integer"
                     }
                   },
-                  "required": [
-                    "destination"
-                  ],
+                  "required": ["destination"],
                   "type": "object"
                 },
                 "type": "array"
@@ -3967,9 +3661,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "sniHosts"
-                  ],
+                  "required": ["sniHosts"],
                   "type": "object"
                 },
                 "type": "array"
@@ -4001,9 +3693,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "host"
-                      ],
+                      "required": ["host"],
                       "type": "object"
                     },
                     "weight": {
@@ -4012,17 +3702,13 @@
                       "type": "integer"
                     }
                   },
-                  "required": [
-                    "destination"
-                  ],
+                  "required": ["destination"],
                   "type": "object"
                 },
                 "type": "array"
               }
             },
-            "required": [
-              "match"
-            ],
+            "required": ["match"],
             "type": "object"
           },
           "type": "array"

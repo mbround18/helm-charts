@@ -324,9 +324,7 @@
         "hosts": [
           {
             "host": "audiobookshelf.local",
-            "paths": [
-              "/"
-            ]
+            "paths": ["/"]
           }
         ]
       },
@@ -718,9 +716,7 @@
           },
           "securityContext": {
             "capabilities": {
-              "add": [
-                "SYS_ADMIN"
-              ]
+              "add": ["SYS_ADMIN"]
             }
           }
         },
@@ -751,9 +747,7 @@
         "enabled": false,
         "virtualService": {
           "enabled": false,
-          "hosts": [
-            "changedetection.local"
-          ]
+          "hosts": ["changedetection.local"]
         }
       },
       "argoCd": {
@@ -1162,9 +1156,7 @@
         "runAsGroup": 1000,
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         }
       },
       "endpoint": {
@@ -1230,11 +1222,7 @@
     "version": "0.1.4",
     "appVersion": "15",
     "type": "application",
-    "keywords": [
-      "forgejo",
-      "git",
-      "devops"
-    ],
+    "keywords": ["forgejo", "git", "devops"],
     "home": "https://forgejo.org/",
     "sources": [
       "https://codeberg.org/forgejo/forgejo",
@@ -1701,9 +1689,7 @@
         "runAsNonRoot": true,
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         }
       },
       "service": {
@@ -1747,9 +1733,7 @@
       "tolerations": [],
       "persistence": {
         "enabled": true,
-        "accessModes": [
-          "ReadWriteOnce"
-        ],
+        "accessModes": ["ReadWriteOnce"],
         "size": "10Gi",
         "storageClass": ""
       },
@@ -1828,12 +1812,7 @@
     "version": "0.2.19",
     "appVersion": "1.0",
     "type": "application",
-    "keywords": [
-      "foundry",
-      "foundryvtt",
-      "tabletop",
-      "gaming"
-    ],
+    "keywords": ["foundry", "foundryvtt", "tabletop", "gaming"],
     "home": "https://foundryvtt.com/",
     "sources": [],
     "helmRepo": "https://mbround18.github.io/helm-charts",
@@ -2347,9 +2326,7 @@
         "allowPrivilegeEscalation": false,
         "readOnlyRootFilesystem": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         }
       },
       "podAnnotations": {},
@@ -2390,41 +2367,31 @@
           "enabled": true,
           "storageClassName": "longhorn",
           "size": "10Gi",
-          "accessModes": [
-            "ReadWriteMany"
-          ]
+          "accessModes": ["ReadWriteMany"]
         },
         "config": {
           "enabled": true,
           "storageClassName": "longhorn",
           "size": "1Gi",
-          "accessModes": [
-            "ReadWriteOnce"
-          ]
+          "accessModes": ["ReadWriteOnce"]
         },
         "data": {
           "enabled": true,
           "storageClassName": "longhorn",
           "size": "20Gi",
-          "accessModes": [
-            "ReadWriteMany"
-          ]
+          "accessModes": ["ReadWriteMany"]
         },
         "core": {
           "enabled": true,
           "storageClassName": "longhorn",
           "size": "2Gi",
-          "accessModes": [
-            "ReadWriteOnce"
-          ]
+          "accessModes": ["ReadWriteOnce"]
         },
         "app": {
           "enabled": true,
           "storageClassName": "longhorn",
           "size": "4Gi",
-          "accessModes": [
-            "ReadWriteOnce"
-          ]
+          "accessModes": ["ReadWriteOnce"]
         }
       },
       "extraVolumeClaimTemplates": [],
@@ -2901,9 +2868,7 @@
       "istio-ingress": {
         "enabled": true,
         "virtualService": {
-          "hosts": [
-            "grafana.example.com"
-          ]
+          "hosts": ["grafana.example.com"]
         },
         "tls": {
           "enabled": true,
@@ -2941,9 +2906,7 @@
           "type": "pvc",
           "size": "10Gi",
           "storageClassName": "standard",
-          "accessModes": [
-            "ReadWriteOnce"
-          ]
+          "accessModes": ["ReadWriteOnce"]
         },
         "grafana.ini": {
           "database": {
@@ -3397,9 +3360,7 @@
         "repository": "mbround18/helmhub",
         "tag": "latest",
         "pullPolicy": "IfNotPresent",
-        "command": [
-          "/app/helm-hub"
-        ]
+        "command": ["/app/helm-hub"]
       },
       "service": {
         "type": "ClusterIP",
@@ -3436,9 +3397,7 @@
         "enabled": false,
         "virtualService": {
           "enabled": false,
-          "hosts": [
-            "helm-hub.local"
-          ]
+          "hosts": ["helm-hub.local"]
         }
       },
       "argoCd": {
@@ -3958,9 +3917,7 @@
       "securityContext": {
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         },
         "readOnlyRootFilesystem": false,
         "runAsNonRoot": true,
@@ -4257,9 +4214,7 @@
               "protocol": "HTTP",
               "name": "http"
             },
-            "hosts": [
-              "*"
-            ]
+            "hosts": ["*"]
           }
         ]
       },
@@ -4267,9 +4222,7 @@
         "enabled": true,
         "name": "",
         "namespace": "",
-        "hosts": [
-          ""
-        ],
+        "hosts": [""],
         "gateways": [],
         "http": [],
         "tls": [],
@@ -4836,9 +4789,7 @@
         "runAsGroup": 1000,
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         }
       },
       "resources": {},
@@ -5270,9 +5221,7 @@
         "enabled": false,
         "virtualService": {
           "enabled": true,
-          "hosts": [
-            "meilisearch.example.com"
-          ]
+          "hosts": ["meilisearch.example.com"]
         },
         "gateway": {
           "enabled": true,
@@ -5286,9 +5235,7 @@
                 "protocol": "HTTP",
                 "name": "http"
               },
-              "hosts": [
-                "*"
-              ]
+              "hosts": ["*"]
             }
           ]
         },
@@ -5310,12 +5257,8 @@
         "enabled": false,
         "indexSecret": "meilisearch-api-key",
         "apiKeyDescription": "Provisioned API Key",
-        "apiKeyActions": [
-          "*"
-        ],
-        "apiKeyIndexes": [
-          "*"
-        ]
+        "apiKeyActions": ["*"],
+        "apiKeyIndexes": ["*"]
       }
     }
   },
@@ -5772,21 +5715,15 @@
         "enabled": true,
         "gatewayAnnotations": {},
         "virtualServiceAnnotations": {},
-        "hosts": [
-          "o2.example.com"
-        ],
-        "grpcPaths": [
-          "/v1/otlp/*"
-        ],
+        "hosts": ["o2.example.com"],
+        "grpcPaths": ["/v1/otlp/*"],
         "tls": []
       },
       "persistence": {
         "enabled": true,
         "storageClass": "longhorn",
         "size": "20Gi",
-        "accessModes": [
-          "ReadWriteOnce"
-        ]
+        "accessModes": ["ReadWriteOnce"]
       },
       "resources": {
         "limits": {
@@ -6132,9 +6069,7 @@
         "readOnlyRootFilesystem": true,
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         }
       },
       "resources": {
@@ -6162,13 +6097,7 @@
         },
         "processors": {
           "resourcedetection": {
-            "detectors": [
-              "env",
-              "gcp",
-              "ec2",
-              "ecs",
-              "eks"
-            ],
+            "detectors": ["env", "gcp", "ec2", "ecs", "eks"],
             "timeout": "2s",
             "override": false
           }
@@ -6185,45 +6114,22 @@
           }
         },
         "service": {
-          "extensions": [
-            "health_check"
-          ],
+          "extensions": ["health_check"],
           "pipelines": {
             "traces": {
-              "receivers": [
-                "otlp"
-              ],
-              "processors": [
-                "memory_limiter",
-                "batch"
-              ],
-              "exporters": [
-                "logging"
-              ]
+              "receivers": ["otlp"],
+              "processors": ["memory_limiter", "batch"],
+              "exporters": ["logging"]
             },
             "metrics": {
-              "receivers": [
-                "otlp"
-              ],
-              "processors": [
-                "memory_limiter",
-                "batch"
-              ],
-              "exporters": [
-                "logging"
-              ]
+              "receivers": ["otlp"],
+              "processors": ["memory_limiter", "batch"],
+              "exporters": ["logging"]
             },
             "logs": {
-              "receivers": [
-                "otlp"
-              ],
-              "processors": [
-                "memory_limiter",
-                "batch"
-              ],
-              "exporters": [
-                "logging"
-              ]
+              "receivers": ["otlp"],
+              "processors": ["memory_limiter", "batch"],
+              "exporters": ["logging"]
             }
           }
         }
@@ -6252,9 +6158,7 @@
       "networkPolicy": {
         "enabled": false,
         "allowPrometheusScraping": false,
-        "prometheusNamespaces": [
-          "monitoring"
-        ]
+        "prometheusNamespaces": ["monitoring"]
       },
       "service": {
         "main": {
@@ -6660,9 +6564,7 @@
         "runAsGroup": 1000,
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         }
       },
       "endpoint": {
@@ -7399,9 +7301,7 @@
         "hosts": [
           {
             "host": "syncthing.local",
-            "paths": [
-              "/"
-            ]
+            "paths": ["/"]
           }
         ]
       },
@@ -8420,9 +8320,7 @@
         "runAsGroup": 65534,
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         },
         "readOnlyRootFilesystem": false
       },
@@ -8529,12 +8427,8 @@
           "external-dns.alpha.kubernetes.io/hostname": "key.bruno.fyi",
           "external-dns.alpha.kubernetes.io/ttl": "300"
         },
-        "gateways": [
-          "vaultwarden-gateway"
-        ],
-        "hosts": [
-          "key.bruno.fyi"
-        ],
+        "gateways": ["vaultwarden-gateway"],
+        "hosts": ["key.bruno.fyi"],
         "pathPrefix": "/"
       },
       "nodeSelector": {},
@@ -8548,15 +8442,9 @@
     "version": "0.1.18",
     "appVersion": "v0.0.3",
     "type": "application",
-    "keywords": [
-      "vein",
-      "game-server",
-      "valheim-inspired"
-    ],
+    "keywords": ["vein", "game-server", "valheim-inspired"],
     "home": "https://github.com/mbround18/vein-docker",
-    "sources": [
-      "https://github.com/mbround18/vein-docker"
-    ],
+    "sources": ["https://github.com/mbround18/vein-docker"],
     "helmRepo": "https://mbround18.github.io/helm-charts",
     "installName": "vein",
     "dependencies": [
@@ -8915,9 +8803,7 @@
         "runAsGroup": 1000,
         "allowPrivilegeEscalation": false,
         "capabilities": {
-          "drop": [
-            "ALL"
-          ]
+          "drop": ["ALL"]
         },
         "readOnlyRootFilesystem": false
       },
@@ -9259,17 +9145,13 @@
       },
       "ingress": {
         "enabled": false,
-        "hosts": [
-          "wikijs.local"
-        ]
+        "hosts": ["wikijs.local"]
       },
       "istio-ingress": {
         "enabled": false,
         "virtualService": {
           "enabled": true,
-          "hosts": [
-            "wikijs.local"
-          ],
+          "hosts": ["wikijs.local"],
           "route": {
             "host": "wikijs",
             "port": 3000
@@ -9287,9 +9169,7 @@
                 "protocol": "HTTP",
                 "name": "http"
               },
-              "hosts": [
-                "*"
-              ]
+              "hosts": ["*"]
             }
           ]
         },
@@ -9333,12 +9213,8 @@
           "enabled": true,
           "indexSecret": "meilisearch-wikijs-data",
           "apiKeyDescription": "Wiki.js API Key",
-          "apiKeyActions": [
-            "*"
-          ],
-          "apiKeyIndexes": [
-            "*"
-          ]
+          "apiKeyActions": ["*"],
+          "apiKeyIndexes": ["*"]
         }
       },
       "postgres": {

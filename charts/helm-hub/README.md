@@ -18,15 +18,15 @@ helm upgrade --install helm-hub ./charts/helm-hub --namespace helm-hub --create-
 
 ## Configuration
 
-| Parameter | Description | Default |
-| --------- | ----------- | ------- |
-| `image.repository` | Main application image | `mbround18/helm-hub` |
-| `image.tag` | Image version | `latest` |
-| `persistence.enabled` | Enable chart storage PVC | `true` |
-| `persistence.accessMode` | Storage access mode | `ReadWriteMany` |
-| `persistence.size` | Storage size | `10Gi` |
-| `postgres.enabled` | Enable internal database | `true` |
-| `metrics.enabled` | Expose Prometheus metrics | `true` |
+| Parameter                | Description               | Default              |
+| ------------------------ | ------------------------- | -------------------- |
+| `image.repository`       | Main application image    | `mbround18/helm-hub` |
+| `image.tag`              | Image version             | `latest`             |
+| `persistence.enabled`    | Enable chart storage PVC  | `true`               |
+| `persistence.accessMode` | Storage access mode       | `ReadWriteMany`      |
+| `persistence.size`       | Storage size              | `10Gi`               |
+| `postgres.enabled`       | Enable internal database  | `true`               |
+| `metrics.enabled`        | Expose Prometheus metrics | `true`               |
 
 ## Usage Examples
 

@@ -15,21 +15,20 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: <release-name>        # e.g. forgejo
-  namespace: <namespace>      # e.g. forgejo
+  name: <release-name> # e.g. forgejo
+  namespace: <namespace> # e.g. forgejo
 spec:
   interval: 10m
   chart:
     spec:
-      chart: <chart-name>     # e.g. forgejo
-      version: "<version>"    # e.g. "0.1.4"  (semver constraint supported)
+      chart: <chart-name> # e.g. forgejo
+      version: "<version>" # e.g. "0.1.4"  (semver constraint supported)
       sourceRef:
         kind: HelmRepository
         name: mbround18
         namespace: flux-system
   # Override values inline (or use valuesFrom to reference a ConfigMap/Secret)
-  values:
-    {}
+  values: {}
   # Uncomment to pull sensitive values from a Secret
   # valuesFrom:
   #   - kind: Secret

@@ -122,9 +122,21 @@ def flatten_values_keys(values: dict, prefix: str = "") -> list[dict]:
             items.append({"key": path, "type": "object", "default": None})
             for sk, sv in v.items():
                 styp = type(sv).__name__ if sv is not None else "null"
-                items.append({"key": f"{path}.{sk}", "type": styp, "default": sv if not isinstance(sv, (dict, list)) else None})
+                items.append(
+                    {
+                        "key": f"{path}.{sk}",
+                        "type": styp,
+                        "default": sv if not isinstance(sv, (dict, list)) else None,
+                    }
+                )
         else:
-            items.append({"key": path, "type": typ, "default": v if not isinstance(v, (dict, list)) else None})
+            items.append(
+                {
+                    "key": path,
+                    "type": typ,
+                    "default": v if not isinstance(v, (dict, list)) else None,
+                }
+            )
     return items
 
 
@@ -460,9 +472,7 @@ def write_skill(charts_json: dict, crds_json: dict) -> None:
         json.dumps(charts_json, indent=2, default=str)
     )
 
-    (refs_dir / "crds.json").write_text(
-        json.dumps(crds_json, indent=2, default=str)
-    )
+    (refs_dir / "crds.json").write_text(json.dumps(crds_json, indent=2, default=str))
 
     (assets_dir / "argocd-application.yaml").write_text(ARGOCD_APPLICATION_YAML)
     (assets_dir / "fluxcd-helmrelease.yaml").write_text(FLUXCD_HELMRELEASE_YAML)
