@@ -5,6 +5,12 @@
 nameOverride: "otel-collector"
 fullnameOverride: "otel-collector"
 
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 # -- Deployment strategy, can be 'deployment' or 'daemonset'
 # For gateway a 'deployment' is preferred
 # For agent-per-node a 'daemonset' is preferred
