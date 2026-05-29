@@ -5,13 +5,13 @@ version: 0.2.37
 appVersion: '2.5'
 dependencies:
 - name: postgres
-  version: 0.1.17
+  version: 0.1.22
   repository: https://mbround18.github.io/helm-charts
 - name: istio-ingress
-  version: 0.1.4
+  version: 0.1.9
   repository: https://mbround18.github.io/helm-charts
   condition: istio-ingress.enabled
 - name: meilisearch
-  version: 0.1.16
+  version: 0.1.22
   repository: https://mbround18.github.io/helm-charts
   condition: meilisearch.enabled
