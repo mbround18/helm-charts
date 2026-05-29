@@ -10,7 +10,7 @@ dependencies:
   repository: https://grafana.github.io/helm-charts
   alias: upstream-grafana
 - name: istio-ingress
-  version: 0.1.9
+  version: 0.1.10
   repository: file://../istio-ingress
 - name: gitops-tools
   version: 0.1.1
