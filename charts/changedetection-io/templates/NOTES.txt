@@ -1,0 +1,27 @@
+Thank you for installing changedetection.io via Helm!
+
+- The application stores its data under `/datastore`.
+- By default, Sockpuppet (Playwright) sidecar is enabled for JavaScript-heavy site monitoring.
+- To enable Istio VirtualService merge, set `istio-ingress.enabled=true` and configure `istio-ingress.virtualService.route` values.
+
+Examples:
+
+Enable standard ingress:
+
+  ingress:
+    enabled: true
+    hosts:
+      - host: changedetection.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+Access the UI at:
+{{- if .Values.ingress.enabled }}
+  http{{ if .Values.ingress.tls }}s{{ end }}://{{ (index .Values.ingress.hosts 0).host }}
+{{- else if (index .Values "istio-ingress" "enabled") }}
+  http://{{ index (index .Values "istio-ingress" "virtualService" "hosts") 0 }}
+{{- else }}
+  kubectl port-forward svc/{{ include "changedetection-io.fullname" . }} 8080:80
+  Access via http://localhost:8080
+{{- end }}

@@ -1,0 +1,32 @@
+{{- if (index .Values "istio-ingress" "enabled") -}}
+{{- $fullName := include "changedetection-io.fullname" . -}}
+{{- $istioCfg := index .Values "istio-ingress" -}}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ $fullName }}-vs
+  labels:
+    {{- include "changedetection-io.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ if (and $istioCfg.argoCd (hasKey $istioCfg.argoCd "syncWave")) }}{{ $istioCfg.argoCd.syncWave | quote }}{{ else }}"40"{{ end }}
+    {{- if $istioCfg.externalDns.enabled }}
+    {{- toYaml $istioCfg.externalDns.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  hosts:
+    {{- range $istioCfg.virtualService.hosts }}
+    - {{ . | quote }}
+    {{- end }}
+  gateways:
+    - {{ printf "%s-istio-ingress-gateway" .Release.Name }}
+  http:
+    - name: "changedetection-web"
+      match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: {{ $fullName }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end }}

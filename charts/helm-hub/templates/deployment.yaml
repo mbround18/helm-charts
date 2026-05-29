@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm-hub.fullname" . }}
+  labels:
+    {{- include "helm-hub.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "helm-hub.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "helm-hub.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "helm-hub.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.postgres.enabled }}
+      initContainers:
+        - name: wait-for-db
+          image: alpine:3.21
+          command: ['sh', '-c', 'until nc -z -w 2 {{ include "helm-hub.databaseHost" . }}.{{ .Release.Namespace }}.svc.cluster.local 5432; do echo waiting for database at {{ include "helm-hub.databaseHost" . }}.{{ .Release.Namespace }}.svc.cluster.local; sleep 2; done;']
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.image.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+          env:
+            - name: DATABASE_URL
+              {{- if .Values.postgres.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-hub.fullname" . }}-db-conn
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-hub.fullname" . }}-db-conn
+                  key: JWT_SECRET
+              {{- else }}
+              value: {{ printf "postgres://%s:%s@%s:%d/%s" (include "helm-hub.databaseUser" .) (.Values.database.password | default "") (include "helm-hub.databaseHost" .) (int .Values.database.port) (include "helm-hub.databaseName" .) | quote }}
+              {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "helm-hub.fullname" . }}
+            {{- if .Values.secrets }}
+            - secretRef:
+                name: {{ include "helm-hub.fullname" . }}
+            {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "helm-hub.fullname" .) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

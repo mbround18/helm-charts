@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: postgres-init-scripts
+  name: {{ include "postgres.fullname" . }}-init-scripts
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 data:
@@ -32,4 +34,9 @@ data:
         -- Grant schema usage
         \c $APP_DB
         GRANT ALL ON SCHEMA public TO $APP_USER;
+
+        -- Create required extensions (must be done as superuser)
+        CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
+        CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+        CREATE EXTENSION IF NOT EXISTS "pg_buffercache";
     EOSQL

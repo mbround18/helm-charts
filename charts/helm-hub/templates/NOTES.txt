@@ -1,0 +1,19 @@
+Thank you for installing Helm Hub via Helm!
+
+- The application uses a database for metadata and a shared volume for chart storage.
+- By default, an internal PostgreSQL statefulset is enabled.
+- Chart storage is configured with `ReadWriteMany` by default to support scaling.
+- To enable Istio VirtualService merge, set `istio-ingress.enabled=true`.
+
+Access the UI at:
+{{- if .Values.ingress.enabled }}
+  http{{ if .Values.ingress.tls }}s{{ end }}://{{ (index .Values.ingress.hosts 0).host }}
+{{- else if (index .Values "istio-ingress" "enabled") }}
+  http://{{ index (index .Values "istio-ingress" "virtualService" "hosts") 0 }}
+{{- else }}
+  kubectl port-forward svc/{{ include "helm-hub.fullname" . }} 8080:80
+  Access via http://localhost:8080
+{{- end }}
+
+Prometheus Metrics:
+  {{ include "helm-hub.fullname" . }}:{{ .Values.metrics.port }}/metrics

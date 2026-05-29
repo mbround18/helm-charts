@@ -1,0 +1,3720 @@
+{
+  "argocd-application": {
+    "crd": "applications.argoproj.io",
+    "version": "v1alpha1",
+    "group": "argoproj.io",
+    "scope": "Namespaced",
+    "spec": {
+      "description": "ApplicationSpec represents desired application state. Contains link to repository with application definition and additional parameters link definition revision.",
+      "properties": {
+        "destination": {
+          "description": "Destination is a reference to the target Kubernetes server and namespace",
+          "properties": {
+            "name": {
+              "description": "Name is an alternate way of specifying the target cluster by its symbolic name. This must be set if Server is not set.",
+              "type": "string"
+            },
+            "namespace": {
+              "description": "Namespace specifies the target namespace for the application's resources.\nThe namespace will only be set for namespace-scoped resources that have not set a value for .metadata.namespace",
+              "type": "string"
+            },
+            "server": {
+              "description": "Server specifies the URL of the target cluster's Kubernetes control plane API. This must be set if Name is not set.",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "ignoreDifferences": {
+          "description": "IgnoreDifferences is a list of resources and their fields which should be ignored during comparison",
+          "items": {
+            "description": "ResourceIgnoreDifferences contains resource filter and list of json paths which should be ignored during comparison with live state.",
+            "properties": {
+              "group": {
+                "type": "string"
+              },
+              "jqPathExpressions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "jsonPointers": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "managedFieldsManagers": {
+                "description": "ManagedFieldsManagers is a list of trusted managers. Fields mutated by those managers will take precedence over the\ndesired state defined in the SCM and won't be displayed in diffs",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              }
+            },
+            "required": ["kind"],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "info": {
+          "description": "Info contains a list of information (URLs, email addresses, and plain text) that relates to the application",
+          "items": {
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": ["name", "value"],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "project": {
+          "description": "Project is a reference to the project this application belongs to.\nThe empty string means that application belongs to the 'default' project.",
+          "type": "string"
+        },
+        "revisionHistoryLimit": {
+          "description": "RevisionHistoryLimit limits the number of items kept in the application's revision history, which is used for informational purposes as well as for rollbacks to previous versions.\nThis should only be changed in exceptional circumstances.\nSetting to zero will store no history. This will reduce storage used.\nIncreasing will increase the space used to store the history, so we do not recommend increasing it.\nDefault is 10.",
+          "format": "int64",
+          "type": "integer"
+        },
+        "source": {
+          "description": "Source is a reference to the location of the application's manifests or chart",
+          "properties": {
+            "chart": {
+              "description": "Chart is a Helm chart name, and must be specified for applications sourced from a Helm repo.",
+              "type": "string"
+            },
+            "directory": {
+              "description": "Directory holds path/directory specific options",
+              "properties": {
+                "exclude": {
+                  "description": "Exclude contains a glob pattern to match paths against that should be explicitly excluded from being used during manifest generation",
+                  "type": "string"
+                },
+                "include": {
+                  "description": "Include contains a glob pattern to match paths against that should be explicitly included during manifest generation",
+                  "type": "string"
+                },
+                "jsonnet": {
+                  "description": "Jsonnet holds options specific to Jsonnet",
+                  "properties": {
+                    "extVars": {
+                      "description": "ExtVars is a list of Jsonnet External Variables",
+                      "items": {
+                        "description": "JsonnetVar represents a variable to be passed to jsonnet during manifest generation",
+                        "properties": {
+                          "code": {
+                            "type": "boolean"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["name", "value"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "libs": {
+                      "description": "Additional library search dirs",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "tlas": {
+                      "description": "TLAS is a list of Jsonnet Top-level Arguments",
+                      "items": {
+                        "description": "JsonnetVar represents a variable to be passed to jsonnet during manifest generation",
+                        "properties": {
+                          "code": {
+                            "type": "boolean"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["name", "value"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                },
+                "recurse": {
+                  "description": "Recurse specifies whether to scan a directory recursively for manifests",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "helm": {
+              "description": "Helm holds helm specific options",
+              "properties": {
+                "apiVersions": {
+                  "description": "APIVersions specifies the Kubernetes resource API versions to pass to Helm when templating manifests. By default,\nArgo CD uses the API versions of the target cluster. The format is [group/]version/kind.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "fileParameters": {
+                  "description": "FileParameters are file parameters to the helm template",
+                  "items": {
+                    "description": "HelmFileParameter is a file parameter that's passed to helm template during manifest generation",
+                    "properties": {
+                      "name": {
+                        "description": "Name is the name of the Helm parameter",
+                        "type": "string"
+                      },
+                      "path": {
+                        "description": "Path is the path to the file containing the values for the Helm parameter",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "ignoreMissingValueFiles": {
+                  "description": "IgnoreMissingValueFiles prevents helm template from failing when valueFiles do not exist locally by not appending them to helm template --values",
+                  "type": "boolean"
+                },
+                "kubeVersion": {
+                  "description": "KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD\nuses the Kubernetes version of the target cluster.",
+                  "type": "string"
+                },
+                "namespace": {
+                  "description": "Namespace is an optional namespace to template with. If left empty, defaults to the app's destination namespace.",
+                  "type": "string"
+                },
+                "parameters": {
+                  "description": "Parameters is a list of Helm parameters which are passed to the helm template command upon manifest generation",
+                  "items": {
+                    "description": "HelmParameter is a parameter that's passed to helm template during manifest generation",
+                    "properties": {
+                      "forceString": {
+                        "description": "ForceString determines whether to tell Helm to interpret booleans and numbers as strings",
+                        "type": "boolean"
+                      },
+                      "name": {
+                        "description": "Name is the name of the Helm parameter",
+                        "type": "string"
+                      },
+                      "value": {
+                        "description": "Value is the value for the Helm parameter",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "passCredentials": {
+                  "description": "PassCredentials pass credentials to all domains (Helm's --pass-credentials)",
+                  "type": "boolean"
+                },
+                "releaseName": {
+                  "description": "ReleaseName is the Helm release name to use. If omitted it will use the application name",
+                  "type": "string"
+                },
+                "skipCrds": {
+                  "description": "SkipCrds skips custom resource definition installation step (Helm's --skip-crds)",
+                  "type": "boolean"
+                },
+                "skipSchemaValidation": {
+                  "description": "SkipSchemaValidation skips JSON schema validation (Helm's --skip-schema-validation)",
+                  "type": "boolean"
+                },
+                "skipTests": {
+                  "description": "SkipTests skips test manifest installation step (Helm's --skip-tests).",
+                  "type": "boolean"
+                },
+                "valueFiles": {
+                  "description": "ValuesFiles is a list of Helm value files to use when generating a template",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "values": {
+                  "description": "Values specifies Helm values to be passed to helm template, typically defined as a block. ValuesObject takes precedence over Values, so use one or the other.",
+                  "type": "string"
+                },
+                "valuesObject": {
+                  "description": "ValuesObject specifies Helm values to be passed to helm template, defined as a map. This takes precedence over Values.",
+                  "type": "object",
+                  "x-kubernetes-preserve-unknown-fields": true
+                },
+                "version": {
+                  "description": "Version is the Helm version to use for templating (\"3\")",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "kustomize": {
+              "description": "Kustomize holds kustomize specific options",
+              "properties": {
+                "apiVersions": {
+                  "description": "APIVersions specifies the Kubernetes resource API versions to pass to Helm when templating manifests. By default,\nArgo CD uses the API versions of the target cluster. The format is [group/]version/kind.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "commonAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "CommonAnnotations is a list of additional annotations to add to rendered manifests",
+                  "type": "object"
+                },
+                "commonAnnotationsEnvsubst": {
+                  "description": "CommonAnnotationsEnvsubst specifies whether to apply env variables substitution for annotation values",
+                  "type": "boolean"
+                },
+                "commonLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "CommonLabels is a list of additional labels to add to rendered manifests",
+                  "type": "object"
+                },
+                "components": {
+                  "description": "Components specifies a list of kustomize components to add to the kustomization before building",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "forceCommonAnnotations": {
+                  "description": "ForceCommonAnnotations specifies whether to force applying common annotations to resources for Kustomize apps",
+                  "type": "boolean"
+                },
+                "forceCommonLabels": {
+                  "description": "ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps",
+                  "type": "boolean"
+                },
+                "ignoreMissingComponents": {
+                  "description": "IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file",
+                  "type": "boolean"
+                },
+                "images": {
+                  "description": "Images is a list of Kustomize image override specifications",
+                  "items": {
+                    "description": "KustomizeImage represents a Kustomize image definition in the format [old_image_name=]<image_name>:<image_tag>",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "kubeVersion": {
+                  "description": "KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD\nuses the Kubernetes version of the target cluster.",
+                  "type": "string"
+                },
+                "labelIncludeTemplates": {
+                  "description": "LabelIncludeTemplates specifies whether to apply common labels to resource templates or not",
+                  "type": "boolean"
+                },
+                "labelWithoutSelector": {
+                  "description": "LabelWithoutSelector specifies whether to apply common labels to resource selectors or not",
+                  "type": "boolean"
+                },
+                "namePrefix": {
+                  "description": "NamePrefix overrides the namePrefix in the kustomization.yaml for Kustomize apps",
+                  "type": "string"
+                },
+                "nameSuffix": {
+                  "description": "NameSuffix overrides the nameSuffix in the kustomization.yaml for Kustomize apps",
+                  "type": "string"
+                },
+                "namespace": {
+                  "description": "Namespace sets the namespace that Kustomize adds to all resources",
+                  "type": "string"
+                },
+                "patches": {
+                  "description": "Patches is a list of Kustomize patches",
+                  "items": {
+                    "properties": {
+                      "options": {
+                        "additionalProperties": {
+                          "type": "boolean"
+                        },
+                        "type": "object"
+                      },
+                      "patch": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "properties": {
+                          "annotationSelector": {
+                            "type": "string"
+                          },
+                          "group": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string"
+                          },
+                          "labelSelector": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "namespace": {
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "replicas": {
+                  "description": "Replicas is a list of Kustomize Replicas override specifications",
+                  "items": {
+                    "properties": {
+                      "count": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ],
+                        "description": "Number of replicas",
+                        "x-kubernetes-int-or-string": true
+                      },
+                      "name": {
+                        "description": "Name of Deployment or StatefulSet",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["count", "name"],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "version": {
+                  "description": "Version controls which version of Kustomize to use for rendering manifests",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "name": {
+              "description": "Name is used to refer to a source and is displayed in the UI. It is used in multi-source Applications.",
+              "type": "string"
+            },
+            "path": {
+              "description": "Path is a directory path within the Git repository, and is only valid for applications sourced from Git.",
+              "type": "string"
+            },
+            "plugin": {
+              "description": "Plugin holds config management plugin specific options",
+              "properties": {
+                "env": {
+                  "description": "Env is a list of environment variable entries",
+                  "items": {
+                    "description": "EnvEntry represents an entry in the application's environment",
+                    "properties": {
+                      "name": {
+                        "description": "Name is the name of the variable, usually expressed in uppercase",
+                        "type": "string"
+                      },
+                      "value": {
+                        "description": "Value is the value of the variable",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["name", "value"],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "parameters": {
+                  "items": {
+                    "properties": {
+                      "array": {
+                        "description": "Array is the value of an array type parameter.",
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "map": {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "description": "Map is the value of a map type parameter.",
+                        "type": "object"
+                      },
+                      "name": {
+                        "description": "Name is the name identifying a parameter.",
+                        "type": "string"
+                      },
+                      "string": {
+                        "description": "String_ is the value of a string type parameter.",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "ref": {
+              "description": "Ref is reference to another source within sources field. This field will not be used if used with a `source` tag.",
+              "type": "string"
+            },
+            "repoURL": {
+              "description": "RepoURL is the URL to the repository (Git or Helm) that contains the application manifests",
+              "type": "string"
+            },
+            "targetRevision": {
+              "description": "TargetRevision defines the revision of the source to sync the application to.\nIn case of Git, this can be commit, tag, or branch. If omitted, will equal to HEAD.\nIn case of Helm, this is a semver tag for the Chart's version.",
+              "type": "string"
+            }
+          },
+          "required": ["repoURL"],
+          "type": "object"
+        },
+        "sourceHydrator": {
+          "description": "SourceHydrator provides a way to push hydrated manifests back to git before syncing them to the cluster.",
+          "properties": {
+            "drySource": {
+              "description": "DrySource specifies where the dry \"don't repeat yourself\" manifest source lives.",
+              "properties": {
+                "directory": {
+                  "description": "Directory specifies path/directory specific options",
+                  "properties": {
+                    "exclude": {
+                      "description": "Exclude contains a glob pattern to match paths against that should be explicitly excluded from being used during manifest generation",
+                      "type": "string"
+                    },
+                    "include": {
+                      "description": "Include contains a glob pattern to match paths against that should be explicitly included during manifest generation",
+                      "type": "string"
+                    },
+                    "jsonnet": {
+                      "description": "Jsonnet holds options specific to Jsonnet",
+                      "properties": {
+                        "extVars": {
+                          "description": "ExtVars is a list of Jsonnet External Variables",
+                          "items": {
+                            "description": "JsonnetVar represents a variable to be passed to jsonnet during manifest generation",
+                            "properties": {
+                              "code": {
+                                "type": "boolean"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["name", "value"],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "libs": {
+                          "description": "Additional library search dirs",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "tlas": {
+                          "description": "TLAS is a list of Jsonnet Top-level Arguments",
+                          "items": {
+                            "description": "JsonnetVar represents a variable to be passed to jsonnet during manifest generation",
+                            "properties": {
+                              "code": {
+                                "type": "boolean"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["name", "value"],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "recurse": {
+                      "description": "Recurse specifies whether to scan a directory recursively for manifests",
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "helm": {
+                  "description": "Helm specifies helm specific options",
+                  "properties": {
+                    "apiVersions": {
+                      "description": "APIVersions specifies the Kubernetes resource API versions to pass to Helm when templating manifests. By default,\nArgo CD uses the API versions of the target cluster. The format is [group/]version/kind.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "fileParameters": {
+                      "description": "FileParameters are file parameters to the helm template",
+                      "items": {
+                        "description": "HelmFileParameter is a file parameter that's passed to helm template during manifest generation",
+                        "properties": {
+                          "name": {
+                            "description": "Name is the name of the Helm parameter",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Path is the path to the file containing the values for the Helm parameter",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "ignoreMissingValueFiles": {
+                      "description": "IgnoreMissingValueFiles prevents helm template from failing when valueFiles do not exist locally by not appending them to helm template --values",
+                      "type": "boolean"
+                    },
+                    "kubeVersion": {
+                      "description": "KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD\nuses the Kubernetes version of the target cluster.",
+                      "type": "string"
+                    },
+                    "namespace": {
+                      "description": "Namespace is an optional namespace to template with. If left empty, defaults to the app's destination namespace.",
+                      "type": "string"
+                    },
+                    "parameters": {
+                      "description": "Parameters is a list of Helm parameters which are passed to the helm template command upon manifest generation",
+                      "items": {
+                        "description": "HelmParameter is a parameter that's passed to helm template during manifest generation",
+                        "properties": {
+                          "forceString": {
+                            "description": "ForceString determines whether to tell Helm to interpret booleans and numbers as strings",
+                            "type": "boolean"
+                          },
+                          "name": {
+                            "description": "Name is the name of the Helm parameter",
+                            "type": "string"
+                          },
+                          "value": {
+                            "description": "Value is the value for the Helm parameter",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "passCredentials": {
+                      "description": "PassCredentials pass credentials to all domains (Helm's --pass-credentials)",
+                      "type": "boolean"
+                    },
+                    "releaseName": {
+                      "description": "ReleaseName is the Helm release name to use. If omitted it will use the application name",
+                      "type": "string"
+                    },
+                    "skipCrds": {
+                      "description": "SkipCrds skips custom resource definition installation step (Helm's --skip-crds)",
+                      "type": "boolean"
+                    },
+                    "skipSchemaValidation": {
+                      "description": "SkipSchemaValidation skips JSON schema validation (Helm's --skip-schema-validation)",
+                      "type": "boolean"
+                    },
+                    "skipTests": {
+                      "description": "SkipTests skips test manifest installation step (Helm's --skip-tests).",
+                      "type": "boolean"
+                    },
+                    "valueFiles": {
+                      "description": "ValuesFiles is a list of Helm value files to use when generating a template",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "values": {
+                      "description": "Values specifies Helm values to be passed to helm template, typically defined as a block. ValuesObject takes precedence over Values, so use one or the other.",
+                      "type": "string"
+                    },
+                    "valuesObject": {
+                      "description": "ValuesObject specifies Helm values to be passed to helm template, defined as a map. This takes precedence over Values.",
+                      "type": "object",
+                      "x-kubernetes-preserve-unknown-fields": true
+                    },
+                    "version": {
+                      "description": "Version is the Helm version to use for templating (\"3\")",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "kustomize": {
+                  "description": "Kustomize specifies kustomize specific options",
+                  "properties": {
+                    "apiVersions": {
+                      "description": "APIVersions specifies the Kubernetes resource API versions to pass to Helm when templating manifests. By default,\nArgo CD uses the API versions of the target cluster. The format is [group/]version/kind.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "commonAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "CommonAnnotations is a list of additional annotations to add to rendered manifests",
+                      "type": "object"
+                    },
+                    "commonAnnotationsEnvsubst": {
+                      "description": "CommonAnnotationsEnvsubst specifies whether to apply env variables substitution for annotation values",
+                      "type": "boolean"
+                    },
+                    "commonLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "CommonLabels is a list of additional labels to add to rendered manifests",
+                      "type": "object"
+                    },
+                    "components": {
+                      "description": "Components specifies a list of kustomize components to add to the kustomization before building",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "forceCommonAnnotations": {
+                      "description": "ForceCommonAnnotations specifies whether to force applying common annotations to resources for Kustomize apps",
+                      "type": "boolean"
+                    },
+                    "forceCommonLabels": {
+                      "description": "ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps",
+                      "type": "boolean"
+                    },
+                    "ignoreMissingComponents": {
+                      "description": "IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file",
+                      "type": "boolean"
+                    },
+                    "images": {
+                      "description": "Images is a list of Kustomize image override specifications",
+                      "items": {
+                        "description": "KustomizeImage represents a Kustomize image definition in the format [old_image_name=]<image_name>:<image_tag>",
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "kubeVersion": {
+                      "description": "KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD\nuses the Kubernetes version of the target cluster.",
+                      "type": "string"
+                    },
+                    "labelIncludeTemplates": {
+                      "description": "LabelIncludeTemplates specifies whether to apply common labels to resource templates or not",
+                      "type": "boolean"
+                    },
+                    "labelWithoutSelector": {
+                      "description": "LabelWithoutSelector specifies whether to apply common labels to resource selectors or not",
+                      "type": "boolean"
+                    },
+                    "namePrefix": {
+                      "description": "NamePrefix overrides the namePrefix in the kustomization.yaml for Kustomize apps",
+                      "type": "string"
+                    },
+                    "nameSuffix": {
+                      "description": "NameSuffix overrides the nameSuffix in the kustomization.yaml for Kustomize apps",
+                      "type": "string"
+                    },
+                    "namespace": {
+                      "description": "Namespace sets the namespace that Kustomize adds to all resources",
+                      "type": "string"
+                    },
+                    "patches": {
+                      "description": "Patches is a list of Kustomize patches",
+                      "items": {
+                        "properties": {
+                          "options": {
+                            "additionalProperties": {
+                              "type": "boolean"
+                            },
+                            "type": "object"
+                          },
+                          "patch": {
+                            "type": "string"
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "target": {
+                            "properties": {
+                              "annotationSelector": {
+                                "type": "string"
+                              },
+                              "group": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string"
+                              },
+                              "labelSelector": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "namespace": {
+                                "type": "string"
+                              },
+                              "version": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "replicas": {
+                      "description": "Replicas is a list of Kustomize Replicas override specifications",
+                      "items": {
+                        "properties": {
+                          "count": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ],
+                            "description": "Number of replicas",
+                            "x-kubernetes-int-or-string": true
+                          },
+                          "name": {
+                            "description": "Name of Deployment or StatefulSet",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["count", "name"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "version": {
+                      "description": "Version controls which version of Kustomize to use for rendering manifests",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "path": {
+                  "description": "Path is a directory path within the Git repository where the manifests are located",
+                  "type": "string"
+                },
+                "plugin": {
+                  "description": "Plugin specifies config management plugin specific options",
+                  "properties": {
+                    "env": {
+                      "description": "Env is a list of environment variable entries",
+                      "items": {
+                        "description": "EnvEntry represents an entry in the application's environment",
+                        "properties": {
+                          "name": {
+                            "description": "Name is the name of the variable, usually expressed in uppercase",
+                            "type": "string"
+                          },
+                          "value": {
+                            "description": "Value is the value of the variable",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["name", "value"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "parameters": {
+                      "items": {
+                        "properties": {
+                          "array": {
+                            "description": "Array is the value of an array type parameter.",
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "map": {
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "Map is the value of a map type parameter.",
+                            "type": "object"
+                          },
+                          "name": {
+                            "description": "Name is the name identifying a parameter.",
+                            "type": "string"
+                          },
+                          "string": {
+                            "description": "String_ is the value of a string type parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                },
+                "repoURL": {
+                  "description": "RepoURL is the URL to the git repository that contains the application manifests",
+                  "type": "string"
+                },
+                "targetRevision": {
+                  "description": "TargetRevision defines the revision of the source to hydrate",
+                  "type": "string"
+                }
+              },
+              "required": ["path", "repoURL", "targetRevision"],
+              "type": "object"
+            },
+            "hydrateTo": {
+              "description": "HydrateTo specifies an optional \"staging\" location to push hydrated manifests to. An external system would then\nhave to move manifests to the SyncSource, e.g. by pull request.",
+              "properties": {
+                "targetBranch": {
+                  "description": "TargetBranch is the branch to which hydrated manifests should be committed",
+                  "type": "string"
+                }
+              },
+              "required": ["targetBranch"],
+              "type": "object"
+            },
+            "syncSource": {
+              "description": "SyncSource specifies where to sync hydrated manifests from.",
+              "properties": {
+                "path": {
+                  "description": "Path is a directory path within the git repository where hydrated manifests should be committed to and synced\nfrom. The Path should never point to the root of the repo. If hydrateTo is set, this is just the path from which\nhydrated manifests will be synced.",
+                  "minLength": 1,
+                  "pattern": "^.{2,}|[^./]$",
+                  "type": "string"
+                },
+                "targetBranch": {
+                  "description": "TargetBranch is the branch from which hydrated manifests will be synced.\nIf HydrateTo is not set, this is also the branch to which hydrated manifests are committed.",
+                  "type": "string"
+                }
+              },
+              "required": ["path", "targetBranch"],
+              "type": "object"
+            }
+          },
+          "required": ["drySource", "syncSource"],
+          "type": "object"
+        },
+        "sources": {
+          "description": "Sources is a reference to the location of the application's manifests or chart",
+          "items": {
+            "description": "ApplicationSource contains all required information about the source of an application",
+            "properties": {
+              "chart": {
+                "description": "Chart is a Helm chart name, and must be specified for applications sourced from a Helm repo.",
+                "type": "string"
+              },
+              "directory": {
+                "description": "Directory holds path/directory specific options",
+                "properties": {
+                  "exclude": {
+                    "description": "Exclude contains a glob pattern to match paths against that should be explicitly excluded from being used during manifest generation",
+                    "type": "string"
+                  },
+                  "include": {
+                    "description": "Include contains a glob pattern to match paths against that should be explicitly included during manifest generation",
+                    "type": "string"
+                  },
+                  "jsonnet": {
+                    "description": "Jsonnet holds options specific to Jsonnet",
+                    "properties": {
+                      "extVars": {
+                        "description": "ExtVars is a list of Jsonnet External Variables",
+                        "items": {
+                          "description": "JsonnetVar represents a variable to be passed to jsonnet during manifest generation",
+                          "properties": {
+                            "code": {
+                              "type": "boolean"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["name", "value"],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "libs": {
+                        "description": "Additional library search dirs",
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "tlas": {
+                        "description": "TLAS is a list of Jsonnet Top-level Arguments",
+                        "items": {
+                          "description": "JsonnetVar represents a variable to be passed to jsonnet during manifest generation",
+                          "properties": {
+                            "code": {
+                              "type": "boolean"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["name", "value"],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "recurse": {
+                    "description": "Recurse specifies whether to scan a directory recursively for manifests",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "helm": {
+                "description": "Helm holds helm specific options",
+                "properties": {
+                  "apiVersions": {
+                    "description": "APIVersions specifies the Kubernetes resource API versions to pass to Helm when templating manifests. By default,\nArgo CD uses the API versions of the target cluster. The format is [group/]version/kind.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "fileParameters": {
+                    "description": "FileParameters are file parameters to the helm template",
+                    "items": {
+                      "description": "HelmFileParameter is a file parameter that's passed to helm template during manifest generation",
+                      "properties": {
+                        "name": {
+                          "description": "Name is the name of the Helm parameter",
+                          "type": "string"
+                        },
+                        "path": {
+                          "description": "Path is the path to the file containing the values for the Helm parameter",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "ignoreMissingValueFiles": {
+                    "description": "IgnoreMissingValueFiles prevents helm template from failing when valueFiles do not exist locally by not appending them to helm template --values",
+                    "type": "boolean"
+                  },
+                  "kubeVersion": {
+                    "description": "KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD\nuses the Kubernetes version of the target cluster.",
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "description": "Namespace is an optional namespace to template with. If left empty, defaults to the app's destination namespace.",
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "description": "Parameters is a list of Helm parameters which are passed to the helm template command upon manifest generation",
+                    "items": {
+                      "description": "HelmParameter is a parameter that's passed to helm template during manifest generation",
+                      "properties": {
+                        "forceString": {
+                          "description": "ForceString determines whether to tell Helm to interpret booleans and numbers as strings",
+                          "type": "boolean"
+                        },
+                        "name": {
+                          "description": "Name is the name of the Helm parameter",
+                          "type": "string"
+                        },
+                        "value": {
+                          "description": "Value is the value for the Helm parameter",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "passCredentials": {
+                    "description": "PassCredentials pass credentials to all domains (Helm's --pass-credentials)",
+                    "type": "boolean"
+                  },
+                  "releaseName": {
+                    "description": "ReleaseName is the Helm release name to use. If omitted it will use the application name",
+                    "type": "string"
+                  },
+                  "skipCrds": {
+                    "description": "SkipCrds skips custom resource definition installation step (Helm's --skip-crds)",
+                    "type": "boolean"
+                  },
+                  "skipSchemaValidation": {
+                    "description": "SkipSchemaValidation skips JSON schema validation (Helm's --skip-schema-validation)",
+                    "type": "boolean"
+                  },
+                  "skipTests": {
+                    "description": "SkipTests skips test manifest installation step (Helm's --skip-tests).",
+                    "type": "boolean"
+                  },
+                  "valueFiles": {
+                    "description": "ValuesFiles is a list of Helm value files to use when generating a template",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "values": {
+                    "description": "Values specifies Helm values to be passed to helm template, typically defined as a block. ValuesObject takes precedence over Values, so use one or the other.",
+                    "type": "string"
+                  },
+                  "valuesObject": {
+                    "description": "ValuesObject specifies Helm values to be passed to helm template, defined as a map. This takes precedence over Values.",
+                    "type": "object",
+                    "x-kubernetes-preserve-unknown-fields": true
+                  },
+                  "version": {
+                    "description": "Version is the Helm version to use for templating (\"3\")",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "kustomize": {
+                "description": "Kustomize holds kustomize specific options",
+                "properties": {
+                  "apiVersions": {
+                    "description": "APIVersions specifies the Kubernetes resource API versions to pass to Helm when templating manifests. By default,\nArgo CD uses the API versions of the target cluster. The format is [group/]version/kind.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "commonAnnotations": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "CommonAnnotations is a list of additional annotations to add to rendered manifests",
+                    "type": "object"
+                  },
+                  "commonAnnotationsEnvsubst": {
+                    "description": "CommonAnnotationsEnvsubst specifies whether to apply env variables substitution for annotation values",
+                    "type": "boolean"
+                  },
+                  "commonLabels": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "CommonLabels is a list of additional labels to add to rendered manifests",
+                    "type": "object"
+                  },
+                  "components": {
+                    "description": "Components specifies a list of kustomize components to add to the kustomization before building",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "forceCommonAnnotations": {
+                    "description": "ForceCommonAnnotations specifies whether to force applying common annotations to resources for Kustomize apps",
+                    "type": "boolean"
+                  },
+                  "forceCommonLabels": {
+                    "description": "ForceCommonLabels specifies whether to force applying common labels to resources for Kustomize apps",
+                    "type": "boolean"
+                  },
+                  "ignoreMissingComponents": {
+                    "description": "IgnoreMissingComponents prevents kustomize from failing when components do not exist locally by not appending them to kustomization file",
+                    "type": "boolean"
+                  },
+                  "images": {
+                    "description": "Images is a list of Kustomize image override specifications",
+                    "items": {
+                      "description": "KustomizeImage represents a Kustomize image definition in the format [old_image_name=]<image_name>:<image_tag>",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "kubeVersion": {
+                    "description": "KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD\nuses the Kubernetes version of the target cluster.",
+                    "type": "string"
+                  },
+                  "labelIncludeTemplates": {
+                    "description": "LabelIncludeTemplates specifies whether to apply common labels to resource templates or not",
+                    "type": "boolean"
+                  },
+                  "labelWithoutSelector": {
+                    "description": "LabelWithoutSelector specifies whether to apply common labels to resource selectors or not",
+                    "type": "boolean"
+                  },
+                  "namePrefix": {
+                    "description": "NamePrefix overrides the namePrefix in the kustomization.yaml for Kustomize apps",
+                    "type": "string"
+                  },
+                  "nameSuffix": {
+                    "description": "NameSuffix overrides the nameSuffix in the kustomization.yaml for Kustomize apps",
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "description": "Namespace sets the namespace that Kustomize adds to all resources",
+                    "type": "string"
+                  },
+                  "patches": {
+                    "description": "Patches is a list of Kustomize patches",
+                    "items": {
+                      "properties": {
+                        "options": {
+                          "additionalProperties": {
+                            "type": "boolean"
+                          },
+                          "type": "object"
+                        },
+                        "patch": {
+                          "type": "string"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "target": {
+                          "properties": {
+                            "annotationSelector": {
+                              "type": "string"
+                            },
+                            "group": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string"
+                            },
+                            "labelSelector": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "namespace": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "replicas": {
+                    "description": "Replicas is a list of Kustomize Replicas override specifications",
+                    "items": {
+                      "properties": {
+                        "count": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ],
+                          "description": "Number of replicas",
+                          "x-kubernetes-int-or-string": true
+                        },
+                        "name": {
+                          "description": "Name of Deployment or StatefulSet",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["count", "name"],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "version": {
+                    "description": "Version controls which version of Kustomize to use for rendering manifests",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "name": {
+                "description": "Name is used to refer to a source and is displayed in the UI. It is used in multi-source Applications.",
+                "type": "string"
+              },
+              "path": {
+                "description": "Path is a directory path within the Git repository, and is only valid for applications sourced from Git.",
+                "type": "string"
+              },
+              "plugin": {
+                "description": "Plugin holds config management plugin specific options",
+                "properties": {
+                  "env": {
+                    "description": "Env is a list of environment variable entries",
+                    "items": {
+                      "description": "EnvEntry represents an entry in the application's environment",
+                      "properties": {
+                        "name": {
+                          "description": "Name is the name of the variable, usually expressed in uppercase",
+                          "type": "string"
+                        },
+                        "value": {
+                          "description": "Value is the value of the variable",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["name", "value"],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "items": {
+                      "properties": {
+                        "array": {
+                          "description": "Array is the value of an array type parameter.",
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "map": {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "description": "Map is the value of a map type parameter.",
+                          "type": "object"
+                        },
+                        "name": {
+                          "description": "Name is the name identifying a parameter.",
+                          "type": "string"
+                        },
+                        "string": {
+                          "description": "String_ is the value of a string type parameter.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              "ref": {
+                "description": "Ref is reference to another source within sources field. This field will not be used if used with a `source` tag.",
+                "type": "string"
+              },
+              "repoURL": {
+                "description": "RepoURL is the URL to the repository (Git or Helm) that contains the application manifests",
+                "type": "string"
+              },
+              "targetRevision": {
+                "description": "TargetRevision defines the revision of the source to sync the application to.\nIn case of Git, this can be commit, tag, or branch. If omitted, will equal to HEAD.\nIn case of Helm, this is a semver tag for the Chart's version.",
+                "type": "string"
+              }
+            },
+            "required": ["repoURL"],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "syncPolicy": {
+          "description": "SyncPolicy controls when and how a sync will be performed",
+          "properties": {
+            "automated": {
+              "description": "Automated will keep an application synced to the target revision",
+              "properties": {
+                "allowEmpty": {
+                  "description": "AllowEmpty allows apps have zero live resources (default: false)",
+                  "type": "boolean"
+                },
+                "enabled": {
+                  "description": "Enable allows apps to explicitly control automated sync",
+                  "type": "boolean"
+                },
+                "prune": {
+                  "description": "Prune specifies whether to delete resources from the cluster that are not found in the sources anymore as part of automated sync (default: false)",
+                  "type": "boolean"
+                },
+                "selfHeal": {
+                  "description": "SelfHeal specifies whether to revert resources back to their desired state upon modification in the cluster (default: false)",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "managedNamespaceMetadata": {
+              "description": "ManagedNamespaceMetadata controls metadata in the given namespace (if CreateNamespace=true)",
+              "properties": {
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "retry": {
+              "description": "Retry controls failed sync retry behavior",
+              "properties": {
+                "backoff": {
+                  "description": "Backoff controls how to backoff on subsequent retries of failed syncs",
+                  "properties": {
+                    "duration": {
+                      "description": "Duration is the amount to back off. Default unit is seconds, but could also be a duration (e.g. \"2m\", \"1h\")",
+                      "type": "string"
+                    },
+                    "factor": {
+                      "description": "Factor is a factor to multiply the base duration after each failed retry",
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "maxDuration": {
+                      "description": "MaxDuration is the maximum amount of time allowed for the backoff strategy",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "limit": {
+                  "description": "Limit is the maximum number of attempts for retrying a failed sync. If set to 0, no retries will be performed.",
+                  "format": "int64",
+                  "type": "integer"
+                },
+                "refresh": {
+                  "description": "Refresh indicates if the latest revision should be used on retry instead of the initial one (default: false)",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "syncOptions": {
+              "description": "Options allow you to specify whole app sync-options",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "required": ["destination", "project"],
+      "type": "object"
+    }
+  },
+  "fluxcd-helmrelease": {
+    "crd": "helmreleases.helm.toolkit.fluxcd.io",
+    "version": "v2",
+    "group": "helm.toolkit.fluxcd.io",
+    "scope": "Namespaced",
+    "spec": {
+      "description": "HelmReleaseSpec defines the desired state of a Helm release.",
+      "properties": {
+        "chart": {
+          "description": "Chart defines the template of the v1.HelmChart that should be created\nfor this HelmRelease.",
+          "properties": {
+            "metadata": {
+              "description": "ObjectMeta holds the template for metadata like labels and annotations.",
+              "properties": {
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Annotations is an unstructured key value map stored with a resource that may be\nset by external tools to store and retrieve arbitrary metadata. They are not\nqueryable and should be preserved when modifying objects.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/",
+                  "type": "object"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Map of string keys and values that can be used to organize and categorize\n(scope and select) objects.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "spec": {
+              "description": "Spec holds the template for the v1.HelmChartSpec for this HelmRelease.",
+              "properties": {
+                "chart": {
+                  "description": "The name or path the Helm chart is available at in the SourceRef.",
+                  "maxLength": 2048,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "ignoreMissingValuesFiles": {
+                  "description": "IgnoreMissingValuesFiles controls whether to silently ignore missing values files rather than failing.",
+                  "type": "boolean"
+                },
+                "interval": {
+                  "description": "Interval at which to check the v1.Source for updates. Defaults to\n'HelmReleaseSpec.Interval'.",
+                  "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+                  "type": "string"
+                },
+                "reconcileStrategy": {
+                  "default": "ChartVersion",
+                  "description": "Determines what enables the creation of a new artifact. Valid values are\n('ChartVersion', 'Revision').\nSee the documentation of the values for an explanation on their behavior.\nDefaults to ChartVersion when omitted.",
+                  "enum": ["ChartVersion", "Revision"],
+                  "type": "string"
+                },
+                "sourceRef": {
+                  "description": "The name and namespace of the v1.Source the chart is available at.",
+                  "properties": {
+                    "apiVersion": {
+                      "description": "APIVersion of the referent.",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "description": "Kind of the referent.",
+                      "enum": ["HelmRepository", "GitRepository", "Bucket"],
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "Name of the referent.",
+                      "maxLength": 253,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "namespace": {
+                      "description": "Namespace of the referent.",
+                      "maxLength": 63,
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["name"],
+                  "type": "object"
+                },
+                "valuesFiles": {
+                  "description": "Alternative list of values files to use as the chart values (values.yaml\nis not included by default), expected to be a relative path in the SourceRef.\nValues files are merged in the order of this list with the last file overriding\nthe first. Ignored when omitted.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "verify": {
+                  "description": "Verify contains the secret name containing the trusted public keys\nused to verify the signature and specifies which provider to use to check\nwhether OCI image is authentic.\nThis field is only supported for OCI sources.\nChart dependencies, which are not bundled in the umbrella chart artifact,\nare not verified.",
+                  "properties": {
+                    "provider": {
+                      "default": "cosign",
+                      "description": "Provider specifies the technology used to sign the OCI Helm chart.",
+                      "enum": ["cosign", "notation"],
+                      "type": "string"
+                    },
+                    "secretRef": {
+                      "description": "SecretRef specifies the Kubernetes Secret containing the\ntrusted public keys.",
+                      "properties": {
+                        "name": {
+                          "description": "Name of the referent.",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["name"],
+                      "type": "object"
+                    }
+                  },
+                  "required": ["provider"],
+                  "type": "object"
+                },
+                "version": {
+                  "default": "*",
+                  "description": "Version semver expression, ignored for charts from v1.GitRepository and\nv1beta2.Bucket sources. Defaults to latest when omitted.",
+                  "type": "string"
+                }
+              },
+              "required": ["chart", "sourceRef"],
+              "type": "object"
+            }
+          },
+          "required": ["spec"],
+          "type": "object"
+        },
+        "chartRef": {
+          "description": "ChartRef holds a reference to a source controller resource containing the\nHelm chart artifact.",
+          "properties": {
+            "apiVersion": {
+              "description": "APIVersion of the referent.",
+              "type": "string"
+            },
+            "kind": {
+              "description": "Kind of the referent.",
+              "enum": ["OCIRepository", "HelmChart"],
+              "type": "string"
+            },
+            "name": {
+              "description": "Name of the referent.",
+              "maxLength": 253,
+              "minLength": 1,
+              "type": "string"
+            },
+            "namespace": {
+              "description": "Namespace of the referent, defaults to the namespace of the Kubernetes\nresource object that contains the reference.",
+              "maxLength": 63,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": ["kind", "name"],
+          "type": "object"
+        },
+        "dependsOn": {
+          "description": "DependsOn may contain a meta.NamespacedObjectReference slice with\nreferences to HelmRelease resources that must be ready before this HelmRelease\ncan be reconciled.",
+          "items": {
+            "description": "NamespacedObjectReference contains enough information to locate the referenced Kubernetes resource object in any\nnamespace.",
+            "properties": {
+              "name": {
+                "description": "Name of the referent.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the referent, when not specified it acts as LocalObjectReference.",
+                "type": "string"
+              }
+            },
+            "required": ["name"],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "driftDetection": {
+          "description": "DriftDetection holds the configuration for detecting and handling\ndifferences between the manifest in the Helm storage and the resources\ncurrently existing in the cluster.",
+          "properties": {
+            "ignore": {
+              "description": "Ignore contains a list of rules for specifying which changes to ignore\nduring diffing.",
+              "items": {
+                "description": "IgnoreRule defines a rule to selectively disregard specific changes during\nthe drift detection process.",
+                "properties": {
+                  "paths": {
+                    "description": "Paths is a list of JSON Pointer (RFC 6901) paths to be excluded from\nconsideration in a Kubernetes object.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "target": {
+                    "description": "Target is a selector for specifying Kubernetes objects to which this\nrule applies.\nIf Target is not set, the Paths will be ignored for all Kubernetes\nobjects within the manifest of the Helm release.",
+                    "properties": {
+                      "annotationSelector": {
+                        "description": "AnnotationSelector is a string that follows the label selection expression\nhttps://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#api\nIt matches with the resource annotations.",
+                        "type": "string"
+                      },
+                      "group": {
+                        "description": "Group is the API group to select resources from.\nTogether with Version and Kind it is capable of unambiguously identifying and/or selecting resources.\nhttps://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/api-group.md",
+                        "type": "string"
+                      },
+                      "kind": {
+                        "description": "Kind of the API Group to select resources from.\nTogether with Group and Version it is capable of unambiguously\nidentifying and/or selecting resources.\nhttps://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/api-group.md",
+                        "type": "string"
+                      },
+                      "labelSelector": {
+                        "description": "LabelSelector is a string that follows the label selection expression\nhttps://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#api\nIt matches with the resource labels.",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "Name to match resources with.",
+                        "type": "string"
+                      },
+                      "namespace": {
+                        "description": "Namespace to select resources from.",
+                        "type": "string"
+                      },
+                      "version": {
+                        "description": "Version of the API Group to select resources from.\nTogether with Group and Kind it is capable of unambiguously identifying and/or selecting resources.\nhttps://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/api-group.md",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": ["paths"],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "mode": {
+              "description": "Mode defines how differences should be handled between the Helm manifest\nand the manifest currently applied to the cluster.\nIf not explicitly set, it defaults to DiffModeDisabled.",
+              "enum": ["enabled", "warn", "disabled"],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "install": {
+          "description": "Install holds the configuration for Helm install actions for this HelmRelease.",
+          "properties": {
+            "crds": {
+              "description": "CRDs upgrade CRDs from the Helm Chart's crds directory according\nto the CRD upgrade policy provided here. Valid values are `Skip`,\n`Create` or `CreateReplace`. Default is `Create` and if omitted\nCRDs are installed but not updated.\n\n\nSkip: do neither install nor replace (update) any CRDs.\n\n\nCreate: new CRDs are created, existing CRDs are neither updated nor deleted.\n\n\nCreateReplace: new CRDs are created, existing CRDs are updated (replaced)\nbut not deleted.\n\n\nBy default, CRDs are applied (installed) during Helm install action.\nWith this option users can opt in to CRD replace existing CRDs on Helm\ninstall actions, which is not (yet) natively supported by Helm.\nhttps://helm.sh/docs/chart_best_practices/custom_resource_definitions.",
+              "enum": ["Skip", "Create", "CreateReplace"],
+              "type": "string"
+            },
+            "createNamespace": {
+              "description": "CreateNamespace tells the Helm install action to create the\nHelmReleaseSpec.TargetNamespace if it does not exist yet.\nOn uninstall, the namespace will not be garbage collected.",
+              "type": "boolean"
+            },
+            "disableHooks": {
+              "description": "DisableHooks prevents hooks from running during the Helm install action.",
+              "type": "boolean"
+            },
+            "disableOpenAPIValidation": {
+              "description": "DisableOpenAPIValidation prevents the Helm install action from validating\nrendered templates against the Kubernetes OpenAPI Schema.",
+              "type": "boolean"
+            },
+            "disableWait": {
+              "description": "DisableWait disables the waiting for resources to be ready after a Helm\ninstall has been performed.",
+              "type": "boolean"
+            },
+            "disableWaitForJobs": {
+              "description": "DisableWaitForJobs disables waiting for jobs to complete after a Helm\ninstall has been performed.",
+              "type": "boolean"
+            },
+            "remediation": {
+              "description": "Remediation holds the remediation configuration for when the Helm install\naction for the HelmRelease fails. The default is to not perform any action.",
+              "properties": {
+                "ignoreTestFailures": {
+                  "description": "IgnoreTestFailures tells the controller to skip remediation when the Helm\ntests are run after an install action but fail. Defaults to\n'Test.IgnoreFailures'.",
+                  "type": "boolean"
+                },
+                "remediateLastFailure": {
+                  "description": "RemediateLastFailure tells the controller to remediate the last failure, when\nno retries remain. Defaults to 'false'.",
+                  "type": "boolean"
+                },
+                "retries": {
+                  "description": "Retries is the number of retries that should be attempted on failures before\nbailing. Remediation, using an uninstall, is performed between each attempt.\nDefaults to '0', a negative integer equals to unlimited retries.",
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "replace": {
+              "description": "Replace tells the Helm install action to re-use the 'ReleaseName', but only\nif that name is a deleted release which remains in the history.",
+              "type": "boolean"
+            },
+            "skipCRDs": {
+              "description": "SkipCRDs tells the Helm install action to not install any CRDs. By default,\nCRDs are installed if not already present.\n\n\nDeprecated use CRD policy (`crds`) attribute with value `Skip` instead.",
+              "type": "boolean"
+            },
+            "timeout": {
+              "description": "Timeout is the time to wait for any individual Kubernetes operation (like\nJobs for hooks) during the performance of a Helm install action. Defaults to\n'HelmReleaseSpec.Timeout'.",
+              "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "interval": {
+          "description": "Interval at which to reconcile the Helm release.",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+          "type": "string"
+        },
+        "kubeConfig": {
+          "description": "KubeConfig for reconciling the HelmRelease on a remote cluster.\nWhen used in combination with HelmReleaseSpec.ServiceAccountName,\nforces the controller to act on behalf of that Service Account at the\ntarget cluster.\nIf the --default-service-account flag is set, its value will be used as\na controller level fallback for when HelmReleaseSpec.ServiceAccountName\nis empty.",
+          "properties": {
+            "secretRef": {
+              "description": "SecretRef holds the name of a secret that contains a key with\nthe kubeconfig file as the value. If no key is set, the key will default\nto 'value'.\nIt is recommended that the kubeconfig is self-contained, and the secret\nis regularly updated if credentials such as a cloud-access-token expire.\nCloud specific `cmd-path` auth helpers will not function without adding\nbinaries and credentials to the Pod that is responsible for reconciling\nKubernetes resources.",
+              "properties": {
+                "key": {
+                  "description": "Key in the Secret, when not specified an implementation-specific default key is used.",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "Name of the Secret.",
+                  "type": "string"
+                }
+              },
+              "required": ["name"],
+              "type": "object"
+            }
+          },
+          "required": ["secretRef"],
+          "type": "object"
+        },
+        "maxHistory": {
+          "description": "MaxHistory is the number of revisions saved by Helm for this HelmRelease.\nUse '0' for an unlimited number of revisions; defaults to '5'.",
+          "type": "integer"
+        },
+        "persistentClient": {
+          "description": "PersistentClient tells the controller to use a persistent Kubernetes\nclient for this release. When enabled, the client will be reused for the\nduration of the reconciliation, instead of being created and destroyed\nfor each (step of a) Helm action.\n\n\nThis can improve performance, but may cause issues with some Helm charts\nthat for example do create Custom Resource Definitions during installation\noutside Helm's CRD lifecycle hooks, which are then not observed to be\navailable by e.g. post-install hooks.\n\n\nIf not set, it defaults to true.",
+          "type": "boolean"
+        },
+        "postRenderers": {
+          "description": "PostRenderers holds an array of Helm PostRenderers, which will be applied in order\nof their definition.",
+          "items": {
+            "description": "PostRenderer contains a Helm PostRenderer specification.",
+            "properties": {
+              "kustomize": {
+                "description": "Kustomization to apply as PostRenderer.",
+                "properties": {
+                  "images": {
+                    "description": "Images is a list of (image name, new name, new tag or digest)\nfor changing image names, tags or digests. This can also be achieved with a\npatch, but this operator is simpler to specify.",
+                    "items": {
+                      "description": "Image contains an image name, a new name, a new tag or digest, which will replace the original name and tag.",
+                      "properties": {
+                        "digest": {
+                          "description": "Digest is the value used to replace the original image tag.\nIf digest is present NewTag value is ignored.",
+                          "type": "string"
+                        },
+                        "name": {
+                          "description": "Name is a tag-less image name.",
+                          "type": "string"
+                        },
+                        "newName": {
+                          "description": "NewName is the value used to replace the original name.",
+                          "type": "string"
+                        },
+                        "newTag": {
+                          "description": "NewTag is the value used to replace the original tag.",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["name"],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "patches": {
+                    "description": "Strategic merge and JSON patches, defined as inline YAML objects,\ncapable of targeting objects based on kind, label and annotation selectors.",
+                    "items": {
+                      "description": "Patch contains an inline StrategicMerge or JSON6902 patch, and the target the patch should\nbe applied to.",
+                      "properties": {
+                        "patch": {
+                          "description": "Patch contains an inline StrategicMerge patch or an inline JSON6902 patch with\nan array of operation objects.",
+                          "type": "string"
+                        },
+                        "target": {
+                          "description": "Target points to the resources that the patch document should be applied to.",
+                          "properties": {
+                            "annotationSelector": {
+                              "description": "AnnotationSelector is a string that follows the label selection expression\nhttps://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#api\nIt matches with the resource annotations.",
+                              "type": "string"
+                            },
+                            "group": {
+                              "description": "Group is the API group to select resources from.\nTogether with Version and Kind it is capable of unambiguously identifying and/or selecting resources.\nhttps://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/api-group.md",
+                              "type": "string"
+                            },
+                            "kind": {
+                              "description": "Kind of the API Group to select resources from.\nTogether with Group and Version it is capable of unambiguously\nidentifying and/or selecting resources.\nhttps://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/api-group.md",
+                              "type": "string"
+                            },
+                            "labelSelector": {
+                              "description": "LabelSelector is a string that follows the label selection expression\nhttps://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#api\nIt matches with the resource labels.",
+                              "type": "string"
+                            },
+                            "name": {
+                              "description": "Name to match resources with.",
+                              "type": "string"
+                            },
+                            "namespace": {
+                              "description": "Namespace to select resources from.",
+                              "type": "string"
+                            },
+                            "version": {
+                              "description": "Version of the API Group to select resources from.\nTogether with Group and Kind it is capable of unambiguously identifying and/or selecting resources.\nhttps://github.com/kubernetes/community/blob/master/contributors/design-proposals/api-machinery/api-group.md",
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        }
+                      },
+                      "required": ["patch"],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "releaseName": {
+          "description": "ReleaseName used for the Helm release. Defaults to a composition of\n'[TargetNamespace-]Name'.",
+          "maxLength": 53,
+          "minLength": 1,
+          "type": "string"
+        },
+        "rollback": {
+          "description": "Rollback holds the configuration for Helm rollback actions for this HelmRelease.",
+          "properties": {
+            "cleanupOnFail": {
+              "description": "CleanupOnFail allows deletion of new resources created during the Helm\nrollback action when it fails.",
+              "type": "boolean"
+            },
+            "disableHooks": {
+              "description": "DisableHooks prevents hooks from running during the Helm rollback action.",
+              "type": "boolean"
+            },
+            "disableWait": {
+              "description": "DisableWait disables the waiting for resources to be ready after a Helm\nrollback has been performed.",
+              "type": "boolean"
+            },
+            "disableWaitForJobs": {
+              "description": "DisableWaitForJobs disables waiting for jobs to complete after a Helm\nrollback has been performed.",
+              "type": "boolean"
+            },
+            "force": {
+              "description": "Force forces resource updates through a replacement strategy.",
+              "type": "boolean"
+            },
+            "recreate": {
+              "description": "Recreate performs pod restarts for the resource if applicable.",
+              "type": "boolean"
+            },
+            "timeout": {
+              "description": "Timeout is the time to wait for any individual Kubernetes operation (like\nJobs for hooks) during the performance of a Helm rollback action. Defaults to\n'HelmReleaseSpec.Timeout'.",
+              "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "serviceAccountName": {
+          "description": "The name of the Kubernetes service account to impersonate\nwhen reconciling this HelmRelease.",
+          "maxLength": 253,
+          "minLength": 1,
+          "type": "string"
+        },
+        "storageNamespace": {
+          "description": "StorageNamespace used for the Helm storage.\nDefaults to the namespace of the HelmRelease.",
+          "maxLength": 63,
+          "minLength": 1,
+          "type": "string"
+        },
+        "suspend": {
+          "description": "Suspend tells the controller to suspend reconciliation for this HelmRelease,\nit does not apply to already started reconciliations. Defaults to false.",
+          "type": "boolean"
+        },
+        "targetNamespace": {
+          "description": "TargetNamespace to target when performing operations for the HelmRelease.\nDefaults to the namespace of the HelmRelease.",
+          "maxLength": 63,
+          "minLength": 1,
+          "type": "string"
+        },
+        "test": {
+          "description": "Test holds the configuration for Helm test actions for this HelmRelease.",
+          "properties": {
+            "enable": {
+              "description": "Enable enables Helm test actions for this HelmRelease after an Helm install\nor upgrade action has been performed.",
+              "type": "boolean"
+            },
+            "filters": {
+              "description": "Filters is a list of tests to run or exclude from running.",
+              "items": {
+                "description": "Filter holds the configuration for individual Helm test filters.",
+                "properties": {
+                  "exclude": {
+                    "description": "Exclude specifies whether the named test should be excluded.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "description": "Name is the name of the test.",
+                    "maxLength": 253,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": ["name"],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "ignoreFailures": {
+              "description": "IgnoreFailures tells the controller to skip remediation when the Helm tests\nare run but fail. Can be overwritten for tests run after install or upgrade\nactions in 'Install.IgnoreTestFailures' and 'Upgrade.IgnoreTestFailures'.",
+              "type": "boolean"
+            },
+            "timeout": {
+              "description": "Timeout is the time to wait for any individual Kubernetes operation during\nthe performance of a Helm test action. Defaults to 'HelmReleaseSpec.Timeout'.",
+              "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "timeout": {
+          "description": "Timeout is the time to wait for any individual Kubernetes operation (like Jobs\nfor hooks) during the performance of a Helm action. Defaults to '5m0s'.",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+          "type": "string"
+        },
+        "uninstall": {
+          "description": "Uninstall holds the configuration for Helm uninstall actions for this HelmRelease.",
+          "properties": {
+            "deletionPropagation": {
+              "default": "background",
+              "description": "DeletionPropagation specifies the deletion propagation policy when\na Helm uninstall is performed.",
+              "enum": ["background", "foreground", "orphan"],
+              "type": "string"
+            },
+            "disableHooks": {
+              "description": "DisableHooks prevents hooks from running during the Helm rollback action.",
+              "type": "boolean"
+            },
+            "disableWait": {
+              "description": "DisableWait disables waiting for all the resources to be deleted after\na Helm uninstall is performed.",
+              "type": "boolean"
+            },
+            "keepHistory": {
+              "description": "KeepHistory tells Helm to remove all associated resources and mark the\nrelease as deleted, but retain the release history.",
+              "type": "boolean"
+            },
+            "timeout": {
+              "description": "Timeout is the time to wait for any individual Kubernetes operation (like\nJobs for hooks) during the performance of a Helm uninstall action. Defaults\nto 'HelmReleaseSpec.Timeout'.",
+              "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "upgrade": {
+          "description": "Upgrade holds the configuration for Helm upgrade actions for this HelmRelease.",
+          "properties": {
+            "cleanupOnFail": {
+              "description": "CleanupOnFail allows deletion of new resources created during the Helm\nupgrade action when it fails.",
+              "type": "boolean"
+            },
+            "crds": {
+              "description": "CRDs upgrade CRDs from the Helm Chart's crds directory according\nto the CRD upgrade policy provided here. Valid values are `Skip`,\n`Create` or `CreateReplace`. Default is `Skip` and if omitted\nCRDs are neither installed nor upgraded.\n\n\nSkip: do neither install nor replace (update) any CRDs.\n\n\nCreate: new CRDs are created, existing CRDs are neither updated nor deleted.\n\n\nCreateReplace: new CRDs are created, existing CRDs are updated (replaced)\nbut not deleted.\n\n\nBy default, CRDs are not applied during Helm upgrade action. With this\noption users can opt-in to CRD upgrade, which is not (yet) natively supported by Helm.\nhttps://helm.sh/docs/chart_best_practices/custom_resource_definitions.",
+              "enum": ["Skip", "Create", "CreateReplace"],
+              "type": "string"
+            },
+            "disableHooks": {
+              "description": "DisableHooks prevents hooks from running during the Helm upgrade action.",
+              "type": "boolean"
+            },
+            "disableOpenAPIValidation": {
+              "description": "DisableOpenAPIValidation prevents the Helm upgrade action from validating\nrendered templates against the Kubernetes OpenAPI Schema.",
+              "type": "boolean"
+            },
+            "disableWait": {
+              "description": "DisableWait disables the waiting for resources to be ready after a Helm\nupgrade has been performed.",
+              "type": "boolean"
+            },
+            "disableWaitForJobs": {
+              "description": "DisableWaitForJobs disables waiting for jobs to complete after a Helm\nupgrade has been performed.",
+              "type": "boolean"
+            },
+            "force": {
+              "description": "Force forces resource updates through a replacement strategy.",
+              "type": "boolean"
+            },
+            "preserveValues": {
+              "description": "PreserveValues will make Helm reuse the last release's values and merge in\noverrides from 'Values'. Setting this flag makes the HelmRelease\nnon-declarative.",
+              "type": "boolean"
+            },
+            "remediation": {
+              "description": "Remediation holds the remediation configuration for when the Helm upgrade\naction for the HelmRelease fails. The default is to not perform any action.",
+              "properties": {
+                "ignoreTestFailures": {
+                  "description": "IgnoreTestFailures tells the controller to skip remediation when the Helm\ntests are run after an upgrade action but fail.\nDefaults to 'Test.IgnoreFailures'.",
+                  "type": "boolean"
+                },
+                "remediateLastFailure": {
+                  "description": "RemediateLastFailure tells the controller to remediate the last failure, when\nno retries remain. Defaults to 'false' unless 'Retries' is greater than 0.",
+                  "type": "boolean"
+                },
+                "retries": {
+                  "description": "Retries is the number of retries that should be attempted on failures before\nbailing. Remediation, using 'Strategy', is performed between each attempt.\nDefaults to '0', a negative integer equals to unlimited retries.",
+                  "type": "integer"
+                },
+                "strategy": {
+                  "description": "Strategy to use for failure remediation. Defaults to 'rollback'.",
+                  "enum": ["rollback", "uninstall"],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "timeout": {
+              "description": "Timeout is the time to wait for any individual Kubernetes operation (like\nJobs for hooks) during the performance of a Helm upgrade action. Defaults to\n'HelmReleaseSpec.Timeout'.",
+              "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "values": {
+          "description": "Values holds the values for this Helm release.",
+          "x-kubernetes-preserve-unknown-fields": true
+        },
+        "valuesFrom": {
+          "description": "ValuesFrom holds references to resources containing Helm values for this HelmRelease,\nand information about how they should be merged.",
+          "items": {
+            "description": "ValuesReference contains a reference to a resource containing Helm values,\nand optionally the key they can be found at.",
+            "properties": {
+              "kind": {
+                "description": "Kind of the values referent, valid values are ('Secret', 'ConfigMap').",
+                "enum": ["Secret", "ConfigMap"],
+                "type": "string"
+              },
+              "name": {
+                "description": "Name of the values referent. Should reside in the same namespace as the\nreferring resource.",
+                "maxLength": 253,
+                "minLength": 1,
+                "type": "string"
+              },
+              "optional": {
+                "description": "Optional marks this ValuesReference as optional. When set, a not found error\nfor the values reference is ignored, but any ValuesKey, TargetPath or\ntransient error will still result in a reconciliation failure.",
+                "type": "boolean"
+              },
+              "targetPath": {
+                "description": "TargetPath is the YAML dot notation path the value should be merged at. When\nset, the ValuesKey is expected to be a single flat value. Defaults to 'None',\nwhich results in the values getting merged at the root.",
+                "maxLength": 250,
+                "pattern": "^([a-zA-Z0-9_\\-.\\\\\\/]|\\[[0-9]{1,5}\\])+$",
+                "type": "string"
+              },
+              "valuesKey": {
+                "description": "ValuesKey is the data key where the values.yaml or a specific value can be\nfound at. Defaults to 'values.yaml'.",
+                "maxLength": 253,
+                "pattern": "^[\\-._a-zA-Z0-9]+$",
+                "type": "string"
+              }
+            },
+            "required": ["kind", "name"],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["interval"],
+      "type": "object",
+      "x-kubernetes-validations": [
+        {
+          "message": "either chart or chartRef must be set",
+          "rule": "(has(self.chart) && !has(self.chartRef)) || (!has(self.chart) && has(self.chartRef))"
+        }
+      ]
+    }
+  },
+  "fluxcd-helmrepository": {
+    "crd": "helmrepositories.source.toolkit.fluxcd.io",
+    "version": "v1",
+    "group": "source.toolkit.fluxcd.io",
+    "scope": "Namespaced",
+    "spec": {
+      "description": "HelmRepositorySpec specifies the required configuration to produce an\nArtifact for a Helm repository index YAML.",
+      "properties": {
+        "accessFrom": {
+          "description": "AccessFrom specifies an Access Control List for allowing cross-namespace\nreferences to this object.\nNOTE: Not implemented, provisional as of https://github.com/fluxcd/flux2/pull/2092",
+          "properties": {
+            "namespaceSelectors": {
+              "description": "NamespaceSelectors is the list of namespace selectors to which this ACL applies.\nItems in this list are evaluated using a logical OR operation.",
+              "items": {
+                "description": "NamespaceSelector selects the namespaces to which this ACL applies.\nAn empty map of MatchLabels matches all namespaces in a cluster.",
+                "properties": {
+                  "matchLabels": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "MatchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\nmap is equivalent to an element of matchExpressions, whose key field is \"key\", the\noperator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": ["namespaceSelectors"],
+          "type": "object"
+        },
+        "certSecretRef": {
+          "description": "CertSecretRef can be given the name of a Secret containing\neither or both of\n\n\n- a PEM-encoded client certificate (`tls.crt`) and private\nkey (`tls.key`);\n- a PEM-encoded CA certificate (`ca.crt`)\n\n\nand whichever are supplied, will be used for connecting to the\nregistry. The client cert and key are useful if you are\nauthenticating with a certificate; the CA cert is useful if\nyou are using a self-signed server certificate. The Secret must\nbe of type `Opaque` or `kubernetes.io/tls`.\n\n\nIt takes precedence over the values specified in the Secret referred\nto by `.spec.secretRef`.",
+          "properties": {
+            "name": {
+              "description": "Name of the referent.",
+              "type": "string"
+            }
+          },
+          "required": ["name"],
+          "type": "object"
+        },
+        "insecure": {
+          "description": "Insecure allows connecting to a non-TLS HTTP container registry.\nThis field is only taken into account if the .spec.type field is set to 'oci'.",
+          "type": "boolean"
+        },
+        "interval": {
+          "description": "Interval at which the HelmRepository URL is checked for updates.\nThis interval is approximate and may be subject to jitter to ensure\nefficient use of resources.",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$",
+          "type": "string"
+        },
+        "passCredentials": {
+          "description": "PassCredentials allows the credentials from the SecretRef to be passed\non to a host that does not match the host as defined in URL.\nThis may be required if the host of the advertised chart URLs in the\nindex differ from the defined URL.\nEnabling this should be done with caution, as it can potentially result\nin credentials getting stolen in a MITM-attack.",
+          "type": "boolean"
+        },
+        "provider": {
+          "default": "generic",
+          "description": "Provider used for authentication, can be 'aws', 'azure', 'gcp' or 'generic'.\nThis field is optional, and only taken into account if the .spec.type field is set to 'oci'.\nWhen not specified, defaults to 'generic'.",
+          "enum": ["generic", "aws", "azure", "gcp"],
+          "type": "string"
+        },
+        "secretRef": {
+          "description": "SecretRef specifies the Secret containing authentication credentials\nfor the HelmRepository.\nFor HTTP/S basic auth the secret must contain 'username' and 'password'\nfields.\nSupport for TLS auth using the 'certFile' and 'keyFile', and/or 'caFile'\nkeys is deprecated. Please use `.spec.certSecretRef` instead.",
+          "properties": {
+            "name": {
+              "description": "Name of the referent.",
+              "type": "string"
+            }
+          },
+          "required": ["name"],
+          "type": "object"
+        },
+        "suspend": {
+          "description": "Suspend tells the controller to suspend the reconciliation of this\nHelmRepository.",
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Timeout is used for the index fetch operation for an HTTPS helm repository,\nand for remote OCI Repository operations like pulling for an OCI helm\nchart by the associated HelmChart.\nIts default value is 60s.",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m))+$",
+          "type": "string"
+        },
+        "type": {
+          "description": "Type of the HelmRepository.\nWhen this field is set to  \"oci\", the URL field value must be prefixed with \"oci://\".",
+          "enum": ["default", "oci"],
+          "type": "string"
+        },
+        "url": {
+          "description": "URL of the Helm repository, a valid URL contains at least a protocol and\nhost.",
+          "pattern": "^(http|https|oci)://.*$",
+          "type": "string"
+        }
+      },
+      "required": ["url"],
+      "type": "object"
+    }
+  },
+  "istio-gateway": {
+    "crd": "gateways.networking.istio.io",
+    "version": "v1",
+    "group": "networking.istio.io",
+    "scope": "Namespaced",
+    "spec": {
+      "description": "Configuration affecting edge load balancer. See more details at: https://istio.io/docs/reference/config/networking/gateway.html",
+      "properties": {
+        "selector": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "One or more labels that indicate a specific set of pods/VMs on which this gateway configuration should be applied.",
+          "type": "object"
+        },
+        "servers": {
+          "description": "A list of server specifications.",
+          "items": {
+            "properties": {
+              "bind": {
+                "description": "The ip or the Unix domain socket to which the listener should be bound to.",
+                "type": "string"
+              },
+              "defaultEndpoint": {
+                "type": "string"
+              },
+              "hosts": {
+                "description": "One or more hosts exposed by this gateway.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "name": {
+                "description": "An optional name of the server, when set must be unique across all servers.",
+                "type": "string"
+              },
+              "port": {
+                "description": "The Port on which the proxy should listen for incoming connections.",
+                "properties": {
+                  "name": {
+                    "description": "Label assigned to the port.",
+                    "type": "string"
+                  },
+                  "number": {
+                    "description": "A valid non-negative integer port number.",
+                    "maximum": 4294967295,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "protocol": {
+                    "description": "The protocol exposed on the port.",
+                    "type": "string"
+                  },
+                  "targetPort": {
+                    "maximum": 4294967295,
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": ["number", "protocol", "name"],
+                "type": "object"
+              },
+              "tls": {
+                "description": "Set of TLS related options that govern the server's behavior.",
+                "properties": {
+                  "caCertCredentialName": {
+                    "description": "For mutual TLS, the name of the secret or the configmap that holds CA certificates.",
+                    "type": "string"
+                  },
+                  "caCertificates": {
+                    "description": "REQUIRED if mode is `MUTUAL` or `OPTIONAL_MUTUAL`.",
+                    "type": "string"
+                  },
+                  "caCrl": {
+                    "description": "OPTIONAL: The path to the file containing the certificate revocation list (CRL) to use in verifying a presented client side certificate.",
+                    "type": "string"
+                  },
+                  "cipherSuites": {
+                    "description": "Optional: If specified, only support the specified cipher list.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "credentialName": {
+                    "description": "For gateways running on Kubernetes, the name of the secret that holds the TLS certs including the CA certificates.",
+                    "type": "string"
+                  },
+                  "credentialNames": {
+                    "description": "Same as CredentialName but for multiple certificates.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 2,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "httpsRedirect": {
+                    "description": "If set to true, the load balancer will send a 301 redirect for all http connections, asking the clients to use HTTPS.",
+                    "type": "boolean"
+                  },
+                  "maxProtocolVersion": {
+                    "description": "Optional: Maximum TLS protocol version.\n\nValid Options: TLS_AUTO, TLSV1_0, TLSV1_1, TLSV1_2, TLSV1_3",
+                    "enum": [
+                      "TLS_AUTO",
+                      "TLSV1_0",
+                      "TLSV1_1",
+                      "TLSV1_2",
+                      "TLSV1_3"
+                    ],
+                    "type": "string"
+                  },
+                  "minProtocolVersion": {
+                    "description": "Optional: Minimum TLS protocol version.\n\nValid Options: TLS_AUTO, TLSV1_0, TLSV1_1, TLSV1_2, TLSV1_3",
+                    "enum": [
+                      "TLS_AUTO",
+                      "TLSV1_0",
+                      "TLSV1_1",
+                      "TLSV1_2",
+                      "TLSV1_3"
+                    ],
+                    "type": "string"
+                  },
+                  "mode": {
+                    "description": "Optional: Indicates whether connections to this port should be secured using TLS.\n\nValid Options: PASSTHROUGH, SIMPLE, MUTUAL, AUTO_PASSTHROUGH, ISTIO_MUTUAL, OPTIONAL_MUTUAL",
+                    "enum": [
+                      "PASSTHROUGH",
+                      "SIMPLE",
+                      "MUTUAL",
+                      "AUTO_PASSTHROUGH",
+                      "ISTIO_MUTUAL",
+                      "OPTIONAL_MUTUAL"
+                    ],
+                    "type": "string"
+                  },
+                  "privateKey": {
+                    "description": "REQUIRED if mode is `SIMPLE` or `MUTUAL`.",
+                    "type": "string"
+                  },
+                  "serverCertificate": {
+                    "description": "REQUIRED if mode is `SIMPLE` or `MUTUAL`.",
+                    "type": "string"
+                  },
+                  "subjectAltNames": {
+                    "description": "A list of alternate names to verify the subject identity in the certificate presented by the client.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "tlsCertificates": {
+                    "description": "Only one of `server_certificate`, `private_key` or `credential_name` or `credential_names` or `tls_certificates` should be specified.",
+                    "items": {
+                      "properties": {
+                        "caCertificates": {
+                          "type": "string"
+                        },
+                        "privateKey": {
+                          "description": "REQUIRED if mode is `SIMPLE` or `MUTUAL`.",
+                          "type": "string"
+                        },
+                        "serverCertificate": {
+                          "description": "REQUIRED if mode is `SIMPLE` or `MUTUAL`.",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "maxItems": 2,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "verifyCertificateHash": {
+                    "description": "An optional list of hex-encoded SHA-256 hashes of the authorized client certificates.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "verifyCertificateSpki": {
+                    "description": "An optional list of base64-encoded SHA-256 hashes of the SPKIs of authorized client certificates.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object",
+                "x-kubernetes-validations": [
+                  {
+                    "message": "only one of credentialNames or tlsCertificates can be set",
+                    "rule": "(has(self.tlsCertificates) ? 1 : 0) + (has(self.credentialNames) ? 1 : 0) <= 1"
+                  },
+                  {
+                    "message": "only one of credentialName or credentialNames can be set",
+                    "rule": "(has(self.credentialName) ? 1 : 0) + (has(self.credentialNames) ? 1 : 0) <= 1"
+                  },
+                  {
+                    "message": "only one of credentialName or tlsCertificates can be set",
+                    "rule": "(has(self.credentialNames) ? 1 : 0) + (has(self.tlsCertificates) ? 1 : 0) <= 1"
+                  }
+                ]
+              }
+            },
+            "required": ["port", "hosts"],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "istio-virtualservice": {
+    "crd": "virtualservices.networking.istio.io",
+    "version": "v1",
+    "group": "networking.istio.io",
+    "scope": "Namespaced",
+    "spec": {
+      "description": "Configuration affecting label/content routing, sni routing, etc. See more details at: https://istio.io/docs/reference/config/networking/virtual-service.html",
+      "properties": {
+        "exportTo": {
+          "description": "A list of namespaces to which this virtual service is exported.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "gateways": {
+          "description": "The names of gateways and sidecars that should apply these routes.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "hosts": {
+          "description": "The destination hosts to which traffic is being sent.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "http": {
+          "description": "An ordered list of route rules for HTTP traffic.",
+          "items": {
+            "properties": {
+              "corsPolicy": {
+                "description": "Cross-Origin Resource Sharing policy (CORS).",
+                "properties": {
+                  "allowCredentials": {
+                    "description": "Indicates whether the caller is allowed to send the actual request (not the preflight) using credentials.",
+                    "nullable": true,
+                    "type": "boolean"
+                  },
+                  "allowHeaders": {
+                    "description": "List of HTTP headers that can be used when requesting the resource.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "allowMethods": {
+                    "description": "List of HTTP methods allowed to access the resource.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "allowOrigin": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "allowOrigins": {
+                    "description": "String patterns that match allowed origins.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": ["exact"]
+                              },
+                              {
+                                "required": ["prefix"]
+                              },
+                              {
+                                "required": ["regex"]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "required": ["exact"]
+                        },
+                        {
+                          "required": ["prefix"]
+                        },
+                        {
+                          "required": ["regex"]
+                        }
+                      ],
+                      "properties": {
+                        "exact": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "regex": {
+                          "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "exposeHeaders": {
+                    "description": "A list of HTTP headers that the browsers are allowed to access.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "maxAge": {
+                    "description": "Specifies how long the results of a preflight request can be cached.",
+                    "type": "string",
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "must be a valid duration greater than 1ms",
+                        "rule": "duration(self) >= duration('1ms')"
+                      }
+                    ]
+                  },
+                  "unmatchedPreflights": {
+                    "description": "Indicates whether preflight requests not matching the configured allowed origin shouldn't be forwarded to the upstream.\n\nValid Options: FORWARD, IGNORE",
+                    "enum": ["UNSPECIFIED", "FORWARD", "IGNORE"],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "delegate": {
+                "description": "Delegate is used to specify the particular VirtualService which can be used to define delegate HTTPRoute.",
+                "properties": {
+                  "name": {
+                    "description": "Name specifies the name of the delegate VirtualService.",
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "description": "Namespace specifies the namespace where the delegate VirtualService resides.",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "directResponse": {
+                "description": "A HTTP rule can either return a direct_response, redirect or forward (default) traffic.",
+                "properties": {
+                  "body": {
+                    "description": "Specifies the content of the response body.",
+                    "oneOf": [
+                      {
+                        "not": {
+                          "anyOf": [
+                            {
+                              "required": ["string"]
+                            },
+                            {
+                              "required": ["bytes"]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "required": ["string"]
+                      },
+                      {
+                        "required": ["bytes"]
+                      }
+                    ],
+                    "properties": {
+                      "bytes": {
+                        "description": "response body as base64 encoded bytes.",
+                        "format": "byte",
+                        "type": "string"
+                      },
+                      "string": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "status": {
+                    "description": "Specifies the HTTP response status to be returned.",
+                    "maximum": 4294967295,
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": ["status"],
+                "type": "object"
+              },
+              "fault": {
+                "description": "Fault injection policy to apply on HTTP traffic at the client side.",
+                "properties": {
+                  "abort": {
+                    "description": "Abort Http request attempts and return error codes back to downstream service, giving the impression that the upstream service is faulty.",
+                    "oneOf": [
+                      {
+                        "not": {
+                          "anyOf": [
+                            {
+                              "required": ["httpStatus"]
+                            },
+                            {
+                              "required": ["grpcStatus"]
+                            },
+                            {
+                              "required": ["http2Error"]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "required": ["httpStatus"]
+                      },
+                      {
+                        "required": ["grpcStatus"]
+                      },
+                      {
+                        "required": ["http2Error"]
+                      }
+                    ],
+                    "properties": {
+                      "grpcStatus": {
+                        "description": "GRPC status code to use to abort the request.",
+                        "type": "string"
+                      },
+                      "http2Error": {
+                        "type": "string"
+                      },
+                      "httpStatus": {
+                        "description": "HTTP status code to use to abort the Http request.",
+                        "format": "int32",
+                        "type": "integer"
+                      },
+                      "percentage": {
+                        "description": "Percentage of requests to be aborted with the error code provided.",
+                        "properties": {
+                          "value": {
+                            "format": "double",
+                            "type": "number"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "delay": {
+                    "description": "Delay requests before forwarding, emulating various failures such as network issues, overloaded upstream service, etc.",
+                    "oneOf": [
+                      {
+                        "not": {
+                          "anyOf": [
+                            {
+                              "required": ["fixedDelay"]
+                            },
+                            {
+                              "required": ["exponentialDelay"]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "required": ["fixedDelay"]
+                      },
+                      {
+                        "required": ["exponentialDelay"]
+                      }
+                    ],
+                    "properties": {
+                      "exponentialDelay": {
+                        "type": "string",
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "must be a valid duration greater than 1ms",
+                            "rule": "duration(self) >= duration('1ms')"
+                          }
+                        ]
+                      },
+                      "fixedDelay": {
+                        "description": "Add a fixed delay before forwarding the request.",
+                        "type": "string",
+                        "x-kubernetes-validations": [
+                          {
+                            "message": "must be a valid duration greater than 1ms",
+                            "rule": "duration(self) >= duration('1ms')"
+                          }
+                        ]
+                      },
+                      "percent": {
+                        "description": "Percentage of requests on which the delay will be injected (0-100).",
+                        "format": "int32",
+                        "type": "integer"
+                      },
+                      "percentage": {
+                        "description": "Percentage of requests on which the delay will be injected.",
+                        "properties": {
+                          "value": {
+                            "format": "double",
+                            "type": "number"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "headers": {
+                "properties": {
+                  "request": {
+                    "properties": {
+                      "add": {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      },
+                      "remove": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "set": {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "response": {
+                    "properties": {
+                      "add": {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      },
+                      "remove": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "set": {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "match": {
+                "description": "Match conditions to be satisfied for the rule to be activated.",
+                "items": {
+                  "properties": {
+                    "authority": {
+                      "description": "HTTP Authority values are case-sensitive and formatted as follows: - `exact: \"value\"` for exact string match - `prefix: \"value\"` for prefix-based match - `regex: \"value\"` for [RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                      "oneOf": [
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": ["exact"]
+                              },
+                              {
+                                "required": ["prefix"]
+                              },
+                              {
+                                "required": ["regex"]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "required": ["exact"]
+                        },
+                        {
+                          "required": ["prefix"]
+                        },
+                        {
+                          "required": ["regex"]
+                        }
+                      ],
+                      "properties": {
+                        "exact": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "regex": {
+                          "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "gateways": {
+                      "description": "Names of gateways where the rule should be applied.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "headers": {
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "not": {
+                              "anyOf": [
+                                {
+                                  "required": ["exact"]
+                                },
+                                {
+                                  "required": ["prefix"]
+                                },
+                                {
+                                  "required": ["regex"]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "required": ["exact"]
+                          },
+                          {
+                            "required": ["prefix"]
+                          },
+                          {
+                            "required": ["regex"]
+                          }
+                        ],
+                        "properties": {
+                          "exact": {
+                            "type": "string"
+                          },
+                          "prefix": {
+                            "type": "string"
+                          },
+                          "regex": {
+                            "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "description": "The header keys must be lowercase and use hyphen as the separator, e.g.",
+                      "type": "object"
+                    },
+                    "ignoreUriCase": {
+                      "description": "Flag to specify whether the URI matching should be case-insensitive.",
+                      "type": "boolean"
+                    },
+                    "method": {
+                      "description": "HTTP Method values are case-sensitive and formatted as follows: - `exact: \"value\"` for exact string match - `prefix: \"value\"` for prefix-based match - `regex: \"value\"` for [RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                      "oneOf": [
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": ["exact"]
+                              },
+                              {
+                                "required": ["prefix"]
+                              },
+                              {
+                                "required": ["regex"]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "required": ["exact"]
+                        },
+                        {
+                          "required": ["prefix"]
+                        },
+                        {
+                          "required": ["regex"]
+                        }
+                      ],
+                      "properties": {
+                        "exact": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "regex": {
+                          "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "name": {
+                      "description": "The name assigned to a match.",
+                      "type": "string"
+                    },
+                    "port": {
+                      "description": "Specifies the ports on the host that is being addressed.",
+                      "maximum": 4294967295,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "queryParams": {
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "not": {
+                              "anyOf": [
+                                {
+                                  "required": ["exact"]
+                                },
+                                {
+                                  "required": ["prefix"]
+                                },
+                                {
+                                  "required": ["regex"]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "required": ["exact"]
+                          },
+                          {
+                            "required": ["prefix"]
+                          },
+                          {
+                            "required": ["regex"]
+                          }
+                        ],
+                        "properties": {
+                          "exact": {
+                            "type": "string"
+                          },
+                          "prefix": {
+                            "type": "string"
+                          },
+                          "regex": {
+                            "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "description": "Query parameters for matching.",
+                      "type": "object"
+                    },
+                    "scheme": {
+                      "description": "URI Scheme values are case-sensitive and formatted as follows: - `exact: \"value\"` for exact string match - `prefix: \"value\"` for prefix-based match - `regex: \"value\"` for [RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                      "oneOf": [
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": ["exact"]
+                              },
+                              {
+                                "required": ["prefix"]
+                              },
+                              {
+                                "required": ["regex"]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "required": ["exact"]
+                        },
+                        {
+                          "required": ["prefix"]
+                        },
+                        {
+                          "required": ["regex"]
+                        }
+                      ],
+                      "properties": {
+                        "exact": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "regex": {
+                          "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "sourceLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "One or more labels that constrain the applicability of a rule to source (client) workloads with the given labels.",
+                      "type": "object"
+                    },
+                    "sourceNamespace": {
+                      "description": "Source namespace constraining the applicability of a rule to workloads in that namespace.",
+                      "type": "string"
+                    },
+                    "statPrefix": {
+                      "description": "The human readable prefix to use when emitting statistics for this route.",
+                      "type": "string"
+                    },
+                    "uri": {
+                      "description": "URI to match values are case-sensitive and formatted as follows: - `exact: \"value\"` for exact string match - `prefix: \"value\"` for prefix-based match - `regex: \"value\"` for [RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                      "oneOf": [
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": ["exact"]
+                              },
+                              {
+                                "required": ["prefix"]
+                              },
+                              {
+                                "required": ["regex"]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "required": ["exact"]
+                        },
+                        {
+                          "required": ["prefix"]
+                        },
+                        {
+                          "required": ["regex"]
+                        }
+                      ],
+                      "properties": {
+                        "exact": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "regex": {
+                          "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "withoutHeaders": {
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "not": {
+                              "anyOf": [
+                                {
+                                  "required": ["exact"]
+                                },
+                                {
+                                  "required": ["prefix"]
+                                },
+                                {
+                                  "required": ["regex"]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "required": ["exact"]
+                          },
+                          {
+                            "required": ["prefix"]
+                          },
+                          {
+                            "required": ["regex"]
+                          }
+                        ],
+                        "properties": {
+                          "exact": {
+                            "type": "string"
+                          },
+                          "prefix": {
+                            "type": "string"
+                          },
+                          "regex": {
+                            "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "description": "withoutHeader has the same syntax with the header, but has opposite meaning.",
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "mirror": {
+                "description": "Mirror HTTP traffic to a another destination in addition to forwarding the requests to the intended destination.",
+                "properties": {
+                  "host": {
+                    "description": "The name of a service from the service registry.",
+                    "type": "string"
+                  },
+                  "port": {
+                    "description": "Specifies the port on the host that is being addressed.",
+                    "properties": {
+                      "number": {
+                        "maximum": 4294967295,
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "subset": {
+                    "description": "The name of a subset within the service.",
+                    "type": "string"
+                  }
+                },
+                "required": ["host"],
+                "type": "object"
+              },
+              "mirrorPercent": {
+                "maximum": 4294967295,
+                "minimum": 0,
+                "nullable": true,
+                "type": "integer"
+              },
+              "mirrorPercentage": {
+                "description": "Percentage of the traffic to be mirrored by the `mirror` field.",
+                "properties": {
+                  "value": {
+                    "format": "double",
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              },
+              "mirror_percent": {
+                "maximum": 4294967295,
+                "minimum": 0,
+                "nullable": true,
+                "type": "integer"
+              },
+              "mirrors": {
+                "description": "Specifies the destinations to mirror HTTP traffic in addition to the original destination.",
+                "items": {
+                  "properties": {
+                    "destination": {
+                      "description": "Destination specifies the target of the mirror operation.",
+                      "properties": {
+                        "host": {
+                          "description": "The name of a service from the service registry.",
+                          "type": "string"
+                        },
+                        "port": {
+                          "description": "Specifies the port on the host that is being addressed.",
+                          "properties": {
+                            "number": {
+                              "maximum": 4294967295,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "subset": {
+                          "description": "The name of a subset within the service.",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["host"],
+                      "type": "object"
+                    },
+                    "percentage": {
+                      "description": "Percentage of the traffic to be mirrored by the `destination` field.",
+                      "properties": {
+                        "value": {
+                          "format": "double",
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": ["destination"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "name": {
+                "description": "The name assigned to the route for debugging purposes.",
+                "type": "string"
+              },
+              "redirect": {
+                "description": "A HTTP rule can either return a direct_response, redirect or forward (default) traffic.",
+                "oneOf": [
+                  {
+                    "not": {
+                      "anyOf": [
+                        {
+                          "required": ["port"]
+                        },
+                        {
+                          "required": ["derivePort"]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "required": ["port"]
+                  },
+                  {
+                    "required": ["derivePort"]
+                  }
+                ],
+                "properties": {
+                  "authority": {
+                    "description": "On a redirect, overwrite the Authority/Host portion of the URL with this value.",
+                    "type": "string"
+                  },
+                  "derivePort": {
+                    "description": "On a redirect, dynamically set the port: * FROM_PROTOCOL_DEFAULT: automatically set to 80 for HTTP and 443 for HTTPS.\n\nValid Options: FROM_PROTOCOL_DEFAULT, FROM_REQUEST_PORT",
+                    "enum": ["FROM_PROTOCOL_DEFAULT", "FROM_REQUEST_PORT"],
+                    "type": "string"
+                  },
+                  "port": {
+                    "description": "On a redirect, overwrite the port portion of the URL with this value.",
+                    "maximum": 4294967295,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "redirectCode": {
+                    "description": "On a redirect, Specifies the HTTP status code to use in the redirect response.",
+                    "maximum": 4294967295,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "scheme": {
+                    "description": "On a redirect, overwrite the scheme portion of the URL with this value.",
+                    "type": "string"
+                  },
+                  "uri": {
+                    "description": "On a redirect, overwrite the Path portion of the URL with this value.",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "retries": {
+                "description": "Retry policy for HTTP requests.",
+                "properties": {
+                  "attempts": {
+                    "description": "Number of retries to be allowed for a given request.",
+                    "format": "int32",
+                    "type": "integer"
+                  },
+                  "backoff": {
+                    "description": "Specifies the minimum duration between retry attempts.",
+                    "type": "string",
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "must be a valid duration greater than 1ms",
+                        "rule": "duration(self) >= duration('1ms')"
+                      }
+                    ]
+                  },
+                  "perTryTimeout": {
+                    "description": "Timeout per attempt for a given request, including the initial call and any retries.",
+                    "type": "string",
+                    "x-kubernetes-validations": [
+                      {
+                        "message": "must be a valid duration greater than 1ms",
+                        "rule": "duration(self) >= duration('1ms')"
+                      }
+                    ]
+                  },
+                  "retryIgnorePreviousHosts": {
+                    "description": "Flag to specify whether the retries should ignore previously tried hosts during retry.",
+                    "nullable": true,
+                    "type": "boolean"
+                  },
+                  "retryOn": {
+                    "description": "Specifies the conditions under which retry takes place.",
+                    "type": "string"
+                  },
+                  "retryRemoteLocalities": {
+                    "description": "Flag to specify whether the retries should retry to other localities.",
+                    "nullable": true,
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "rewrite": {
+                "description": "Rewrite HTTP URIs and Authority headers.",
+                "properties": {
+                  "authority": {
+                    "description": "rewrite the Authority/Host header with this value.",
+                    "type": "string"
+                  },
+                  "uri": {
+                    "description": "rewrite the path (or the prefix) portion of the URI with this value.",
+                    "type": "string"
+                  },
+                  "uriRegexRewrite": {
+                    "description": "rewrite the path portion of the URI with the specified regex.",
+                    "properties": {
+                      "match": {
+                        "description": "[RE2 style regex-based match](https://github.com/google/re2/wiki/Syntax).",
+                        "type": "string"
+                      },
+                      "rewrite": {
+                        "description": "The string that should replace into matching portions of original URI.",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "route": {
+                "description": "A HTTP rule can either return a direct_response, redirect or forward (default) traffic.",
+                "items": {
+                  "properties": {
+                    "destination": {
+                      "description": "Destination uniquely identifies the instances of a service to which the request/connection should be forwarded to.",
+                      "properties": {
+                        "host": {
+                          "description": "The name of a service from the service registry.",
+                          "type": "string"
+                        },
+                        "port": {
+                          "description": "Specifies the port on the host that is being addressed.",
+                          "properties": {
+                            "number": {
+                              "maximum": 4294967295,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "subset": {
+                          "description": "The name of a subset within the service.",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["host"],
+                      "type": "object"
+                    },
+                    "headers": {
+                      "properties": {
+                        "request": {
+                          "properties": {
+                            "add": {
+                              "additionalProperties": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            "remove": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "set": {
+                              "additionalProperties": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "response": {
+                          "properties": {
+                            "add": {
+                              "additionalProperties": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            "remove": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "set": {
+                              "additionalProperties": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            }
+                          },
+                          "type": "object"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "weight": {
+                      "description": "Weight specifies the relative proportion of traffic to be forwarded to the destination.",
+                      "format": "int32",
+                      "type": "integer"
+                    }
+                  },
+                  "required": ["destination"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "timeout": {
+                "description": "Timeout for HTTP requests, default is disabled.",
+                "type": "string",
+                "x-kubernetes-validations": [
+                  {
+                    "message": "must be a valid duration greater than 1ms",
+                    "rule": "duration(self) >= duration('1ms')"
+                  }
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "tcp": {
+          "description": "An ordered list of route rules for opaque TCP traffic.",
+          "items": {
+            "properties": {
+              "match": {
+                "description": "Match conditions to be satisfied for the rule to be activated.",
+                "items": {
+                  "properties": {
+                    "destinationSubnets": {
+                      "description": "IPv4 or IPv6 ip addresses of destination with optional subnet.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "gateways": {
+                      "description": "Names of gateways where the rule should be applied.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "port": {
+                      "description": "Specifies the port on the host that is being addressed.",
+                      "maximum": 4294967295,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "sourceLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "One or more labels that constrain the applicability of a rule to workloads with the given labels.",
+                      "type": "object"
+                    },
+                    "sourceNamespace": {
+                      "description": "Source namespace constraining the applicability of a rule to workloads in that namespace.",
+                      "type": "string"
+                    },
+                    "sourceSubnet": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "route": {
+                "description": "The destination to which the connection should be forwarded to.",
+                "items": {
+                  "properties": {
+                    "destination": {
+                      "description": "Destination uniquely identifies the instances of a service to which the request/connection should be forwarded to.",
+                      "properties": {
+                        "host": {
+                          "description": "The name of a service from the service registry.",
+                          "type": "string"
+                        },
+                        "port": {
+                          "description": "Specifies the port on the host that is being addressed.",
+                          "properties": {
+                            "number": {
+                              "maximum": 4294967295,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "subset": {
+                          "description": "The name of a subset within the service.",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["host"],
+                      "type": "object"
+                    },
+                    "weight": {
+                      "description": "Weight specifies the relative proportion of traffic to be forwarded to the destination.",
+                      "format": "int32",
+                      "type": "integer"
+                    }
+                  },
+                  "required": ["destination"],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "tls": {
+          "description": "An ordered list of route rule for non-terminated TLS & HTTPS traffic.",
+          "items": {
+            "properties": {
+              "match": {
+                "description": "Match conditions to be satisfied for the rule to be activated.",
+                "items": {
+                  "properties": {
+                    "destinationSubnets": {
+                      "description": "IPv4 or IPv6 ip addresses of destination with optional subnet.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "gateways": {
+                      "description": "Names of gateways where the rule should be applied.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "port": {
+                      "description": "Specifies the port on the host that is being addressed.",
+                      "maximum": 4294967295,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "sniHosts": {
+                      "description": "SNI (server name indicator) to match on.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "sourceLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "One or more labels that constrain the applicability of a rule to workloads with the given labels.",
+                      "type": "object"
+                    },
+                    "sourceNamespace": {
+                      "description": "Source namespace constraining the applicability of a rule to workloads in that namespace.",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["sniHosts"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "route": {
+                "description": "The destination to which the connection should be forwarded to.",
+                "items": {
+                  "properties": {
+                    "destination": {
+                      "description": "Destination uniquely identifies the instances of a service to which the request/connection should be forwarded to.",
+                      "properties": {
+                        "host": {
+                          "description": "The name of a service from the service registry.",
+                          "type": "string"
+                        },
+                        "port": {
+                          "description": "Specifies the port on the host that is being addressed.",
+                          "properties": {
+                            "number": {
+                              "maximum": 4294967295,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "subset": {
+                          "description": "The name of a subset within the service.",
+                          "type": "string"
+                        }
+                      },
+                      "required": ["host"],
+                      "type": "object"
+                    },
+                    "weight": {
+                      "description": "Weight specifies the relative proportion of traffic to be forwarded to the destination.",
+                      "format": "int32",
+                      "type": "integer"
+                    }
+                  },
+                  "required": ["destination"],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": ["match"],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

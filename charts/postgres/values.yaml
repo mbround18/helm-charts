@@ -14,8 +14,19 @@ image:
   tag: "18.3"
   pullPolicy: IfNotPresent
 
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+
 ha:
   enabled: false
+
+auth:
+  password: ""
+  superuserPassword: ""
 
 secrets:
   password:

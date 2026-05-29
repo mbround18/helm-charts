@@ -4,6 +4,11 @@ metadata:
   name: {{ include "opentelemetry-collector.fullname" . }}
   labels:
     {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
 data:
   otel-config.yaml: |
     {{- tpl (include "opentelemetry-collector.config" .) . | nindent 4 }}

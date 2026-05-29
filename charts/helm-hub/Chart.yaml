@@ -1,0 +1,18 @@
+apiVersion: v2
+name: helm-hub
+description: A Helm chart for Helm Hub - a modern helm chart repository.
+type: application
+version: 0.1.2
+appVersion: 1.0.0
+dependencies:
+  - name: gitops-tools
+    version: 0.1.1
+    repository: "file://../gitops-tools"
+  - name: istio-ingress
+    version: 0.1.9
+    repository: "file://../istio-ingress"
+    condition: istio-ingress.enabled
+  - name: postgres
+    version: 0.1.22
+    repository: "file://../postgres"
+    condition: postgres.enabled

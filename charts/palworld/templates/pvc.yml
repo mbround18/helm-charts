@@ -5,6 +5,11 @@ metadata:
   name: {{ .Values.pvcs.saved.name}}
   labels:
       app: {{ include "palworld.name" . }}
+  {{- $savedAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
+  {{- if $savedAnnotations }}
+  annotations:
+    {{- $savedAnnotations | nindent 4 }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
 spec:
     accessModes:
@@ -21,6 +26,11 @@ metadata:
   name: {{ .Values.pvcs.backups.name }}
   labels:
       app: {{ include "palworld.name" . }}
+  {{- $backupsAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
+  {{- if $backupsAnnotations }}
+  annotations:
+    {{- $backupsAnnotations | nindent 4 }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
 spec:
     accessModes:
@@ -37,6 +47,11 @@ metadata:
   name: {{ .Values.pvcs.server.name }}
   labels:
       app: {{ include "palworld.name" . }}
+  {{- $serverAnnotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
+  {{- if $serverAnnotations }}
+  annotations:
+    {{- $serverAnnotations | nindent 4 }}
+  {{- end }}
   namespace: {{ .Release.Namespace }}
 spec:
     accessModes:

@@ -9,9 +9,10 @@ metadata:
     {{- with .Values.observability.serviceMonitor.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-  {{- with .Values.observability.serviceMonitor.annotations }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" .Values.observability.serviceMonitor.annotations) }}
+  {{- if $annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
+    {{- $annotations | nindent 4 }}
   {{- end }}
 spec:
   endpoints:

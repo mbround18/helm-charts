@@ -11,7 +11,7 @@ metadata:
   labels:
     {{- include "istio-ingress.labels" . | nindent 4 }}
   annotations:
-    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-wave: {{ .Values.argoCd.syncWave | quote }}
     {{- if .Values.externalDns.enabled }}
     {{- toYaml .Values.externalDns.annotations | nindent 4 }}
     {{- end }}

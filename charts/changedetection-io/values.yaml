@@ -1,0 +1,141 @@
+replicaCount: 1
+
+strategy:
+  type: Recreate
+
+image:
+  repository: ghcr.io/dgtlmoon/changedetection.io
+  tag: 0.55.3
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+  annotations: {}
+
+persistence:
+  enabled: true
+  storageClassName: ""
+  size: 10Gi
+  accessMode: ReadWriteOnce
+  mountPath: /datastore
+  annotations: {}
+  # existingClaim: ""
+
+env:
+  # BASE_URL: ""
+  # PLAYWRIGHT_DRIVER_URL: "ws://localhost:3000"
+  # WEBDRIVER_URL: ""
+  # LOGGER_LEVEL: "INFO"
+  # FETCH_WORKERS: "10"
+  # TZ: "UTC"
+  # USE_X_SETTINGS: "1"
+
+secrets: {}
+
+# Sidecar browser fetcher
+browser:
+  sockpuppet:
+    enabled: true
+    image:
+      repository: dgtlmoon/sockpuppetbrowser
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+    securityContext:
+      capabilities:
+        add:
+          - SYS_ADMIN
+  selenium:
+    enabled: false
+    image:
+      repository: selenium/standalone-chrome
+      tag: 4
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+    env:
+      SE_EVENT_BUS_HOST: localhost
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    enabled: false
+    hosts:
+      - changedetection.local
+  # Example for production clusters:
+  # externalDns:
+  #   enabled: true
+  #   annotations:
+  #     external-dns.alpha.kubernetes.io/hostname: "changedetection.example.com"
+  # tls:
+  #   enabled: true
+  #   # credentialName: "cloudflare-client-tls" # Now the default if enabled
+  # gateway:
+  #   servers:
+  #     - port:
+  #         number: 80
+  #         protocol: HTTP
+  #         name: http
+  #       hosts: ["changedetection.example.com"]
+  #     - port:
+  #         number: 443
+  #         protocol: HTTPS
+  #         name: https
+  #       hosts: ["changedetection.example.com"]
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: changedetection.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+deploymentAnnotations: {}
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
