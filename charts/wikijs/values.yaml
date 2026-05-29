@@ -53,7 +53,7 @@ meilisearch:
   enabled: false
   image:
     repository: getmeili/meilisearch
-    tag: v1.42.1
+    tag: v1.44.0
     pullPolicy: IfNotPresent
   copyImage:
     repository: mbround18/wikijs-meilisearch-module
