@@ -19,7 +19,7 @@ grafana:
   persistence:
     enabled: true
     size: "10Gi"
-    storageClassName: "standard"
+    storageClassName: "longhorn"
   # External database configuration (PostgreSQL)
   database:
     type: "postgres"
@@ -72,7 +72,7 @@ upstream-grafana:
     enabled: true
     type: "pvc"
     size: "10Gi"
-    storageClassName: "standard"
+    storageClassName: "longhorn"
     accessModes:
       - ReadWriteOnce
 

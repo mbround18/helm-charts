@@ -101,18 +101,14 @@ config:
     #   endpoint: "tempo.mimir.svc.cluster.local:4317"
     #   tls:
     #     insecure: true
-    logging:
-      loglevel: debug
+    debug:
+      verbosity: detailed
 
   #
   # EXTENSIONS
   #
   extensions:
     health_check: {}
-    memory_ballast:
-      # In general, this should be set to 1/3 of the memory allocated to the collector.
-      # It is not used by default but can be enabled.
-      size_mib: 0
 
   #
   # SERVICE (PIPELINES)
@@ -124,17 +120,25 @@ config:
       traces:
         receivers: [otlp]
         processors: [memory_limiter, batch]
-        exporters: [logging]
+        exporters: [debug]
       # -- Metrics pipeline
       metrics:
         receivers: [otlp]
         processors: [memory_limiter, batch]
-        exporters: [logging]
+        exporters: [debug]
       # -- Logs pipeline
       logs:
         receivers: [otlp]
         processors: [memory_limiter, batch]
-        exporters: [logging]
+        exporters: [debug]
+    telemetry:
+      metrics:
+        readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: "0.0.0.0"
+                  port: 8888
 
 # -- Dynamic Memory Limiter
 # Automatically calculates the memory_limiter's `limit_mib` based on a percentage
