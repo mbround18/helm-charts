@@ -55,12 +55,10 @@ def test_external_secrets_render_admin_and_database_targets():
         values={
             "externalSecrets": {
                 "enabled": True,
+                "mode": "store",
                 "secretStore": "vault-kv",
                 "secretStoreKind": "ClusterSecretStore",
-                "admin": {
-                    "userKey": "grafana/data/adminUser",
-                    "passwordKey": "grafana/data/adminPassword",
-                },
+                "admin": {"passwordKey": "grafana/data/adminPassword", "user": "admin"},
                 "database": {
                     "passwordKey": "grafana/data/databasePassword",
                 },
@@ -83,5 +81,35 @@ def test_external_secrets_render_admin_and_database_targets():
 
     assert admin_secret["spec"]["target"]["name"] == "grafana-admin-creds"
     assert [entry["secretKey"] for entry in admin_secret["spec"]["data"]] == ["user", "password"]
+    assert (
+        admin_secret["spec"]["target"]["template"]["metadata"]["annotations"][
+            "argocd.argoproj.io/sync-options"
+        ]
+        == "Prune=false,Delete=false"
+    )
     assert database_secret["spec"]["target"]["name"] == "grafana-db-credentials"
     assert [entry["secretKey"] for entry in database_secret["spec"]["data"]] == ["password"]
+
+
+def test_external_secret_generator_mode_renders_password_generators():
+    documents = _render(values={"externalSecrets": {"enabled": True}})
+
+    passwords = _documents_by_kind(documents, "Password")
+    external_secrets = _documents_by_kind(documents, "ExternalSecret")
+
+    assert [doc["metadata"]["name"] for doc in passwords] == [
+        "release-name-admin-password",
+        "release-name-database-password",
+    ]
+    assert len(external_secrets) == 2
+    assert (
+        external_secrets[0]["spec"]["dataFrom"][0]["sourceRef"]["generatorRef"]["kind"]
+        == "Password"
+    )
+    assert external_secrets[0]["spec"]["target"]["template"]["data"]["user"] == "admin"
+    assert (
+        external_secrets[0]["spec"]["target"]["template"]["metadata"]["annotations"][
+            "argocd.argoproj.io/compare-options"
+        ]
+        == "IgnoreExtraneous"
+    )

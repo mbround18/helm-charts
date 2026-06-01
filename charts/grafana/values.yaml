@@ -58,12 +58,18 @@ gitops-tools:
 # When enabled, the chart creates the admin and database secrets expected by Grafana.
 externalSecrets:
   enabled: false
+  mode: "generator"
   secretStore: "vault-kv"
   secretStoreKind: "ClusterSecretStore"
-  annotations: {}
+  annotations:
+    argocd.argoproj.io/compare-options: "IgnoreExtraneous"
+    argocd.argoproj.io/sync-options: "Prune=false,Delete=false"
+  generator:
+    passwordLength: 32
   admin:
     userKey: "grafana/data/adminUser"
     passwordKey: "grafana/data/adminPassword"
+    user: "admin"
   database:
     passwordKey: "grafana/data/databasePassword"
 
