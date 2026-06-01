@@ -81,6 +81,7 @@ externalSecrets:
       target:
         data:
           user: "admin"
+          password: "{{ .password }}"
     database:
       mode: "generator"
       targetName: "grafana-db-credentials"

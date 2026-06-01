@@ -92,4 +92,8 @@ def test_external_secrets_render_generator_targets_with_retention_defaults():
         == "Prune=false,Delete=false"
     )
     assert admin_secret["spec"]["target"]["template"]["data"]["user"] == "admin"
+    assert (
+        admin_secret["spec"]["target"]["template"]["data"]["password"]
+        == "{{ .password }}"
+    )
     assert database_secret["spec"]["dataFrom"][0]["sourceRef"]["generatorRef"]["kind"] == "Password"
