@@ -1,0 +1,72 @@
+{{- if .Values.enabled }}
+{{- $root := . -}}
+{{- $secretNames := keys .Values.secrets | sortAlpha -}}
+{{- range $secretNameIndex, $secretName := $secretNames }}
+{{- $secret := index $root.Values.secrets $secretName -}}
+{{- $generator := default dict $secret.generator -}}
+{{- $target := default dict $secret.target -}}
+{{- $resourceAnnotations := include "external-secret-resources.mergeMaps" (dict "maps" (list $root.Values.annotations $secret.annotations (dict "argocd.argoproj.io/sync-wave" "0"))) -}}
+{{- $targetAnnotations := include "external-secret-resources.mergeMaps" (dict "maps" (list $root.Values.defaults.target.annotations $root.Values.annotations $target.annotations)) -}}
+{{- $targetLabels := include "external-secret-resources.mergeMaps" (dict "maps" (list $root.Values.defaults.target.labels $target.labels)) -}}
+{{- $generatorName := default (printf "%s-%s-password" (include "external-secret-resources.fullname" $root) $secretName) $generator.name -}}
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata:
+  name: {{ $generatorName }}
+  labels:
+    {{- include "external-secret-resources.labels" $root | nindent 4 }}
+  {{- if $resourceAnnotations }}
+  annotations:
+    {{- $resourceAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  length: {{ default $root.Values.generator.passwordLength $generator.length }}
+  allowRepeat: {{ default $root.Values.generator.allowRepeat $generator.allowRepeat }}
+  noUpper: {{ default $root.Values.generator.noUpper $generator.noUpper }}
+  secretKeys:
+    {{- $secretKeys := default (list "password") $generator.secretKeys }}
+    {{- range $secretKeys }}
+    - {{ . }}
+    {{- end }}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ include "external-secret-resources.fullname" $root }}-{{ $secretName }}
+  labels:
+    {{- include "external-secret-resources.labels" $root | nindent 4 }}
+  {{- if $resourceAnnotations }}
+  annotations:
+    {{- $resourceAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  refreshPolicy: {{ default $root.Values.defaults.refreshPolicy $secret.refreshPolicy }}
+  target:
+    name: {{ required (printf "secrets.%s.targetName is required" $secretName) $secret.targetName }}
+    creationPolicy: {{ default $root.Values.defaults.target.creationPolicy $target.creationPolicy }}
+    deletionPolicy: {{ default $root.Values.defaults.target.deletionPolicy $target.deletionPolicy }}
+    template:
+      metadata:
+{{ if $targetAnnotations }}
+        annotations:
+{{ $targetAnnotations | nindent 10 }}
+{{ end }}
+{{ if $targetLabels }}
+        labels:
+{{ $targetLabels | nindent 10 }}
+{{ end }}
+{{ if $target.data }}
+      data:
+{{ toYaml $target.data | nindent 8 }}
+{{ end }}
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: {{ default "Password" $generator.kind }}
+          name: {{ $generatorName }}
+{{- if lt (add1 $secretNameIndex) (len $secretNames) }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

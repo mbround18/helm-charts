@@ -1,0 +1,16 @@
+enabled: false
+annotations: {}
+defaults:
+  refreshPolicy: CreatedOnce
+  target:
+    creationPolicy: Orphan
+    deletionPolicy: Retain
+    annotations:
+      argocd.argoproj.io/compare-options: IgnoreExtraneous
+      argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    labels: {}
+generator:
+  passwordLength: 32
+  allowRepeat: true
+  noUpper: false
+secrets: {}
