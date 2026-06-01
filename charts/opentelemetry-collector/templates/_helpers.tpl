@@ -102,7 +102,7 @@ Generate the OpenTelemetry Collector configuration.
 
 {{- /* Self-Observability */ -}}
 {{- if .Values.observability.enabled -}}
-  {{- $telemetryConfig := dict "metrics" (dict "address" "0.0.0.0:8888") -}}
+  {{- $telemetryConfig := dict "metrics" (dict "readers" (list (dict "pull" (dict "exporter" (dict "prometheus" (dict "host" "0.0.0.0" "port" 8888)))))) -}}
   {{- $_ := set $cfg.service "telemetry" $telemetryConfig -}}
 {{- end -}}
 

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import yaml
+
 from charts.test_helpers import DEFAULT_NAMESPACE, render_chart_documents
 
 
@@ -32,6 +34,27 @@ def test_checksum_and_observability_annotations_render_without_pod_annotations()
     assert "checksum/config" in annotations
     assert annotations["prometheus.io/scrape"] == "true"
     assert annotations["prometheus.io/port"] == "8888"
+
+
+def test_rendered_config_uses_current_telemetry_schema():
+    documents = _render()
+    configmap = _document_by_kind(documents, "ConfigMap")
+    config = yaml.safe_load(configmap["data"]["otel-config.yaml"])
+
+    assert config["extensions"]["health_check"]["endpoint"] == "0.0.0.0:13133"
+    assert "address" not in config["service"]["telemetry"]["metrics"]
+    assert config["service"]["telemetry"]["metrics"]["readers"] == [
+        {
+            "pull": {
+                "exporter": {
+                    "prometheus": {
+                        "host": "0.0.0.0",
+                        "port": 8888,
+                    }
+                }
+            }
+        }
+    ]
 
 
 def test_network_policy_namespace_allowlist_rendering():

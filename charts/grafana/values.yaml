@@ -41,12 +41,31 @@ istio-ingress:
     credentialName: "grafana-tls-cert" # Secret containing tls.crt and tls.key
 
 # GitOps Tools (ArgoCD) configuration
+argoCd:
+  mode: "auto"
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
 gitops-tools:
   argoCd:
     mode: "auto" # 'enabled', 'disabled', or 'auto'
     instanceLabel: "primary"
     commonAnnotations:
       notifications.argoproj.io/subscribe.on-deployed: "grafana-deploys"
+
+# Optional ExternalSecrets integration.
+# When enabled, the chart creates the admin and database secrets expected by Grafana.
+externalSecrets:
+  enabled: false
+  secretStore: "vault-kv"
+  secretStoreKind: "ClusterSecretStore"
+  annotations: {}
+  admin:
+    userKey: "grafana/data/adminUser"
+    passwordKey: "grafana/data/adminPassword"
+  database:
+    passwordKey: "grafana/data/databasePassword"
 
 # Upstream Grafana chart values
 # We alias it to 'upstream-grafana' to avoid conflicts and make it clear

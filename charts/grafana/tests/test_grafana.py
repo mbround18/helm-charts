@@ -42,3 +42,46 @@ def test_istio_authorization_policy_is_rendered_by_default():
 
     assert len(policies) == 1
     assert policies[0]["metadata"]["name"] == "release-name-telemetry-deny"
+
+
+def test_external_secrets_are_disabled_by_default():
+    documents = _render()
+
+    assert all(doc.get("kind") != "ExternalSecret" for doc in documents)
+
+
+def test_external_secrets_render_admin_and_database_targets():
+    documents = _render(
+        values={
+            "externalSecrets": {
+                "enabled": True,
+                "secretStore": "vault-kv",
+                "secretStoreKind": "ClusterSecretStore",
+                "admin": {
+                    "userKey": "grafana/data/adminUser",
+                    "passwordKey": "grafana/data/adminPassword",
+                },
+                "database": {
+                    "passwordKey": "grafana/data/databasePassword",
+                },
+            }
+        }
+    )
+
+    external_secrets = _documents_by_kind(documents, "ExternalSecret")
+    names = [doc["metadata"]["name"] for doc in external_secrets]
+
+    assert names == ["release-name-admin", "release-name-database"]
+
+    admin_secret = next(
+        doc for doc in external_secrets if doc["metadata"]["name"] == "release-name-admin"
+    )
+    database_secret = next(
+        doc for doc in external_secrets
+        if doc["metadata"]["name"] == "release-name-database"
+    )
+
+    assert admin_secret["spec"]["target"]["name"] == "grafana-admin-creds"
+    assert [entry["secretKey"] for entry in admin_secret["spec"]["data"]] == ["user", "password"]
+    assert database_secret["spec"]["target"]["name"] == "grafana-db-credentials"
+    assert [entry["secretKey"] for entry in database_secret["spec"]["data"]] == ["password"]

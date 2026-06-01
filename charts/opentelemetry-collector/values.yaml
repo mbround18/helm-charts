@@ -108,7 +108,8 @@ config:
   # EXTENSIONS
   #
   extensions:
-    health_check: {}
+    health_check:
+      endpoint: "0.0.0.0:13133"
 
   #
   # SERVICE (PIPELINES)
