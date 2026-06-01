@@ -58,20 +58,34 @@ gitops-tools:
 # When enabled, the chart creates the admin and database secrets expected by Grafana.
 externalSecrets:
   enabled: false
-  mode: "generator"
-  secretStore: "vault-kv"
-  secretStoreKind: "ClusterSecretStore"
-  annotations:
-    argocd.argoproj.io/compare-options: "IgnoreExtraneous"
-    argocd.argoproj.io/sync-options: "Prune=false,Delete=false"
+  annotations: {}
+  defaults:
+    refreshPolicy: "CreatedOnce"
+    target:
+      creationPolicy: "Orphan"
+      deletionPolicy: "Retain"
+      annotations:
+        argocd.argoproj.io/compare-options: "IgnoreExtraneous"
+        argocd.argoproj.io/sync-options: "Prune=false,Delete=false"
+      labels: {}
   generator:
     passwordLength: 32
-  admin:
-    userKey: "grafana/data/adminUser"
-    passwordKey: "grafana/data/adminPassword"
-    user: "admin"
-  database:
-    passwordKey: "grafana/data/databasePassword"
+    allowRepeat: true
+    noUpper: false
+  secrets:
+    admin:
+      mode: "generator"
+      targetName: "grafana-admin-creds"
+      generator:
+        name: "grafana-admin-password"
+      target:
+        data:
+          user: "admin"
+    database:
+      mode: "generator"
+      targetName: "grafana-db-credentials"
+      generator:
+        name: "grafana-db-password"
 
 # Upstream Grafana chart values
 # We alias it to 'upstream-grafana' to avoid conflicts and make it clear

@@ -48,68 +48,48 @@ def test_external_secrets_are_disabled_by_default():
     documents = _render()
 
     assert all(doc.get("kind") != "ExternalSecret" for doc in documents)
+    assert all(doc.get("kind") != "Password" for doc in documents)
 
 
-def test_external_secrets_render_admin_and_database_targets():
-    documents = _render(
-        values={
-            "externalSecrets": {
-                "enabled": True,
-                "mode": "store",
-                "secretStore": "vault-kv",
-                "secretStoreKind": "ClusterSecretStore",
-                "admin": {"passwordKey": "grafana/data/adminPassword", "user": "admin"},
-                "database": {
-                    "passwordKey": "grafana/data/databasePassword",
-                },
-            }
-        }
-    )
+def test_external_secrets_render_generator_targets_with_retention_defaults():
+    documents = _render(values={"externalSecrets": {"enabled": True}})
 
+    passwords = _documents_by_kind(documents, "Password")
     external_secrets = _documents_by_kind(documents, "ExternalSecret")
-    names = [doc["metadata"]["name"] for doc in external_secrets]
 
-    assert names == ["release-name-admin", "release-name-database"]
+    assert {doc["metadata"]["name"] for doc in passwords} == {
+        "grafana-admin-password",
+        "grafana-db-password",
+    }
+    assert {doc["metadata"]["name"] for doc in external_secrets} == {
+        "release-name-external-secret-resources-admin",
+        "release-name-external-secret-resources-database",
+    }
 
     admin_secret = next(
-        doc for doc in external_secrets if doc["metadata"]["name"] == "release-name-admin"
+        doc
+        for doc in external_secrets
+        if doc["metadata"]["name"] == "release-name-external-secret-resources-admin"
     )
     database_secret = next(
-        doc for doc in external_secrets
-        if doc["metadata"]["name"] == "release-name-database"
+        doc
+        for doc in external_secrets
+        if doc["metadata"]["name"] == "release-name-external-secret-resources-database"
     )
 
-    assert admin_secret["spec"]["target"]["name"] == "grafana-admin-creds"
-    assert [entry["secretKey"] for entry in admin_secret["spec"]["data"]] == ["user", "password"]
+    assert admin_secret["spec"]["target"]["creationPolicy"] == "Orphan"
+    assert admin_secret["spec"]["target"]["deletionPolicy"] == "Retain"
+    assert (
+        admin_secret["spec"]["target"]["template"]["metadata"]["annotations"][
+            "argocd.argoproj.io/compare-options"
+        ]
+        == "IgnoreExtraneous"
+    )
     assert (
         admin_secret["spec"]["target"]["template"]["metadata"]["annotations"][
             "argocd.argoproj.io/sync-options"
         ]
         == "Prune=false,Delete=false"
     )
-    assert database_secret["spec"]["target"]["name"] == "grafana-db-credentials"
-    assert [entry["secretKey"] for entry in database_secret["spec"]["data"]] == ["password"]
-
-
-def test_external_secret_generator_mode_renders_password_generators():
-    documents = _render(values={"externalSecrets": {"enabled": True}})
-
-    passwords = _documents_by_kind(documents, "Password")
-    external_secrets = _documents_by_kind(documents, "ExternalSecret")
-
-    assert [doc["metadata"]["name"] for doc in passwords] == [
-        "release-name-admin-password",
-        "release-name-database-password",
-    ]
-    assert len(external_secrets) == 2
-    assert (
-        external_secrets[0]["spec"]["dataFrom"][0]["sourceRef"]["generatorRef"]["kind"]
-        == "Password"
-    )
-    assert external_secrets[0]["spec"]["target"]["template"]["data"]["user"] == "admin"
-    assert (
-        external_secrets[0]["spec"]["target"]["template"]["metadata"]["annotations"][
-            "argocd.argoproj.io/compare-options"
-        ]
-        == "IgnoreExtraneous"
-    )
+    assert admin_secret["spec"]["target"]["template"]["data"]["user"] == "admin"
+    assert database_secret["spec"]["dataFrom"][0]["sourceRef"]["generatorRef"]["kind"] == "Password"
