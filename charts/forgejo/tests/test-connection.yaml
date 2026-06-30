@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: '{{ include "forgejo.fullname" . }}-test-connection'
-  labels: { { - include "forgejo.labels" . | nindent 4 } }
+  labels: '{{ include "forgejo.labels" . | nindent 4 }}'
   annotations:
     "helm.sh/hook": test
 spec:

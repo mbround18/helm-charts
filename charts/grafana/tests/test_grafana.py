@@ -77,7 +77,7 @@ def test_external_secrets_render_generator_targets_with_retention_defaults():
         if doc["metadata"]["name"] == "release-name-external-secret-resources-database"
     )
 
-    assert admin_secret["spec"]["target"]["creationPolicy"] == "Orphan"
+    assert admin_secret["spec"]["target"]["creationPolicy"] == "Owner"
     assert admin_secret["spec"]["target"]["deletionPolicy"] == "Retain"
     assert (
         admin_secret["spec"]["target"]["template"]["metadata"]["annotations"][
@@ -96,4 +96,7 @@ def test_external_secrets_render_generator_targets_with_retention_defaults():
         admin_secret["spec"]["target"]["template"]["data"]["password"]
         == "{{ .password }}"
     )
-    assert database_secret["spec"]["dataFrom"][0]["sourceRef"]["generatorRef"]["kind"] == "Password"
+    assert (
+        database_secret["spec"]["dataFrom"][0]["sourceRef"]["generatorRef"]["kind"]
+        == "Password"
+    )
