@@ -21,6 +21,9 @@ podAnnotations: {}
 podLabels: {}
 
 podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
   fsGroup: 1000
   fsGroupChangePolicy: OnRootMismatch
   seccompProfile:
@@ -31,11 +34,18 @@ securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
   capabilities:
     drop:
       - ALL
 
-resources: {}
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
 
 bootstrapAdmin:
   existingSecret: ""
@@ -74,6 +84,9 @@ keycloak:
   extraArgs: []
   extraEnv: []
   extraSecretEnv: []
+  extraInitContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
   importRealm:
     enabled: false
     existingConfigMap: ""
@@ -101,6 +114,13 @@ ingress:
           pathType: Prefix
   tls: []
 
+istio-ingress:
+  enabled: false
+  virtualService:
+    route:
+      host: keycloak
+      port: 8080
+
 persistence:
   enabled: true
   mountPath: /opt/keycloak/data
@@ -117,6 +137,12 @@ persistence:
   keep: true
 
 probes:
+  startup:
+    enabled: true
+    path: /health/ready
+    failureThreshold: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
   liveness:
     enabled: true
     path: /health/live
@@ -137,6 +163,8 @@ argoCd:
   instanceLabel: ""
   commonAnnotations: {}
   commonLabels: {}
+
+automountServiceAccountToken: false
 
 nodeSelector: {}
 affinity: {}

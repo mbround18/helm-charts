@@ -28,12 +28,17 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: {{ include "keycloak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.keycloak.extraInitContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: keycloak
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -126,6 +131,15 @@ spec:
           timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
           failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
         {{- end }}
+        {{- if .Values.probes.startup.enabled }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.probes.startup.path }}
+            port: management
+          periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+        {{- end }}
         {{- if .Values.probes.readiness.enabled }}
         readinessProbe:
           httpGet:
@@ -151,7 +165,14 @@ spec:
           mountPath: {{ .Values.keycloak.importRealm.mountPath }}
           readOnly: true
         {{- end }}
+        - name: tmp
+          mountPath: /tmp
+        {{- with .Values.keycloak.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       volumes:
+      - name: tmp
+        emptyDir: {}
       {{- if .Values.persistence.enabled }}
       - name: data
         persistentVolumeClaim:
@@ -161,6 +182,9 @@ spec:
       - name: realm-import
         configMap:
           name: {{ required "keycloak.importRealm.existingConfigMap is required when keycloak.importRealm.enabled=true" .Values.keycloak.importRealm.existingConfigMap }}
+      {{- end }}
+      {{- with .Values.keycloak.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

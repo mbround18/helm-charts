@@ -34,6 +34,19 @@ def test_defaults_render_production_workload_and_foundation_resources():
     )
     assert admin_secret["stringData"]["KC_BOOTSTRAP_ADMIN_USERNAME"] == "admin"
     assert pvc["metadata"]["annotations"]["helm.sh/resource-policy"] == "keep"
+    assert (
+        deployment["spec"]["template"]["spec"]["containers"][0]["securityContext"][
+            "readOnlyRootFilesystem"
+        ]
+        is True
+    )
+    assert any(
+        vm.get("name") == "tmp"
+        and vm.get("mountPath") == "/tmp"
+        for vm in deployment["spec"]["template"]["spec"]["containers"][0][
+            "volumeMounts"
+        ]
+    )
 
 
 def test_import_realm_adds_mount_and_startup_arg():

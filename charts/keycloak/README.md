@@ -1,14 +1,16 @@
 # Keycloak Helm Chart
 
-This chart deploys Keycloak with secure defaults, persistent data storage, and GitOps-aware Argo CD ordering.
+This chart deploys Keycloak with secure defaults, persistent data storage, Istio-ready ingress options, and GitOps-aware Argo CD ordering.
 
 ## Design Highlights
 
 - Uses the upstream Keycloak image: `quay.io/keycloak/keycloak`
 - Starts in production mode by default with `start --optimized`
 - Enables health and metrics endpoints by default
+- Enforces rootless runtime defaults, seccomp `RuntimeDefault`, dropped capabilities, and read-only root filesystem with `/tmp` scratch volume
 - Supports external PostgreSQL credentials via existing Kubernetes Secrets
 - Supports optional realm import via ConfigMap + `--import-realm`
+- Supports optional Istio ingress via the `istio-ingress` dependency
 - Uses `gitops-tools` helpers for Argo CD labels and sync-wave annotations
 
 ## Quick Start
