@@ -62,7 +62,7 @@ externalSecrets:
   defaults:
     refreshPolicy: "CreatedOnce"
     target:
-      creationPolicy: "Orphan"
+      creationPolicy: "Owner"
       deletionPolicy: "Retain"
       annotations:
         argocd.argoproj.io/compare-options: "IgnoreExtraneous"
