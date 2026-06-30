@@ -20,13 +20,9 @@ grafana:
     enabled: true
     size: "10Gi"
     storageClassName: "longhorn"
-  # External database configuration (PostgreSQL)
+  # Database configuration (default sqlite on PVC)
   database:
-    type: "postgres"
-    host: "postgres-postgresql.database.svc.cluster.local"
-    port: 5432
-    name: "grafana"
-    user: "grafana"
+    type: "sqlite3"
     existingSecret: "grafana-db-credentials" # Secret with 'password' key
 
 # Istio Ingress configuration
@@ -116,15 +112,10 @@ upstream-grafana:
     accessModes:
       - ReadWriteOnce
 
-  # Use an external database
+  # Use sqlite by default (can be overridden to postgres per-environment)
   grafana.ini:
     database:
-      type: "postgres"
-      host: "postgres-postgresql.database.svc.cluster.local"
-      port: 5432
-      name: "grafana"
-      user: "grafana"
-      # Password will be mounted from the secret
+      type: "sqlite3"
     auth.anonymous:
       enabled: false
 

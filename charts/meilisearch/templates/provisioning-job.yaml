@@ -34,7 +34,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.auth.masterKeySecret }}
-                  key: master-key
+                  key: {{ .Values.secrets.masterKey.key }}
             - name: MEILI_API_KEY
               valueFrom:
                 secretKeyRef:
