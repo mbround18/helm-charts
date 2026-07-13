@@ -10,6 +10,10 @@ metadata:
     {{- $annotations | nindent 4 }}
   {{- end }}
 spec:
+  {{- $pvcs := .Values.pvcs }}
+  {{- if not .Values.backups.enabled }}
+  {{- $pvcs = omit $pvcs "backups" }}
+  {{- end }}
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
@@ -62,7 +66,7 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-          {{- range .Values.pvcs }}
+          {{- range $pvcs }}
             - name: {{ .name }}
               mountPath: {{ .path }}
               {{- if .subPath }}
@@ -108,7 +112,7 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-          {{- range .Values.pvcs }}
+          {{- range $pvcs }}
             - name: {{ .name }}
               mountPath: {{ .path }}
               {{- if .subPath }}
@@ -119,7 +123,7 @@ spec:
           {{- toYaml . | nindent 12 }}
           {{- end }}
       {{- $combinedVolumes := .Values.volumes }}
-      {{- range .Values.pvcs }}
+      {{- range $pvcs }}
       {{- $newVolume := dict "name" .name "persistentVolumeClaim" (dict "claimName" .name) }}
       {{- $combinedVolumes = append $combinedVolumes $newVolume }}
       {{- end }}
