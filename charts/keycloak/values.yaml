@@ -71,6 +71,31 @@ database:
 keycloak:
   production: true
   optimizedStart: false
+  preDeployJobs:
+    enabled: false
+    waves:
+      storage: "14"
+      seed: "15"
+      providers: "16"
+      build: "17"
+    ttlSecondsAfterFinished: 300
+    backoffLimit: 2
+    providersMount:
+      enabled: true
+    persistence:
+      create: true
+      existingClaim: ""
+      claimName: ""
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      storageClassName: ""
+      annotations: {}
+      labels: {}
+    providerSync:
+      enabled: false
+      configMapName: ""
+      optional: true
+      destinationFilename: keycloak-discord.jar
   buildInit:
     enabled: true
     extraArgs: []

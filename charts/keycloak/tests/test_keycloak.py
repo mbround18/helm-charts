@@ -260,6 +260,55 @@ def test_extra_init_containers_render_as_sibling_init_containers():
     )
 
 
+def test_predeploy_jobs_mode_renders_staged_jobs_and_pvc():
+    documents = _render(
+        values={
+            "keycloak": {
+                "preDeployJobs": {
+                    "enabled": True,
+                    "providerSync": {
+                        "enabled": True,
+                        "configMapName": "keycloak-discord-extension",
+                    },
+                }
+            }
+        }
+    )
+    deployment = _document_by_kind(documents, "Deployment")
+    jobs = [document for document in documents if document.get("kind") == "Job"]
+    job_names = [job["metadata"]["name"] for job in jobs]
+    prebuild_pvc = next(
+        document
+        for document in documents
+        if document.get("kind") == "PersistentVolumeClaim"
+        and document.get("metadata", {}).get("name") == "release-name-keycloak-prebuild"
+    )
+
+    assert "initContainers" not in deployment["spec"]["template"]["spec"]
+    assert sorted(job_names) == sorted(
+        [
+            "release-name-keycloak-seed-lib",
+            "release-name-keycloak-sync-provider",
+            "release-name-keycloak-build",
+        ]
+    )
+    assert prebuild_pvc["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "14"
+
+    keycloak_container = deployment["spec"]["template"]["spec"]["containers"][0]
+    assert any(
+        volume_mount.get("name") == "quarkus-lib"
+        and volume_mount.get("mountPath") == "/opt/keycloak/lib"
+        and volume_mount.get("subPath") == "lib"
+        for volume_mount in keycloak_container["volumeMounts"]
+    )
+    assert any(
+        volume_mount.get("name") == "quarkus-lib"
+        and volume_mount.get("mountPath") == "/opt/keycloak/providers"
+        and volume_mount.get("subPath") == "providers"
+        for volume_mount in keycloak_container["volumeMounts"]
+    )
+
+
 def test_existing_secret_mode_skips_chart_managed_secrets():
     documents = _render(
         values={

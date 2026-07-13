@@ -39,11 +39,13 @@ The chart follows current Keycloak container guidance:
 - Main process uses `/opt/keycloak/bin/kc.sh`
 - Realm import can be enabled by mounting files to `/opt/keycloak/data/import` and adding `--import-realm`
 - In `start-dev` mode, the chart mounts an `emptyDir` at `/opt/keycloak/lib` so Quarkus can write transformed files while the container root filesystem remains read-only
-- `keycloak.extraInitContainers` run before the `kc.sh build` init step, so provider JAR installers are included in the optimized build
+- In init-container mode, `keycloak.extraInitContainers` run before `kc.sh build`, so provider JAR installers are included in the optimized build
 
 ## Important Values
 
 - `keycloak.production`: Toggle `start` vs `start-dev`
+- `keycloak.preDeployJobs.enabled`: Run staged Argo-managed Jobs (seed → provider sync → build) before Deployment instead of in-pod init stages
+- `keycloak.preDeployJobs.providerSync.*`: Configure optional provider JAR sync from ConfigMap into the shared prebuild volume
 - `keycloak.buildInit.enabled`: Enable the rootless init container that runs `kc.sh build` before startup
 - `keycloak.buildInit.extraVolumeMounts`: Additional mounts used only by the build init container
 - `keycloak.optimizedStart`: Force `--optimized` when `keycloak.buildInit.enabled=false`

@@ -14,6 +14,7 @@ spec:
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   {{- $enableBuildInit := and .Values.keycloak.production .Values.keycloak.buildInit.enabled }}
   {{- $needsWritableQuarkusLib := or $enableBuildInit (not .Values.keycloak.production) }}
+  {{- $usePreDeployJobs := and .Values.keycloak.preDeployJobs.enabled $needsWritableQuarkusLib }}
   {{- $volumeNames := dict "tmp" true }}
   {{- if $needsWritableQuarkusLib }}
   {{- $_ := set $volumeNames "quarkus-lib" true }}
@@ -52,7 +53,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if or $needsWritableQuarkusLib $enableBuildInit .Values.keycloak.extraInitContainers }}
+      {{- if and (not $usePreDeployJobs) (or $needsWritableQuarkusLib $enableBuildInit .Values.keycloak.extraInitContainers) }}
       initContainers:
         {{- if $needsWritableQuarkusLib }}
       - name: keycloak-quarkus-lib-seed
@@ -256,6 +257,14 @@ spec:
         {{- if $needsWritableQuarkusLib }}
         - name: quarkus-lib
           mountPath: /opt/keycloak/lib
+          {{- if $usePreDeployJobs }}
+          subPath: lib
+          {{- end }}
+        {{- end }}
+        {{- if and $usePreDeployJobs .Values.keycloak.preDeployJobs.providersMount.enabled }}
+        - name: quarkus-lib
+          mountPath: /opt/keycloak/providers
+          subPath: providers
         {{- end }}
         - name: tmp
           mountPath: /tmp
@@ -265,7 +274,12 @@ spec:
       volumes:
       {{- if $needsWritableQuarkusLib }}
       - name: quarkus-lib
+        {{- if $usePreDeployJobs }}
+        persistentVolumeClaim:
+          claimName: {{ include "keycloak.prebuildClaimName" . }}
+        {{- else }}
         emptyDir: {}
+        {{- end }}
       {{- end }}
       - name: tmp
         emptyDir: {}

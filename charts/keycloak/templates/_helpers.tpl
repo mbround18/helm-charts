@@ -67,3 +67,13 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- printf "%s-data" (include "keycloak.fullname" .) -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "keycloak.prebuildClaimName" -}}
+{{- if .Values.keycloak.preDeployJobs.persistence.existingClaim -}}
+{{- .Values.keycloak.preDeployJobs.persistence.existingClaim -}}
+{{- else if .Values.keycloak.preDeployJobs.persistence.claimName -}}
+{{- .Values.keycloak.preDeployJobs.persistence.claimName -}}
+{{- else -}}
+{{- printf "%s-prebuild" (include "keycloak.fullname" .) -}}
+{{- end -}}
+{{- end -}}
