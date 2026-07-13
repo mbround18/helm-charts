@@ -211,6 +211,33 @@ def test_build_init_extra_volume_mounts_include_valid_defined_volume():
     )
 
 
+def test_extra_init_containers_render_as_sibling_init_containers():
+    documents = _render(
+        values={
+            "keycloak": {
+                "extraInitContainers": [
+                    {
+                        "name": "install-discord-extension",
+                        "image": "busybox:1.37.0",
+                        "command": ["sh", "-c", "echo hi"],
+                    }
+                ]
+            }
+        }
+    )
+    deployment = _document_by_kind(documents, "Deployment")
+    init_containers = deployment["spec"]["template"]["spec"]["initContainers"]
+
+    assert [container["name"] for container in init_containers] == [
+        "keycloak-build",
+        "install-discord-extension",
+    ]
+    assert all(
+        volume_mount.get("name") != "install-discord-extension"
+        for volume_mount in init_containers[0]["volumeMounts"]
+    )
+
+
 def test_existing_secret_mode_skips_chart_managed_secrets():
     documents = _render(
         values={

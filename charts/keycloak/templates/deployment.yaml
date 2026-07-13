@@ -108,7 +108,7 @@ spec:
         {{- end }}
         {{- end }}
         {{- with .Values.keycloak.extraInitContainers }}
-        {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 6 }}
         {{- end }}
       {{- end }}
       containers:
