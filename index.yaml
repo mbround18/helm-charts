@@ -15,8 +15,8 @@ entries:
     name: audiobookshelf
     type: application
     version: 0.1.14
-    digest: 51ac74e3c3ec6febd24642a50ed0bfd3955c70c40a05720aa250535be51271d1
-    created: '2026-07-13T20:50:22.056514Z'
+    digest: c5c8a9f20a4426de0703532e7fd318c7dcc9645b16e68d954c1bb485270efefe
+    created: '2026-07-13T20:56:58.178028Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/audiobookshelf-0.1.14/audiobookshelf-0.1.14.tgz
   - apiVersion: v2
@@ -224,8 +224,8 @@ entries:
     name: changedetection-io
     type: application
     version: 0.1.1
-    digest: 6cfa6bc893b7c9174501e28f21716b5de00f8b855235c17b5f35edfbbd23df20
-    created: '2026-07-13T20:50:22.058564Z'
+    digest: e640ae4dd2d5dc8b3ab9003c59699a49849e401eda9892b4f5d959df3c64dfb0
+    created: '2026-07-13T20:56:58.180024Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/changedetection-io-0.1.1/changedetection-io-0.1.1.tgz
   enshrouded:
@@ -239,8 +239,8 @@ entries:
     name: enshrouded
     type: application
     version: 0.3.14
-    digest: df00e41548c530b06973a8ad7b15ff8401b385ab7bd9c0e1229e680561586579
-    created: '2026-07-13T20:50:22.059859Z'
+    digest: ae93d7db4593b04c656bfc7c063d6cd6b68b8985d6b55a5170eaba1f269a9aea
+    created: '2026-07-13T20:56:58.181183Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/enshrouded-0.3.14/enshrouded-0.3.14.tgz
   - apiVersion: v2
@@ -367,8 +367,8 @@ entries:
     name: external-secret-resources
     type: application
     version: 0.1.0
-    digest: 0576133ea9f2308c802681e357c0b388d3b4d7100a16b1ac1a4b447a195b1a45
-    created: '2026-07-13T20:50:22.060682Z'
+    digest: b9a7e19e8142475285df33c7c658610d4e14af773436a8658f6b2147abbb9cf0
+    created: '2026-07-13T20:56:58.181858Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/external-secret-resources-0.1.0/external-secret-resources-0.1.0.tgz
   forgejo:
@@ -398,8 +398,8 @@ entries:
     - https://github.com/PatNei/GITHUB2FORGEJO
     type: application
     version: 0.1.7
-    digest: e398819fecdd239a2dbe966511788862c8b4ca9592b648cf5a55ffe561b0ff73
-    created: '2026-07-13T20:50:22.063576Z'
+    digest: 858c769e56680ee0d52d4558d0d8b7282f921414175176e26ea4bc5e4b2628e4
+    created: '2026-07-13T20:56:58.184398Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/forgejo-0.1.7/forgejo-0.1.7.tgz
   - apiVersion: v2
@@ -624,8 +624,8 @@ entries:
     name: foundryvtt
     type: application
     version: 0.2.22
-    digest: 77307371243826a162708bb539059fc7b7485bd92c1cf0bea29e0ee8d0b42cac
-    created: '2026-07-13T20:50:22.065953Z'
+    digest: 790dadea3b8b66feb71e42f56d1d1401ff033f85c8b579af9b6b8992df33155b
+    created: '2026-07-13T20:56:58.186442Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/foundryvtt-0.2.22/foundryvtt-0.2.22.tgz
   - apiVersion: v2
@@ -1056,8 +1056,8 @@ entries:
     name: fvtt-dndbeyond-companion
     type: application
     version: 0.0.14
-    digest: c29ec8fbb7d6ffa98995de846e45d5054ad92644e2aec9509cd1c8c6e10cc9f3
-    created: '2026-07-13T20:50:22.068770Z'
+    digest: 1eaffa07732c7daeca12f713d82106aa61456b3bdb6b24355789afa2b2bfebef
+    created: '2026-07-13T20:56:58.189276Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/fvtt-dndbeyond-companion-0.0.14/fvtt-dndbeyond-companion-0.0.14.tgz
   - apiVersion: v2
@@ -1181,8 +1181,8 @@ entries:
     name: game-tools
     type: library
     version: 0.1.8
-    digest: 3287bb4e433a2e40bb7dca2f6acbffb812a0009698401283c2f9eb539b26d203
-    created: '2026-07-13T20:50:22.069454Z'
+    digest: 7b61206cb384e3a71b264177c0847b9223e345d948bb03a4d87199717305ba2b
+    created: '2026-07-13T20:56:58.189869Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/game-tools-0.1.8/game-tools-0.1.8.tgz
   - apiVersion: v2
@@ -1209,8 +1209,8 @@ entries:
     name: gitops-tools
     type: library
     version: 0.1.1
-    digest: a9e1f9f013713bbc83af776241ac1a26bc683a415ae5d6b30b21070eeaec7adf
-    created: '2026-07-13T20:50:22.070109Z'
+    digest: b0370f9661db9c845089ab643aeb18340ee88376796de9a8a130fa9b357c6a24
+    created: '2026-07-13T20:56:58.190433Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/gitops-tools-0.1.1/gitops-tools-0.1.1.tgz
   - apiVersion: v2
@@ -1244,8 +1244,8 @@ entries:
     name: grafana
     type: application
     version: 0.1.11
-    digest: 8d02cf985de6609a945dafefd0225a280d239a90ab3a659e17e4b13a48c1dc20
-    created: '2026-07-13T20:50:22.077367Z'
+    digest: a37de95dffdac06376897cfb6df456e18334be792f23d548b61f74598d360e77
+    created: '2026-07-13T20:56:58.194986Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/grafana-0.1.11/grafana-0.1.11.tgz
   - apiVersion: v2
@@ -1464,8 +1464,8 @@ entries:
     name: helm-hub
     type: application
     version: 0.1.3
-    digest: de53c89bec08ff236d4ee6fc2a7a4dc36e9292dbc20117f73ade349eba665d3e
-    created: '2026-07-13T20:50:22.082233Z'
+    digest: 0310b5a480dcd00021c7a9cc44767c7970d531d86ec05e8c5e5abec0147692cb
+    created: '2026-07-13T20:56:58.197302Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/helm-hub-0.1.3/helm-hub-0.1.3.tgz
   - apiVersion: v2
@@ -1501,8 +1501,8 @@ entries:
     name: hytale
     type: application
     version: 0.1.22
-    digest: bc9e02adbcd7f09c86b6f051af3869baae1ac23a6d063ac3d136e5cf84c035c3
-    created: '2026-07-13T20:50:22.084546Z'
+    digest: b353f7496aa3233ba6e2a1e69899153be1e13855f653437000a193984b558aca
+    created: '2026-07-13T20:56:58.198465Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/hytale-0.1.22/hytale-0.1.22.tgz
   - apiVersion: v2
@@ -1709,8 +1709,8 @@ entries:
     name: istio-ingress
     type: application
     version: 0.1.10
-    digest: 3f9ae8761ac7db32c679cd7945ac25562dce271fcc28201ff334b1173db6dd07
-    created: '2026-07-13T20:50:22.086083Z'
+    digest: 0fa7498f4c1bfad130951839d6353d64121661af015be575b2e5207f445c6b53
+    created: '2026-07-13T20:56:58.199247Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/istio-ingress-0.1.10/istio-ingress-0.1.10.tgz
   - apiVersion: v2
@@ -1780,6 +1780,25 @@ entries:
     - https://github.com/mbround18/helm-charts/releases/download/istio-ingress-0.1.0/istio-ingress-0.1.0.tgz
     version: 0.1.0
   keycloak:
+  - apiVersion: v2
+    appVersion: 26.4.0
+    dependencies:
+    - condition: istio-ingress.enabled
+      name: istio-ingress
+      repository: file://../istio-ingress
+      version: 0.1.10
+    - name: gitops-tools
+      repository: file://../gitops-tools
+      version: 0.1.1
+    description: A production-ready Keycloak chart with GitOps-aware ordering and
+      secure defaults
+    name: keycloak
+    type: application
+    version: 0.2.8
+    digest: 8ca8bd8e3db6a67563ebeec761689d0784028f9068a4cbe84671c97551e79092
+    created: '2026-07-13T20:56:58.200950Z'
+    urls:
+    - https://github.com/mbround18/helm-charts/releases/download/keycloak-0.2.8/keycloak-0.2.8.tgz
   - apiVersion: v2
     appVersion: 26.4.0
     dependencies:
@@ -1917,8 +1936,8 @@ entries:
     name: meilisearch
     type: application
     version: 0.1.26
-    digest: 580ac9d022e975af88f4ad6c3f81cb10638ec8f53d6b02680809f4e66123b1dd
-    created: '2026-07-13T20:50:22.090396Z'
+    digest: 5389906a1fff108677be639ee9c5c3bd177b6f97bf3bb58ce33f2b6b5ae47996
+    created: '2026-07-13T20:56:58.202721Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/meilisearch-0.1.26/meilisearch-0.1.26.tgz
   - apiVersion: v2
@@ -2203,8 +2222,8 @@ entries:
     name: openobserve
     type: application
     version: 0.1.0
-    digest: e835077eb9212b4934a5a05a20508a4d06d2dfde3ff724ee5feee385b7669353
-    created: '2026-07-13T20:50:22.091805Z'
+    digest: dbbf6b597f131d3e78f83db242581f06979cf5f159b0a0629c302fec4c029581
+    created: '2026-07-13T20:56:58.203961Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/openobserve-0.1.0/openobserve-0.1.0.tgz
   opentelemetry-collector:
@@ -2219,8 +2238,8 @@ entries:
     name: opentelemetry-collector
     type: application
     version: 0.1.6
-    digest: 7ef415a43dea42148a8b22690d422cbfb5f13f7429ef46e62f147e4fa4cb4153
-    created: '2026-07-13T20:50:22.093355Z'
+    digest: 9ea38138afb92b241b4b044edeb68fca6bd3324cfe9a03ca14b4cf12e9948a55
+    created: '2026-07-13T20:56:58.205347Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/opentelemetry-collector-0.1.6/opentelemetry-collector-0.1.6.tgz
   - apiVersion: v2
@@ -2301,8 +2320,8 @@ entries:
     name: palworld
     type: application
     version: 0.3.16
-    digest: 129c87769469f0784bee2149ee81570d163de135191c66436d86ae0a6556ddac
-    created: '2026-07-13T20:50:22.094650Z'
+    digest: 382c187b833bd078dd0d7baa00ddb0a5095997b2dd9431c2cb7e23f868cccd8e
+    created: '2026-07-13T20:56:58.206432Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/palworld-0.3.16/palworld-0.3.16.tgz
   - apiVersion: v2
@@ -2451,8 +2470,8 @@ entries:
     description: PostgreSQL Helm chart with HA and secret management
     name: postgres
     version: 0.1.24
-    digest: 0e46191df6452914b6aef8788f80faeda5f13600279e23447616ae2d2d666cfc
-    created: '2026-07-13T20:50:22.095611Z'
+    digest: 0deff500646af963ff25a46968638760ce6039e951818bee240788cb902e6eae
+    created: '2026-07-13T20:56:58.207320Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/postgres-0.1.24/postgres-0.1.24.tgz
   - apiVersion: v2
@@ -2565,8 +2584,8 @@ entries:
     name: pvc-watcher
     type: application
     version: 0.3.4
-    digest: d7868b1c3916d8a20312c8b139683c8ceabc41c37e79e8c32b0f0cffc19afaac
-    created: '2026-07-13T20:50:22.096801Z'
+    digest: 6fc22780dc81d5a747ffc816b8eced7c5015fa785fc05b81c33dd26194c8335d
+    created: '2026-07-13T20:56:58.208359Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/pvc-watcher-0.3.4/pvc-watcher-0.3.4.tgz
   - apiVersion: v2
@@ -2626,8 +2645,8 @@ entries:
     name: syncthing
     type: application
     version: 0.1.13
-    digest: b40fd70c65e842a872d256909b2ab083be2982a25c69e19c1671b93447c81992
-    created: '2026-07-13T20:50:22.098621Z'
+    digest: b4a6120659430e932c1885692359976c25e2cdc9d0d4c4fff75838e886c59255
+    created: '2026-07-13T20:56:58.209999Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/syncthing-0.1.13/syncthing-0.1.13.tgz
   - apiVersion: v2
@@ -2815,8 +2834,8 @@ entries:
     name: valheim
     type: application
     version: 0.4.14
-    digest: 0b1e7f06bbf1aa6cf7ef7dc43169de511e6ee2fee243ea9691f56c23383805b4
-    created: '2026-07-13T20:50:22.099976Z'
+    digest: 5762d33d98a59b6e0bfaeb4b634a056307cdb8b84cc01ca01f3e0549b3842b99
+    created: '2026-07-13T20:56:58.211163Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/valheim-0.4.14/valheim-0.4.14.tgz
   - apiVersion: v2
@@ -2946,8 +2965,8 @@ entries:
     name: vaultwarden
     type: application
     version: 0.1.7
-    digest: cd17bd7b321e05ef89c09478800fb92b71ffed12a00588bdf7593de0582c8f50
-    created: '2026-07-13T20:50:22.101348Z'
+    digest: 14568abf6cfe34ac9ae42a49aae2a0bd5ffa5535926959b2efc6161851d6eaf2
+    created: '2026-07-13T20:56:58.212398Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/vaultwarden-0.1.7/vaultwarden-0.1.7.tgz
   - apiVersion: v2
@@ -3071,8 +3090,8 @@ entries:
     - https://github.com/mbround18/vein-docker
     type: application
     version: 0.1.20
-    digest: a9186708ad8899fe03d3840d9a24dc0addf2145a9d19a13a8c6cc4a4195f5b1a
-    created: '2026-07-13T20:50:22.103377Z'
+    digest: d536a34281c46cdd587f358e924d509b13a8f15b4d420013cfd3e3ec8c6893b4
+    created: '2026-07-13T20:56:58.214178Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/vein-0.1.20/vein-0.1.20.tgz
   - apiVersion: v2
@@ -3459,8 +3478,8 @@ entries:
     description: Wiki.js Helm chart with Meilisearch and Postgres integration
     name: wikijs
     version: 0.2.40
-    digest: 65dd99c308a24bea8695310a23cdcf7f32b016295625c7d8d5f21993ebb3b9f8
-    created: '2026-07-13T20:50:22.107132Z'
+    digest: 49c3346212d449c0b0c02885264868b85661f0f763151c7e43f7e9d313d77f28
+    created: '2026-07-13T20:56:58.217711Z'
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.40/wikijs-0.2.40.tgz
   - apiVersion: v2
@@ -4072,4 +4091,4 @@ entries:
     urls:
     - https://github.com/mbround18/helm-charts/releases/download/wikijs-0.2.0/wikijs-0.2.0.tgz
     version: 0.2.0
-generated: '2026-07-13T20:50:28.474675Z'
+generated: '2026-07-13T20:57:05.377811Z'
