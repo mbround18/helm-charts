@@ -12,6 +12,10 @@ def _document_by_kind(documents, kind):
     return next(document for document in documents if document.get("kind") == kind)
 
 
+def _container_by_name(containers, name):
+    return next(container for container in containers if container.get("name") == name)
+
+
 def test_defaults_render_production_workload_and_foundation_resources():
     documents = _render()
 
@@ -46,13 +50,20 @@ def test_defaults_render_production_workload_and_foundation_resources():
             "volumeMounts"
         ]
     )
-    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+    init_containers = deployment["spec"]["template"]["spec"]["initContainers"]
+    seed_container = _container_by_name(init_containers, "keycloak-quarkus-lib-seed")
+    init_container = _container_by_name(init_containers, "keycloak-build")
+    assert seed_container["command"] == [
+        "sh",
+        "-ec",
+        "cp -an /opt/keycloak/lib/. /work/lib/",
+    ]
     assert init_container["name"] == "keycloak-build"
     assert init_container["args"][0] == "build"
     assert init_container["securityContext"]["runAsNonRoot"] is True
     assert any(
         vm.get("name") == "quarkus-lib"
-        and vm.get("mountPath") == "/opt/keycloak/lib/quarkus"
+        and vm.get("mountPath") == "/opt/keycloak/lib"
         for vm in init_container["volumeMounts"]
     )
 
@@ -121,7 +132,7 @@ def test_start_dev_mounts_writable_quarkus_lib_for_read_only_root_fs():
     assert container["args"][0] == "start-dev"
     assert any(
         volume_mount.get("name") == "quarkus-lib"
-        and volume_mount.get("mountPath") == "/opt/keycloak/lib/quarkus"
+        and volume_mount.get("mountPath") == "/opt/keycloak/lib"
         for volume_mount in container["volumeMounts"]
     )
     assert any(
@@ -129,7 +140,10 @@ def test_start_dev_mounts_writable_quarkus_lib_for_read_only_root_fs():
         and volume.get("emptyDir") == {}
         for volume in deployment["spec"]["template"]["spec"]["volumes"]
     )
-    assert "initContainers" not in deployment["spec"]["template"]["spec"]
+    init_containers = deployment["spec"]["template"]["spec"]["initContainers"]
+    assert [container["name"] for container in init_containers] == [
+        "keycloak-quarkus-lib-seed"
+    ]
 
 
 def test_extra_volume_mounts_are_only_applied_to_main_container():
@@ -149,7 +163,9 @@ def test_extra_volume_mounts_are_only_applied_to_main_container():
     )
     deployment = _document_by_kind(documents, "Deployment")
 
-    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+    init_container = _container_by_name(
+        deployment["spec"]["template"]["spec"]["initContainers"], "keycloak-build"
+    )
     main_container = deployment["spec"]["template"]["spec"]["containers"][0]
 
     assert all(
@@ -180,7 +196,9 @@ def test_build_init_extra_volume_mounts_ignore_invalid_entries():
         }
     )
     deployment = _document_by_kind(documents, "Deployment")
-    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+    init_container = _container_by_name(
+        deployment["spec"]["template"]["spec"]["initContainers"], "keycloak-build"
+    )
 
     assert all(
         volume_mount.get("name") not in {"install-discord-extension", "missing-volume"}
@@ -202,7 +220,9 @@ def test_build_init_extra_volume_mounts_include_valid_defined_volume():
         }
     )
     deployment = _document_by_kind(documents, "Deployment")
-    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+    init_container = _container_by_name(
+        deployment["spec"]["template"]["spec"]["initContainers"], "keycloak-build"
+    )
 
     assert any(
         volume_mount.get("name") == "providers"
@@ -229,6 +249,7 @@ def test_extra_init_containers_render_as_sibling_init_containers():
     init_containers = deployment["spec"]["template"]["spec"]["initContainers"]
 
     assert [container["name"] for container in init_containers] == [
+        "keycloak-quarkus-lib-seed",
         "keycloak-build",
         "install-discord-extension",
     ]

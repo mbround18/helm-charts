@@ -52,8 +52,22 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if or $enableBuildInit .Values.keycloak.extraInitContainers }}
+      {{- if or $needsWritableQuarkusLib $enableBuildInit .Values.keycloak.extraInitContainers }}
       initContainers:
+        {{- if $needsWritableQuarkusLib }}
+      - name: keycloak-quarkus-lib-seed
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        command:
+        - sh
+        - -ec
+        - cp -an /opt/keycloak/lib/. /work/lib/
+        volumeMounts:
+        - name: quarkus-lib
+          mountPath: /work/lib
+        {{- end }}
         {{- if $enableBuildInit }}
       - name: keycloak-build
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -97,7 +111,7 @@ spec:
         volumeMounts:
         {{- if $enableBuildInit }}
         - name: quarkus-lib
-          mountPath: /opt/keycloak/lib/quarkus
+          mountPath: /opt/keycloak/lib
         {{- end }}
         - name: tmp
           mountPath: /tmp
@@ -241,7 +255,7 @@ spec:
         {{- end }}
         {{- if $needsWritableQuarkusLib }}
         - name: quarkus-lib
-          mountPath: /opt/keycloak/lib/quarkus
+          mountPath: /opt/keycloak/lib
         {{- end }}
         - name: tmp
           mountPath: /tmp

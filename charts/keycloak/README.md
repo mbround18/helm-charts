@@ -7,6 +7,7 @@ This chart deploys Keycloak with secure defaults, persistent data storage, Istio
 - Uses the upstream Keycloak image: `quay.io/keycloak/keycloak`
 - Starts in production mode by default with `start --optimized`
 - Runs a rootless init container (`kc.sh build`) to prepare optimized startup inside the pod
+- Seeds a writable Quarkus library volume before build/start by syncing missing files from the image, so required runtime files remain available without overwriting generated content
 - Enables health and metrics endpoints by default
 - Enforces rootless runtime defaults, seccomp `RuntimeDefault`, dropped capabilities, and read-only root filesystem with `/tmp` scratch volume
 - Supports external PostgreSQL credentials via existing Kubernetes Secrets
@@ -37,7 +38,7 @@ The chart follows current Keycloak container guidance:
 - Database connection is configured with `KC_DB_*` variables
 - Main process uses `/opt/keycloak/bin/kc.sh`
 - Realm import can be enabled by mounting files to `/opt/keycloak/data/import` and adding `--import-realm`
-- In `start-dev` mode, the chart mounts an `emptyDir` at `/opt/keycloak/lib/quarkus` so Quarkus can write transformed bytecode while the container root filesystem remains read-only
+- In `start-dev` mode, the chart mounts an `emptyDir` at `/opt/keycloak/lib` so Quarkus can write transformed files while the container root filesystem remains read-only
 
 ## Important Values
 
