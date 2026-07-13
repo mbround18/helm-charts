@@ -1,0 +1,184 @@
+{{- $enableBuildInit := and .Values.keycloak.production .Values.keycloak.buildInit.enabled }}
+{{- $needsWritableQuarkusLib := or $enableBuildInit (not .Values.keycloak.production) }}
+{{- $usePreDeployJobs := and .Values.keycloak.preDeployJobs.enabled $needsWritableQuarkusLib }}
+{{- if $usePreDeployJobs }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "keycloak.fullname" . }}-seed-lib
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.seed | quote }}
+spec:
+  backoffLimit: {{ .Values.keycloak.preDeployJobs.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.keycloak.preDeployJobs.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "keycloak.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "keycloak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      restartPolicy: OnFailure
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: seed-lib
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        command:
+        - sh
+        - -ec
+        - mkdir -p /work/lib /work/providers && cp -rn /opt/keycloak/lib/. /work/lib/
+        volumeMounts:
+        - name: prebuild
+          mountPath: /work
+      volumes:
+      - name: prebuild
+        persistentVolumeClaim:
+          claimName: {{ include "keycloak.prebuildClaimName" . }}
+---
+{{- if .Values.keycloak.preDeployJobs.providerSync.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "keycloak.fullname" . }}-sync-provider
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.providers | quote }}
+spec:
+  backoffLimit: {{ .Values.keycloak.preDeployJobs.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.keycloak.preDeployJobs.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "keycloak.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "keycloak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      restartPolicy: OnFailure
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: sync-provider
+        image: busybox:1.37.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        command:
+        - sh
+        - -ec
+        - >
+          if [ -f /src/extension ]; then SRC=/src/extension;
+          elif [ -f /src/keycloak-discord.jar ]; then SRC=/src/keycloak-discord.jar;
+          else echo "Discord extension not found in ConfigMap mount"; exit 1; fi &&
+          cp "$SRC" /work/providers/{{ .Values.keycloak.preDeployJobs.providerSync.destinationFilename }}
+        volumeMounts:
+        - name: provider-source
+          mountPath: /src
+        - name: prebuild
+          mountPath: /work
+      volumes:
+      - name: provider-source
+        configMap:
+          name: {{ required "keycloak.preDeployJobs.providerSync.configMapName is required when providerSync.enabled=true" .Values.keycloak.preDeployJobs.providerSync.configMapName }}
+          optional: {{ .Values.keycloak.preDeployJobs.providerSync.optional }}
+      - name: prebuild
+        persistentVolumeClaim:
+          claimName: {{ include "keycloak.prebuildClaimName" . }}
+---
+{{- end }}
+{{- if $enableBuildInit }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "keycloak.fullname" . }}-build
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.build | quote }}
+spec:
+  backoffLimit: {{ .Values.keycloak.preDeployJobs.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.keycloak.preDeployJobs.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "keycloak.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "keycloak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      restartPolicy: OnFailure
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: keycloak-build
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        command:
+        - /opt/keycloak/bin/kc.sh
+        args:
+        - build
+        {{- range .Values.keycloak.buildInit.extraArgs }}
+        - {{ . | quote }}
+        {{- end }}
+        env:
+        - name: KC_DB
+          value: {{ .Values.database.vendor | quote }}
+        - name: KC_HTTP_ENABLED
+          value: {{ .Values.keycloak.http.enabled | quote }}
+        - name: KC_HTTP_RELATIVE_PATH
+          value: {{ .Values.keycloak.http.relativePath | quote }}
+        - name: KC_HEALTH_ENABLED
+          value: {{ .Values.keycloak.health.enabled | quote }}
+        - name: KC_METRICS_ENABLED
+          value: {{ .Values.keycloak.metrics.enabled | quote }}
+        - name: KC_CACHE
+          value: {{ .Values.keycloak.cache | quote }}
+        {{- if .Values.keycloak.features }}
+        - name: KC_FEATURES
+          value: {{ join "," .Values.keycloak.features | quote }}
+        {{- end }}
+        {{- with .Values.keycloak.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- range .Values.keycloak.extraSecretEnv }}
+        - name: {{ .name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .secretName }}
+              key: {{ .key }}
+        {{- end }}
+        volumeMounts:
+        - name: prebuild
+          mountPath: /opt/keycloak/lib
+          subPath: lib
+        {{- if .Values.keycloak.preDeployJobs.providersMount.enabled }}
+        - name: prebuild
+          mountPath: /opt/keycloak/providers
+          subPath: providers
+        {{- end }}
+        - name: tmp
+          mountPath: /tmp
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          mountPath: {{ .Values.persistence.mountPath }}
+        {{- end }}
+      volumes:
+      - name: prebuild
+        persistentVolumeClaim:
+          claimName: {{ include "keycloak.prebuildClaimName" . }}
+      - name: tmp
+        emptyDir: {}
+      {{- if .Values.persistence.enabled }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "keycloak.persistenceClaimName" . }}
+      {{- end }}
+{{- end }}
+{{- end }}

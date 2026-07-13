@@ -1,0 +1,28 @@
+{{- $enableBuildInit := and .Values.keycloak.production .Values.keycloak.buildInit.enabled }}
+{{- $needsWritableQuarkusLib := or $enableBuildInit (not .Values.keycloak.production) }}
+{{- $usePreDeployJobs := and .Values.keycloak.preDeployJobs.enabled $needsWritableQuarkusLib }}
+{{- if and $usePreDeployJobs .Values.keycloak.preDeployJobs.persistence.create (not .Values.keycloak.preDeployJobs.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "keycloak.prebuildClaimName" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+    {{- with .Values.keycloak.preDeployJobs.persistence.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.storage | quote }}
+    {{- with .Values.keycloak.preDeployJobs.persistence.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  accessModes:
+  - {{ .Values.keycloak.preDeployJobs.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.keycloak.preDeployJobs.persistence.size | quote }}
+  {{- with .Values.keycloak.preDeployJobs.persistence.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}
