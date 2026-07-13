@@ -28,7 +28,7 @@ def test_defaults_render_production_workload_and_foundation_resources():
     assert service["spec"]["ports"][0]["targetPort"] == "http"
     assert "annotations" not in service["metadata"]
     assert deployment["spec"]["template"]["spec"]["containers"][0]["args"][0] == "start"
-    assert "--optimized" not in deployment["spec"]["template"]["spec"]["containers"][0][
+    assert "--optimized" in deployment["spec"]["template"]["spec"]["containers"][0][
         "args"
     ]
     assert admin_secret["stringData"]["KC_BOOTSTRAP_ADMIN_USERNAME"] == "admin"
@@ -45,6 +45,15 @@ def test_defaults_render_production_workload_and_foundation_resources():
         for vm in deployment["spec"]["template"]["spec"]["containers"][0][
             "volumeMounts"
         ]
+    )
+    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+    assert init_container["name"] == "keycloak-build"
+    assert init_container["args"][0] == "build"
+    assert init_container["securityContext"]["runAsNonRoot"] is True
+    assert any(
+        vm.get("name") == "quarkus-lib"
+        and vm.get("mountPath") == "/opt/keycloak/lib/quarkus"
+        for vm in init_container["volumeMounts"]
     )
 
 
@@ -72,8 +81,20 @@ def test_import_realm_adds_mount_and_startup_arg():
     )
 
 
-def test_optimized_start_is_opt_in():
-    documents = _render(values={"keycloak": {"optimizedStart": True}})
+def test_build_init_can_be_disabled():
+    documents = _render(values={"keycloak": {"buildInit": {"enabled": False}}})
+    deployment = _document_by_kind(documents, "Deployment")
+
+    assert "initContainers" not in deployment["spec"]["template"]["spec"]
+    assert "--optimized" not in deployment["spec"]["template"]["spec"]["containers"][0][
+        "args"
+    ]
+
+
+def test_optimized_start_is_respected_without_build_init():
+    documents = _render(
+        values={"keycloak": {"buildInit": {"enabled": False}, "optimizedStart": True}}
+    )
     deployment = _document_by_kind(documents, "Deployment")
 
     assert deployment["spec"]["template"]["spec"]["containers"][0]["args"][:2] == [

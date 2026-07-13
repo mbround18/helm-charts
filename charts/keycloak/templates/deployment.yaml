@@ -12,6 +12,7 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- $enableBuildInit := and .Values.keycloak.production .Values.keycloak.buildInit.enabled }}
   selector:
     matchLabels:
       {{- include "keycloak.selectorLabels" . | nindent 6 }}
@@ -35,9 +36,60 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- with .Values.keycloak.extraInitContainers }}
+      {{- if or $enableBuildInit .Values.keycloak.extraInitContainers }}
       initContainers:
+        {{- if $enableBuildInit }}
+      - name: keycloak-build
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        command:
+        - /opt/keycloak/bin/kc.sh
+        args:
+        - build
+        {{- range .Values.keycloak.buildInit.extraArgs }}
+        - {{ . | quote }}
+        {{- end }}
+        env:
+        - name: KC_DB
+          value: {{ .Values.database.vendor | quote }}
+        - name: KC_HTTP_ENABLED
+          value: {{ .Values.keycloak.http.enabled | quote }}
+        - name: KC_HTTP_RELATIVE_PATH
+          value: {{ .Values.keycloak.http.relativePath | quote }}
+        - name: KC_HEALTH_ENABLED
+          value: {{ .Values.keycloak.health.enabled | quote }}
+        - name: KC_METRICS_ENABLED
+          value: {{ .Values.keycloak.metrics.enabled | quote }}
+        - name: KC_CACHE
+          value: {{ .Values.keycloak.cache | quote }}
+        {{- if .Values.keycloak.features }}
+        - name: KC_FEATURES
+          value: {{ join "," .Values.keycloak.features | quote }}
+        {{- end }}
+        {{- with .Values.keycloak.extraEnv }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- range .Values.keycloak.extraSecretEnv }}
+        - name: {{ .name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .secretName }}
+              key: {{ .key }}
+        {{- end }}
+        volumeMounts:
+        - name: quarkus-lib
+          mountPath: /opt/keycloak/lib/quarkus
+        - name: tmp
+          mountPath: /tmp
+        {{- with .Values.keycloak.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.keycloak.extraInitContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- end }}
       containers:
       - name: keycloak
@@ -50,7 +102,7 @@ spec:
         args:
         {{- if .Values.keycloak.production }}
         - start
-        {{- if .Values.keycloak.optimizedStart }}
+        {{- if or .Values.keycloak.optimizedStart $enableBuildInit }}
         - --optimized
         {{- end }}
         {{- else }}
@@ -167,12 +219,16 @@ spec:
           mountPath: {{ .Values.keycloak.importRealm.mountPath }}
           readOnly: true
         {{- end }}
+        - name: quarkus-lib
+          mountPath: /opt/keycloak/lib/quarkus
         - name: tmp
           mountPath: /tmp
         {{- with .Values.keycloak.extraVolumeMounts }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       volumes:
+      - name: quarkus-lib
+        emptyDir: {}
       - name: tmp
         emptyDir: {}
       {{- if .Values.persistence.enabled }}

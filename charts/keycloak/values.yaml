@@ -71,6 +71,9 @@ database:
 keycloak:
   production: true
   optimizedStart: false
+  buildInit:
+    enabled: true
+    extraArgs: []
   hostname: keycloak.local
   proxyHeaders: xforwarded
   cache: ispn
