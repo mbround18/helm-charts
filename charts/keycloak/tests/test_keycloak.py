@@ -250,12 +250,13 @@ def test_extra_init_containers_render_as_sibling_init_containers():
 
     assert [container["name"] for container in init_containers] == [
         "keycloak-quarkus-lib-seed",
-        "keycloak-build",
         "install-discord-extension",
+        "keycloak-build",
     ]
+    build_container = _container_by_name(init_containers, "keycloak-build")
     assert all(
         volume_mount.get("name") != "install-discord-extension"
-        for volume_mount in init_containers[0]["volumeMounts"]
+        for volume_mount in build_container["volumeMounts"]
     )
 
 

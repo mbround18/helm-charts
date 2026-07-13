@@ -39,6 +39,7 @@ The chart follows current Keycloak container guidance:
 - Main process uses `/opt/keycloak/bin/kc.sh`
 - Realm import can be enabled by mounting files to `/opt/keycloak/data/import` and adding `--import-realm`
 - In `start-dev` mode, the chart mounts an `emptyDir` at `/opt/keycloak/lib` so Quarkus can write transformed files while the container root filesystem remains read-only
+- `keycloak.extraInitContainers` run before the `kc.sh build` init step, so provider JAR installers are included in the optimized build
 
 ## Important Values
 

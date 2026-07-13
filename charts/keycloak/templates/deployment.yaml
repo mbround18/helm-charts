@@ -68,6 +68,9 @@ spec:
         - name: quarkus-lib
           mountPath: /work/lib
         {{- end }}
+        {{- with .Values.keycloak.extraInitContainers }}
+      {{- toYaml . | nindent 6 }}
+        {{- end }}
         {{- if $enableBuildInit }}
       - name: keycloak-build
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -120,9 +123,6 @@ spec:
         {{- toYaml (list .) | nindent 8 }}
         {{- end }}
         {{- end }}
-        {{- end }}
-        {{- with .Values.keycloak.extraInitContainers }}
-      {{- toYaml . | nindent 6 }}
         {{- end }}
       {{- end }}
       containers:
