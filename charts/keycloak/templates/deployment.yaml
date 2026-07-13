@@ -63,7 +63,7 @@ spec:
         command:
         - sh
         - -ec
-        - cp -an /opt/keycloak/lib/. /work/lib/
+        - cp -rn /opt/keycloak/lib/. /work/lib/
         volumeMounts:
         - name: quarkus-lib
           mountPath: /work/lib

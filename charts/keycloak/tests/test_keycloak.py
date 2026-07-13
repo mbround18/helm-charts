@@ -56,7 +56,7 @@ def test_defaults_render_production_workload_and_foundation_resources():
     assert seed_container["command"] == [
         "sh",
         "-ec",
-        "cp -an /opt/keycloak/lib/. /work/lib/",
+        "cp -rn /opt/keycloak/lib/. /work/lib/",
     ]
     assert init_container["name"] == "keycloak-build"
     assert init_container["args"][0] == "build"
