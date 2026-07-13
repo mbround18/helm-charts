@@ -5,7 +5,8 @@ This chart deploys Keycloak with secure defaults, persistent data storage, Istio
 ## Design Highlights
 
 - Uses the upstream Keycloak image: `quay.io/keycloak/keycloak`
-- Starts in production mode by default with `start --optimized`
+- Starts in production mode by default with `start`
+- Supports optional optimized startup mode (`start --optimized`) for pre-built images
 - Enables health and metrics endpoints by default
 - Enforces rootless runtime defaults, seccomp `RuntimeDefault`, dropped capabilities, and read-only root filesystem with `/tmp` scratch volume
 - Supports external PostgreSQL credentials via existing Kubernetes Secrets
@@ -39,7 +40,8 @@ The chart follows current Keycloak container guidance:
 
 ## Important Values
 
-- `keycloak.production`: Toggle `start --optimized` vs `start-dev`
+- `keycloak.production`: Toggle `start` vs `start-dev`
+- `keycloak.optimizedStart`: Enable `--optimized` only when your image has already been built with `kc.sh build`
 - `bootstrapAdmin.*`: Manage admin bootstrap secret creation or reuse
 - `database.*`: Configure external DB host/user/password secret
 - `persistence.*`: Reuse an existing claim or create/manage one in-chart

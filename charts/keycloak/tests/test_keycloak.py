@@ -28,10 +28,9 @@ def test_defaults_render_production_workload_and_foundation_resources():
     assert service["spec"]["ports"][0]["targetPort"] == "http"
     assert "annotations" not in service["metadata"]
     assert deployment["spec"]["template"]["spec"]["containers"][0]["args"][0] == "start"
-    assert (
-        deployment["spec"]["template"]["spec"]["containers"][0]["args"][1]
-        == "--optimized"
-    )
+    assert "--optimized" not in deployment["spec"]["template"]["spec"]["containers"][0][
+        "args"
+    ]
     assert admin_secret["stringData"]["KC_BOOTSTRAP_ADMIN_USERNAME"] == "admin"
     assert pvc["metadata"]["annotations"]["helm.sh/resource-policy"] == "keep"
     assert (
@@ -71,6 +70,16 @@ def test_import_realm_adds_mount_and_startup_arg():
         and volume.get("configMap", {}).get("name") == "keycloak-realms"
         for volume in volumes
     )
+
+
+def test_optimized_start_is_opt_in():
+    documents = _render(values={"keycloak": {"optimizedStart": True}})
+    deployment = _document_by_kind(documents, "Deployment")
+
+    assert deployment["spec"]["template"]["spec"]["containers"][0]["args"][:2] == [
+        "start",
+        "--optimized",
+    ]
 
 
 def test_existing_secret_mode_skips_chart_managed_secrets():

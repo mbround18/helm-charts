@@ -50,7 +50,9 @@ spec:
         args:
         {{- if .Values.keycloak.production }}
         - start
+        {{- if .Values.keycloak.optimizedStart }}
         - --optimized
+        {{- end }}
         {{- else }}
         - start-dev
         {{- end }}
