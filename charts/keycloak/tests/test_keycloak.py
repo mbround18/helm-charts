@@ -163,6 +163,54 @@ def test_extra_volume_mounts_are_only_applied_to_main_container():
     )
 
 
+def test_build_init_extra_volume_mounts_ignore_invalid_entries():
+    documents = _render(
+        values={
+            "keycloak": {
+                "buildInit": {
+                    "extraVolumeMounts": [
+                        {"name": "install-discord-extension"},
+                        {
+                            "name": "missing-volume",
+                            "mountPath": "/opt/keycloak/providers/missing.jar",
+                        },
+                    ]
+                }
+            }
+        }
+    )
+    deployment = _document_by_kind(documents, "Deployment")
+    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+
+    assert all(
+        volume_mount.get("name") not in {"install-discord-extension", "missing-volume"}
+        for volume_mount in init_container["volumeMounts"]
+    )
+
+
+def test_build_init_extra_volume_mounts_include_valid_defined_volume():
+    documents = _render(
+        values={
+            "keycloak": {
+                "extraVolumes": [{"name": "providers", "emptyDir": {}}],
+                "buildInit": {
+                    "extraVolumeMounts": [
+                        {"name": "providers", "mountPath": "/opt/keycloak/providers"}
+                    ]
+                },
+            }
+        }
+    )
+    deployment = _document_by_kind(documents, "Deployment")
+    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+
+    assert any(
+        volume_mount.get("name") == "providers"
+        and volume_mount.get("mountPath") == "/opt/keycloak/providers"
+        for volume_mount in init_container["volumeMounts"]
+    )
+
+
 def test_existing_secret_mode_skips_chart_managed_secrets():
     documents = _render(
         values={
