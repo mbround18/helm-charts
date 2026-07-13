@@ -79,8 +79,10 @@ spec:
               key: {{ .key }}
         {{- end }}
         volumeMounts:
+        {{- if $enableBuildInit }}
         - name: quarkus-lib
           mountPath: /opt/keycloak/lib/quarkus
+        {{- end }}
         - name: tmp
           mountPath: /tmp
         {{- with .Values.keycloak.extraVolumeMounts }}
@@ -219,16 +221,20 @@ spec:
           mountPath: {{ .Values.keycloak.importRealm.mountPath }}
           readOnly: true
         {{- end }}
+        {{- if $enableBuildInit }}
         - name: quarkus-lib
           mountPath: /opt/keycloak/lib/quarkus
+        {{- end }}
         - name: tmp
           mountPath: /tmp
         {{- with .Values.keycloak.extraVolumeMounts }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       volumes:
+      {{- if $enableBuildInit }}
       - name: quarkus-lib
         emptyDir: {}
+      {{- end }}
       - name: tmp
         emptyDir: {}
       {{- if .Values.persistence.enabled }}

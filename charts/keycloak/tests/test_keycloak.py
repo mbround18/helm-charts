@@ -86,6 +86,16 @@ def test_build_init_can_be_disabled():
     deployment = _document_by_kind(documents, "Deployment")
 
     assert "initContainers" not in deployment["spec"]["template"]["spec"]
+    assert all(
+        volume.get("name") != "quarkus-lib"
+        for volume in deployment["spec"]["template"]["spec"]["volumes"]
+    )
+    assert all(
+        volume_mount.get("name") != "quarkus-lib"
+        for volume_mount in deployment["spec"]["template"]["spec"]["containers"][0][
+            "volumeMounts"
+        ]
+    )
     assert "--optimized" not in deployment["spec"]["template"]["spec"]["containers"][0][
         "args"
     ]
