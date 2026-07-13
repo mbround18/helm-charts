@@ -113,6 +113,25 @@ def test_optimized_start_is_respected_without_build_init():
     ]
 
 
+def test_start_dev_mounts_writable_quarkus_lib_for_read_only_root_fs():
+    documents = _render(values={"keycloak": {"production": False}})
+    deployment = _document_by_kind(documents, "Deployment")
+
+    container = deployment["spec"]["template"]["spec"]["containers"][0]
+    assert container["args"][0] == "start-dev"
+    assert any(
+        volume_mount.get("name") == "quarkus-lib"
+        and volume_mount.get("mountPath") == "/opt/keycloak/lib/quarkus"
+        for volume_mount in container["volumeMounts"]
+    )
+    assert any(
+        volume.get("name") == "quarkus-lib"
+        and volume.get("emptyDir") == {}
+        for volume in deployment["spec"]["template"]["spec"]["volumes"]
+    )
+    assert "initContainers" not in deployment["spec"]["template"]["spec"]
+
+
 def test_existing_secret_mode_skips_chart_managed_secrets():
     documents = _render(
         values={

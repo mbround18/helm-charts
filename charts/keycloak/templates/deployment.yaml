@@ -13,6 +13,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   {{- $enableBuildInit := and .Values.keycloak.production .Values.keycloak.buildInit.enabled }}
+  {{- $needsWritableQuarkusLib := or $enableBuildInit (not .Values.keycloak.production) }}
   selector:
     matchLabels:
       {{- include "keycloak.selectorLabels" . | nindent 6 }}
@@ -221,7 +222,7 @@ spec:
           mountPath: {{ .Values.keycloak.importRealm.mountPath }}
           readOnly: true
         {{- end }}
-        {{- if $enableBuildInit }}
+        {{- if $needsWritableQuarkusLib }}
         - name: quarkus-lib
           mountPath: /opt/keycloak/lib/quarkus
         {{- end }}
@@ -231,7 +232,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       volumes:
-      {{- if $enableBuildInit }}
+      {{- if $needsWritableQuarkusLib }}
       - name: quarkus-lib
         emptyDir: {}
       {{- end }}

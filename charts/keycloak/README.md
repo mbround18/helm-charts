@@ -37,6 +37,7 @@ The chart follows current Keycloak container guidance:
 - Database connection is configured with `KC_DB_*` variables
 - Main process uses `/opt/keycloak/bin/kc.sh`
 - Realm import can be enabled by mounting files to `/opt/keycloak/data/import` and adding `--import-realm`
+- In `start-dev` mode, the chart mounts an `emptyDir` at `/opt/keycloak/lib/quarkus` so Quarkus can write transformed bytecode while the container root filesystem remains read-only
 
 ## Important Values
 
