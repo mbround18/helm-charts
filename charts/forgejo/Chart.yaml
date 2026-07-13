@@ -2,7 +2,7 @@ apiVersion: v2
 name: forgejo
 description: A Helm chart for Forgejo, a self-hosted lightweight software forge.
 type: application
-version: 0.1.6
+version: 0.1.7
 appVersion: '15'
 icon: https://forgejo.org/images/forgejo-wordmark.svg
 keywords:
