@@ -132,6 +132,37 @@ def test_start_dev_mounts_writable_quarkus_lib_for_read_only_root_fs():
     assert "initContainers" not in deployment["spec"]["template"]["spec"]
 
 
+def test_extra_volume_mounts_are_only_applied_to_main_container():
+    documents = _render(
+        values={
+            "keycloak": {
+                "extraVolumeMounts": [
+                    {
+                        "name": "install-discord-extension",
+                        "mountPath": "/opt/keycloak/providers/discord.jar",
+                        "subPath": "discord.jar",
+                        "readOnly": True,
+                    }
+                ]
+            }
+        }
+    )
+    deployment = _document_by_kind(documents, "Deployment")
+
+    init_container = deployment["spec"]["template"]["spec"]["initContainers"][0]
+    main_container = deployment["spec"]["template"]["spec"]["containers"][0]
+
+    assert all(
+        volume_mount.get("name") != "install-discord-extension"
+        for volume_mount in init_container["volumeMounts"]
+    )
+    assert any(
+        volume_mount.get("name") == "install-discord-extension"
+        and volume_mount.get("mountPath") == "/opt/keycloak/providers/discord.jar"
+        for volume_mount in main_container["volumeMounts"]
+    )
+
+
 def test_existing_secret_mode_skips_chart_managed_secrets():
     documents = _render(
         values={

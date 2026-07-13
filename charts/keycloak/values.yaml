@@ -74,6 +74,7 @@ keycloak:
   buildInit:
     enabled: true
     extraArgs: []
+    extraVolumeMounts: []
   hostname: keycloak.local
   proxyHeaders: xforwarded
   cache: ispn

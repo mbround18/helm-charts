@@ -43,6 +43,7 @@ The chart follows current Keycloak container guidance:
 
 - `keycloak.production`: Toggle `start` vs `start-dev`
 - `keycloak.buildInit.enabled`: Enable the rootless init container that runs `kc.sh build` before startup
+- `keycloak.buildInit.extraVolumeMounts`: Additional mounts used only by the build init container
 - `keycloak.optimizedStart`: Force `--optimized` when `keycloak.buildInit.enabled=false`
 - `bootstrapAdmin.*`: Manage admin bootstrap secret creation or reuse
 - `database.*`: Configure external DB host/user/password secret
