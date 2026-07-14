@@ -32,9 +32,9 @@ def test_defaults_render_production_workload_and_foundation_resources():
     assert service["spec"]["ports"][0]["targetPort"] == "http"
     assert "annotations" not in service["metadata"]
     assert deployment["spec"]["template"]["spec"]["containers"][0]["args"][0] == "start"
-    assert "--optimized" in deployment["spec"]["template"]["spec"]["containers"][0][
-        "args"
-    ]
+    assert (
+        "--optimized" in deployment["spec"]["template"]["spec"]["containers"][0]["args"]
+    )
     assert admin_secret["stringData"]["KC_BOOTSTRAP_ADMIN_USERNAME"] == "admin"
     assert pvc["metadata"]["annotations"]["helm.sh/resource-policy"] == "keep"
     assert (
@@ -44,8 +44,7 @@ def test_defaults_render_production_workload_and_foundation_resources():
         is True
     )
     assert any(
-        vm.get("name") == "tmp"
-        and vm.get("mountPath") == "/tmp"
+        vm.get("name") == "tmp" and vm.get("mountPath") == "/tmp"
         for vm in deployment["spec"]["template"]["spec"]["containers"][0][
             "volumeMounts"
         ]
@@ -62,8 +61,7 @@ def test_defaults_render_production_workload_and_foundation_resources():
     assert init_container["args"][0] == "build"
     assert init_container["securityContext"]["runAsNonRoot"] is True
     assert any(
-        vm.get("name") == "quarkus-lib"
-        and vm.get("mountPath") == "/opt/keycloak/lib"
+        vm.get("name") == "quarkus-lib" and vm.get("mountPath") == "/opt/keycloak/lib"
         for vm in init_container["volumeMounts"]
     )
 
@@ -107,9 +105,10 @@ def test_build_init_can_be_disabled():
             "volumeMounts"
         ]
     )
-    assert "--optimized" not in deployment["spec"]["template"]["spec"]["containers"][0][
-        "args"
-    ]
+    assert (
+        "--optimized"
+        not in deployment["spec"]["template"]["spec"]["containers"][0]["args"]
+    )
 
 
 def test_optimized_start_is_respected_without_build_init():
@@ -136,8 +135,7 @@ def test_start_dev_mounts_writable_quarkus_lib_for_read_only_root_fs():
         for volume_mount in container["volumeMounts"]
     )
     assert any(
-        volume.get("name") == "quarkus-lib"
-        and volume.get("emptyDir") == {}
+        volume.get("name") == "quarkus-lib" and volume.get("emptyDir") == {}
         for volume in deployment["spec"]["template"]["spec"]["volumes"]
     )
     init_containers = deployment["spec"]["template"]["spec"]["initContainers"]
@@ -292,7 +290,9 @@ def test_predeploy_jobs_mode_renders_staged_jobs_and_pvc():
             "release-name-keycloak-build",
         ]
     )
-    assert prebuild_pvc["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "14"
+    assert (
+        prebuild_pvc["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "14"
+    )
 
     keycloak_container = deployment["spec"]["template"]["spec"]["containers"][0]
     assert any(

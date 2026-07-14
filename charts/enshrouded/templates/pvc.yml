@@ -1,4 +1,4 @@
-{{- $pvcs := ternary (list .Values.backups.pvc .Values.deployment.pvc) (list .Values.deployment.pvc) .Values.backups.enabled -}}
+{{- $pvcs := ternary (list .Values.backups.pvc .Values.deployment.pvc) (list .Values.deployment.pvc) (index .Values "backup-job" "enabled") -}}
 {{- range $pvcs }}
 ---
 apiVersion: v1

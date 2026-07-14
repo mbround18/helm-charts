@@ -6,6 +6,6 @@ type: application
 version: 0.1.6
 appVersion: 0.150.1-386
 dependencies:
-- name: gitops-tools
-  version: 0.1.1
-  repository: https://mbround18.github.io/helm-charts
+  - name: gitops-tools
+    version: 0.1.1
+    repository: https://mbround18.github.io/helm-charts

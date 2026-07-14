@@ -1,5 +1,5 @@
 {{- $pvcs := .Values.pvcs }}
-{{- if not .Values.backups.enabled }}
+{{- if not (index .Values "backup-job" "enabled") }}
 {{- $pvcs = omit $pvcs "backups" }}
 {{- end }}
 {{- range $pvcs }}

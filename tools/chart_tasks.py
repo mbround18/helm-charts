@@ -35,6 +35,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CHARTS_ROOT = REPO_ROOT / "charts"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "tmp"
 
+# All `helm dependency build`/`update` invocations share Helm's global local
+# repository cache (~/.cache/helm/repository), which isn't safe for concurrent
+# writers. Running several charts' dependency builds in parallel (this script
+# uses --jobs > 1) races on that shared cache's tmp download files, so every
+# such invocation is serialized behind this single process-wide lock.
+_helm_dep_lock = asyncio.Lock()
+
 
 @dataclass(frozen=True)
 class Chart:
@@ -157,14 +164,15 @@ async def ensure_local_deps_built(chart_path: Path, visited: set[Path] | None = 
         # Recursive check for the dependency's own local dependencies
         await ensure_local_deps_built(dep_path, visited)
 
-        # Build the dependency itself
+        # Build the dependency itself.
         logger.info(f"Building local dependency: {dep_path.name}")
         try:
-            await run_cmd(
-                ["helm", "dependency", "build", "--skip-refresh", "."],
-                cwd=dep_path,
-                quiet=True,
-            )
+            async with _helm_dep_lock:
+                await run_cmd(
+                    ["helm", "dependency", "build", "--skip-refresh", "."],
+                    cwd=dep_path,
+                    quiet=True,
+                )
         except subprocess.CalledProcessError:
             logger.error(f"Failed to build local dependency: {dep_path.name}")
             raise
@@ -201,9 +209,11 @@ async def update_dependencies(chart: Chart, semaphore: asyncio.Semaphore):
         await ensure_local_deps_built(chart.directory)
 
         logger.info(f"Updating dependencies: {chart.name}")
-        await run_cmd(
-            ["helm", "dependency", "update", "--skip-refresh", "."], cwd=chart.directory
-        )
+        async with _helm_dep_lock:
+            await run_cmd(
+                ["helm", "dependency", "update", "--skip-refresh", "."],
+                cwd=chart.directory,
+            )
 
 
 async def lint_chart(chart: Chart, semaphore: asyncio.Semaphore):
@@ -211,11 +221,12 @@ async def lint_chart(chart: Chart, semaphore: asyncio.Semaphore):
         logger.info(f"Linting: {chart.name}")
         if chart.has_dependencies:
             await ensure_local_deps_built(chart.directory)
-            await run_cmd(
-                ["helm", "dependency", "build", "--skip-refresh", "."],
-                cwd=chart.directory,
-                quiet=True,
-            )
+            async with _helm_dep_lock:
+                await run_cmd(
+                    ["helm", "dependency", "build", "--skip-refresh", "."],
+                    cwd=chart.directory,
+                    quiet=True,
+                )
         await run_cmd(["helm", "lint", "."], cwd=chart.directory, quiet=True)
 
 
@@ -227,11 +238,12 @@ async def dump_chart(chart: Chart, output_dir: Path, semaphore: asyncio.Semaphor
         logger.info(f"Dumping manifests: {chart.name}")
         if chart.has_dependencies:
             await ensure_local_deps_built(chart.directory)
-            await run_cmd(
-                ["helm", "dependency", "build", "--skip-refresh", "."],
-                cwd=chart.directory,
-                quiet=True,
-            )
+            async with _helm_dep_lock:
+                await run_cmd(
+                    ["helm", "dependency", "build", "--skip-refresh", "."],
+                    cwd=chart.directory,
+                    quiet=True,
+                )
 
         rendered = await run_cmd(
             ["helm", "template", "."], cwd=chart.directory, quiet=True
@@ -266,11 +278,12 @@ async def build_chart(chart: Chart, output_dir: Path, semaphore: asyncio.Semapho
             await ensure_local_deps_built(chart.directory)
 
             # Build dependencies into the charts/ directory
-            await run_cmd(
-                ["helm", "dependency", "build", "--skip-refresh", "."],
-                cwd=chart.directory,
-                quiet=True,
-            )
+            async with _helm_dep_lock:
+                await run_cmd(
+                    ["helm", "dependency", "build", "--skip-refresh", "."],
+                    cwd=chart.directory,
+                    quiet=True,
+                )
 
         # Run from REPO_ROOT and use absolute output_dir
         await run_cmd(

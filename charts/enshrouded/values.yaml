@@ -13,19 +13,8 @@ environment: []
 # The name of the storage class to use. If not set, the default storage class will be used.
 storageClassName: ""
 
-# Configuration for backups
+# The configuration for the backup PVC (only provisioned when backup-job.enabled is true)
 backups:
-  # Whether backups are enabled
-  enabled: false
-  # The image to use for backups
-  image: mbround18/backup-cron:v1.0.0
-  # The schedule for backups, in cron format
-  schedule: "*/5 * * * *"
-  # The number of days to retain backups
-  retentionDays: 7
-  # The number of backup files to keep. If 0, all backup files are kept.
-  filesToKeep: 0
-  # The configuration for the backup PVC
   pvc:
     name: backups
     size: 10Gi
@@ -66,12 +55,12 @@ podAnnotations: {}
 podLabels: {}
 
 # The security context for the pod
-podSecurityContext:
+podSecurityContext: &podSecurityContext
   fsGroup: 1000
   fsGroupChangePolicy: OnRootMismatch
 
 # The security context for the container
-securityContext:
+securityContext: &securityContext
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
@@ -86,7 +75,7 @@ endpoint:
   queryPort: 15637
 
 # The resources to allocate for the pod
-resources:
+resources: &resources
   requests:
     cpu: 500m
     memory: 2Gi
@@ -112,18 +101,47 @@ volumes:
   - name: game-data
     persistentVolumeClaim:
       claimName: enshrouded-game-data
-  - name: backups
-    persistentVolumeClaim:
-      claimName: enshrouded-backups
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
   - name: game-data
     mountPath: /home/steam/enshrouded
     readOnly: false
-  - name: backups
-    mountPath: /home/steam/backups
-    readOnly: true
+
+# Settings for the reusable backup-job subchart (charts/backup-job).
+# Set enabled: true to provision the backups PVC and run scheduled backups.
+backup-job:
+  enabled: false
+  schedule: "*/5 * * * *"
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext
+  resources: *resources
+  env:
+    - name: INPUT_FOLDER
+      value: "/home/steam/enshrouded/savegame"
+    - name: OUTPUT_FOLDER
+      value: "/home/steam/backups/"
+    - name: OUTPUT_USER
+      value: "1000"
+    - name: OUTPUT_GROUP
+      value: "1000"
+    - name: RETAIN_N_DAYS
+      value: "7"
+    - name: RETAIN_N_FILES
+      value: "0"
+  volumes:
+    - name: game-data
+      persistentVolumeClaim:
+        claimName: enshrouded-game-data
+    - name: backups
+      persistentVolumeClaim:
+        claimName: enshrouded-backups
+  volumeMounts:
+    - name: game-data
+      mountPath: /home/steam/enshrouded
+      readOnly: true
+    - name: backups
+      mountPath: /home/steam/backups
 
 # The node selector to use for the pod
 nodeSelector: {}

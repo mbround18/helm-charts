@@ -1,0 +1,67 @@
+# Default values for backup-job.
+# Consuming charts set these under the dependency's alias, e.g.:
+#
+# backup-job:
+#   enabled: true
+#   schedule: "*/5 * * * *"
+#   volumes: [...]
+#   volumeMounts: [...]
+
+# Whether the backup CronJob is rendered at all.
+enabled: false
+
+nameOverride: ""
+fullnameOverride: ""
+
+backupImage: mbround18/backup-cron:v1.0.0
+backupImagePullPolicy: Always
+
+# Cron schedule the backup Job runs on.
+schedule: "*/5 * * * *"
+
+# --- Options that keep runs from stacking up ---
+# Forbid: don't start a new run while the previous one is still going.
+concurrencyPolicy: Forbid
+# If the controller was down and missed a scheduled run by more than this
+# many seconds, skip it instead of firing a backlog of catch-up runs.
+startingDeadlineSeconds: 60
+# Kill a hung backup Job after this long so a stuck run can't block every
+# future run forever under concurrencyPolicy: Forbid.
+activeDeadlineSeconds: 600
+backoffLimit: 2
+# How many finished Job objects Kubernetes keeps around for inspection.
+successfulJobsHistoryLimit: 3
+failedJobsHistoryLimit: 3
+# How long after finishing a Job (and its Pods) get garbage collected.
+ttlSecondsAfterFinished: 300
+suspend: false
+
+# Extra environment variables for the backup container. Keys vary by which
+# backup image/version a consuming chart targets (e.g. RETAIN_N_FILES vs
+# FILES_TO_KEEP), so this is passed through as-is.
+env: []
+  # - name: INPUT_FOLDER
+  #   value: /data/saves
+  # - name: OUTPUT_FOLDER
+  #   value: /data/backups
+
+podSecurityContext: {}
+securityContext: {}
+resources: {}
+
+# Same shape as native pod volumes/volumeMounts.
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podAnnotations: {}
+podLabels: {}
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}

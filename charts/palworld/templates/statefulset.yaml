@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "palworld.fullname" . }}
   labels:
@@ -10,8 +10,9 @@ metadata:
     {{- $annotations | nindent 4 }}
   {{- end }}
 spec:
+  serviceName: {{ include "palworld.fullname" . }}-headless
   {{- $pvcs := .Values.pvcs }}
-  {{- if not .Values.backups.enabled }}
+  {{- if not (index .Values "backup-job" "enabled") }}
   {{- $pvcs = omit $pvcs "backups" }}
   {{- end }}
   {{- if not .Values.autoscaling.enabled }}
@@ -39,44 +40,8 @@ spec:
       serviceAccountName: {{ include "palworld.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-{{/*      initContainers:*/}}
-{{/*        - name: init-symlink*/}}
-{{/*          image: busybox*/}}
-{{/*          command: ['sh', '-c', 'ln -s /home/steam/palworld/Pal/Saved /home/steam/saved']*/}}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       containers:
-        {{- if .Values.backups.enabled }}
-        - name: save-backups
-          image: {{ .Values.backups.image | quote }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
-            - name: SCHEDULE
-              value: "{{ .Values.backups.schedule }}"
-            - name: INPUT_FOLDER
-              value: "/home/steam/palworld/Pal/Saved/"
-            - name: OUTPUT_FOLDER
-              value: "/home/steam/backups/"
-            - name: OUTPUT_USER
-              value: "1000"
-            - name: OUTPUT_GROUP
-              value: "1000"
-            - name: RETAIN_N_DAYS
-              value: "{{ .Values.backups.retainNDays }}"
-            - name: RETAIN_N_FILES
-              value: "{{ .Values.backups.retainNFiles }}"
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          volumeMounts:
-          {{- range $pvcs }}
-            - name: {{ .name }}
-              mountPath: {{ .path }}
-              {{- if .subPath }}
-              subPath: {{ .subPath }}
-              {{- end }}
-          {{- end }}
-          {{- with .Values.volumeMounts }}
-          {{- toYaml . | nindent 12 }}
-          {{- end }}
-        {{- end }}
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}

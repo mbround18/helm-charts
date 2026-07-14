@@ -10,12 +10,8 @@ environment: []
 
 storageClassName: ""
 
-backups:
-  enabled: false
-  image: mbround18/backup-cron:v1.0.0
-  schedule: "*/5 * * * *"
-  retainNDays: 7
-  retainNFiles: 0
+# Grace period for the game server to save world state before it's killed.
+terminationGracePeriodSeconds: 90
 
 image:
   repository: mbround18/palworld-docker
@@ -47,11 +43,11 @@ serviceAccount:
 podAnnotations: {}
 podLabels: {}
 
-podSecurityContext:
+podSecurityContext: &podSecurityContext
   fsGroup: 1000
   fsGroupChangePolicy: OnRootMismatch
 
-securityContext:
+securityContext: &securityContext
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
@@ -64,7 +60,7 @@ endpoint:
   gamePort: 8211
   queryPort: 27015
 
-resources:
+resources: &resources
   requests:
     cpu: 1000m
     memory: 2Gi
@@ -92,6 +88,41 @@ pvcs:
     name: palworld-data
     size: 30Gi
     path: /home/steam/palworld
+
+# Settings for the reusable backup-job subchart (charts/backup-job).
+# Set enabled: true to provision the backups PVC and run scheduled backups.
+backup-job:
+  enabled: false
+  schedule: "*/5 * * * *"
+  podSecurityContext: *podSecurityContext
+  securityContext: *securityContext
+  resources: *resources
+  env:
+    - name: INPUT_FOLDER
+      value: "/home/steam/palworld/Pal/Saved/"
+    - name: OUTPUT_FOLDER
+      value: "/home/steam/backups/"
+    - name: OUTPUT_USER
+      value: "1000"
+    - name: OUTPUT_GROUP
+      value: "1000"
+    - name: RETAIN_N_DAYS
+      value: "7"
+    - name: RETAIN_N_FILES
+      value: "0"
+  volumes:
+    - name: palworld-saves
+      persistentVolumeClaim:
+        claimName: palworld-saves
+    - name: palworld-backups
+      persistentVolumeClaim:
+        claimName: palworld-backups
+  volumeMounts:
+    - name: palworld-saves
+      mountPath: /home/steam/palworld/Pal/Saved
+      subPath: Saved
+    - name: palworld-backups
+      mountPath: /home/steam/backups
 
 # Additional volumes on the output Deployment definition.
 volumes: []
