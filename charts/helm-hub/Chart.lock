@@ -4,9 +4,9 @@ dependencies:
   version: 0.1.1
 - name: istio-ingress
   repository: file://../istio-ingress
-  version: 0.1.10
+  version: 0.1.11
 - name: postgres
   repository: file://../postgres
-  version: 0.1.24
-digest: sha256:78887630f1989ec6e68c47c44c036f9762252596f9f9d20e56397e08ccbca836
-generated: "2026-05-29T23:33:51.220969957Z"
+  version: 0.1.25
+digest: sha256:04af35ab2edaee1ba47f4544136eadadd93ab9dab50df9620deb9143d25b3c79
+generated: "2026-07-14T22:44:21.28375076Z"

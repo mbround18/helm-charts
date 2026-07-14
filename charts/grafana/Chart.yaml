@@ -2,20 +2,20 @@ apiVersion: v2
 name: grafana
 description: A wrapper chart for Grafana with opinionated Istio and GitOps integrations.
 type: application
-version: 0.1.11
+version: 0.1.12
 appVersion: 10.4.1
 dependencies:
-  - name: external-secret-resources
-    version: 0.1.0
-    repository: file://../external-secret-resources
-    alias: externalSecrets
-  - name: grafana
-    version: 10.5.15
-    repository: https://grafana.github.io/helm-charts
-    alias: upstream-grafana
-  - name: istio-ingress
-    version: 0.1.10
-    repository: file://../istio-ingress
-  - name: gitops-tools
-    version: 0.1.1
-    repository: file://../gitops-tools
+- name: external-secret-resources
+  version: 0.1.1
+  repository: file://../external-secret-resources
+  alias: externalSecrets
+- name: grafana
+  version: 10.5.15
+  repository: https://grafana.github.io/helm-charts
+  alias: upstream-grafana
+- name: istio-ingress
+  version: 0.1.11
+  repository: file://../istio-ingress
+- name: gitops-tools
+  version: 0.1.1
+  repository: file://../gitops-tools
