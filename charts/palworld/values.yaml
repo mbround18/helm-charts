@@ -59,6 +59,9 @@ endpoint:
   externalIP: ""
   gamePort: 8211
   queryPort: 27015
+  # Pinned so a Service replace/recreate doesn't reassign different external ports.
+  gameNodePort: 32285
+  queryNodePort: 30764
 
 resources: &resources
   requests:

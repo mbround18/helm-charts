@@ -4,7 +4,7 @@ metadata:
   name: {{ include "palworld.fullname" . }}
   labels:
     {{- include "palworld.labels" . | nindent 4 }}
-  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress") }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" (dict "argocd.argoproj.io/sync-options" "Replace=true")) }}
   {{- if $annotations }}
   annotations:
     {{- $annotations | nindent 4 }}
@@ -17,11 +17,15 @@ spec:
     {{- range list "query" "game" }}
     {{- $portName := . }}
     {{- $portValue := index $.Values.endpoint (printf "%sPort" $portName) }}
+    {{- $nodePortValue := index $.Values.endpoint (printf "%sNodePort" $portName) }}
     {{- range list "TCP" "UDP" }}
       - port: {{ $portValue }}
         targetPort: {{ printf "%s-%s" $portName (lower .) }}
         protocol: {{ . }}
         name: {{ printf "%s-%s" $portName (lower .) }}
+        {{- if $nodePortValue }}
+        nodePort: {{ $nodePortValue }}
+        {{- end }}
     {{- end }}
     {{- end }}
   selector:
