@@ -4,6 +4,6 @@ dependencies:
   version: 0.1.1
 - name: istio-ingress
   repository: file://../istio-ingress
-  version: 0.1.10
-digest: sha256:c8b11294e497655570febfdf4cdbd1d8a04f84312cd2745483233e6c8584bb3a
-generated: "2026-05-29T21:54:05.522776031Z"
+  version: 0.1.11
+digest: sha256:46286d46704d23132a91cfc337aa2f7b5530fe2b11a226334234cf2b487f7abf
+generated: "2026-07-14T22:44:19.364620942Z"
