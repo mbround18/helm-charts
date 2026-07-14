@@ -14,17 +14,15 @@ spec:
   externalIPs:
     - {{ .Values.endpoint.externalIP }}
   ports:
-    {{ range list "TCP" "UDP" }}
-    {{- $game := printf "%s-%s" "game" . }}
-    {{- $query := printf "%s-%s" "query" . }}
-      - port: {{ $.Values.endpoint.queryPort }}
-        targetPort: {{ lower $query }}
+    {{- range list "query" "game" }}
+    {{- $portName := . }}
+    {{- $portValue := index $.Values.endpoint (printf "%sPort" $portName) }}
+    {{- range list "TCP" "UDP" }}
+      - port: {{ $portValue }}
+        targetPort: {{ printf "%s-%s" $portName (lower .) }}
         protocol: {{ . }}
-        name: {{ lower $query }}
-      - port: {{ $.Values.endpoint.gamePort }}
-        targetPort: {{ lower $game }}
-        protocol: {{ . }}
-        name: {{ lower $game }}
-    {{ end }}
+        name: {{ printf "%s-%s" $portName (lower .) }}
+    {{- end }}
+    {{- end }}
   selector:
     {{- include "palworld.selectorLabels" . | nindent 4 }}

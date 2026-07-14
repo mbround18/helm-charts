@@ -46,16 +46,15 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
-            {{ range list "TCP" "UDP" }}
-            {{- $game := printf "%s-%s" "game" . -}}
-            {{- $query := printf "%s-%s" "query" . -}}
-            - name: {{ lower $game }}
-              containerPort: {{ $.Values.endpoint.gamePort }}
+            {{- range list "query" "game" }}
+            {{- $portName := . }}
+            {{- $portValue := index $.Values.endpoint (printf "%sPort" $portName) }}
+            {{- range list "TCP" "UDP" }}
+            - name: {{ printf "%s-%s" $portName (lower .) }}
+              containerPort: {{ $portValue }}
               protocol: {{ . }}
-            - name: {{ lower $query }}
-              containerPort: {{ $.Values.endpoint.queryPort }}
-              protocol: {{ . }}
-            {{ end }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             tcpSocket:
               port: game-tcp
