@@ -1,15 +1,15 @@
 dependencies:
 - name: external-secret-resources
   repository: file://../external-secret-resources
-  version: 0.1.1
+  version: 0.1.2
 - name: grafana
   repository: https://grafana.github.io/helm-charts
   version: 10.5.15
 - name: istio-ingress
   repository: file://../istio-ingress
-  version: 0.1.11
+  version: 0.1.12
 - name: gitops-tools
   repository: file://../gitops-tools
   version: 0.1.1
-digest: sha256:65281a57b0fef8d78b4e854c436fc85fa91e0b29f09a81b94071c03137917d47
-generated: "2026-07-14T22:44:20.152283644Z"
+digest: sha256:e9bf0461bd9d1ecb285e862e0d246cee960882d840b9d58e8a5bea17ff8cfc7a
+generated: "2026-07-14T23:49:36.351028101Z"
