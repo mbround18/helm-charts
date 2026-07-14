@@ -1,6 +1,7 @@
 apiVersion: v2
 name: external-secret-resources
-description: Reusable Helm chart for External Secrets Operator resources with retention
+description:
+  Reusable Helm chart for External Secrets Operator resources with retention
   defaults
 type: application
 version: 0.1.1

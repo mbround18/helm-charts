@@ -1,6 +1,6 @@
-{{- if not .Values.agones.enabled }}
-apiVersion: apps/v1
-kind: StatefulSet
+{{- if .Values.agones.enabled }}
+apiVersion: "agones.dev/v1"
+kind: GameServer
 metadata:
   name: {{ include "palworld.fullname" . }}
   labels:
@@ -11,17 +11,27 @@ metadata:
     {{- $annotations | nindent 4 }}
   {{- end }}
 spec:
-  serviceName: {{ include "palworld.fullname" . }}-headless
-  {{- $pvcs := .Values.pvcs }}
-  {{- if not (index .Values "backup-job" "enabled") }}
-  {{- $pvcs = omit $pvcs "backups" }}
-  {{- end }}
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
-  selector:
-    matchLabels:
-      {{- include "palworld.selectorLabels" . | nindent 6 }}
+  ports:
+    {{- range list "query" "game" }}
+    {{- $portName := . }}
+    {{- $portValue := index $.Values.endpoint (printf "%sPort" $portName) }}
+    {{- range list "TCP" "UDP" }}
+    - name: {{ printf "%s-%s" $portName (lower .) }}
+      portPolicy: {{ $.Values.agones.portPolicy }}
+      containerPort: {{ $portValue }}
+      protocol: {{ . }}
+    {{- end }}
+    {{- end }}
+  health:
+    disabled: {{ .Values.agones.health.disabled }}
+    periodSeconds: {{ .Values.agones.health.periodSeconds }}
+    failureThreshold: {{ .Values.agones.health.failureThreshold }}
+    initialDelaySeconds: {{ .Values.agones.health.initialDelaySeconds }}
+  scheduling: {{ .Values.agones.scheduling }}
+  sdkServer:
+    logLevel: {{ .Values.agones.sdkServer.logLevel }}
+    grpcPort: {{ .Values.agones.sdkServer.grpcPort }}
+    httpPort: {{ .Values.agones.sdkServer.httpPort }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -30,7 +40,7 @@ spec:
       {{- end }}
       labels:
         {{- include "palworld.labels" . | nindent 8 }}
-	{{- with .Values.podLabels }}
+        {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -77,6 +87,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+          {{- $pvcs := .Values.pvcs }}
+          {{- if not (index .Values "backup-job" "enabled") }}
+          {{- $pvcs = omit $pvcs "backups" }}
+          {{- end }}
           {{- range $pvcs }}
             - name: {{ .name }}
               mountPath: {{ .path }}
@@ -87,6 +101,10 @@ spec:
           {{- with .Values.volumeMounts }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
+      {{- $pvcs := .Values.pvcs }}
+      {{- if not (index .Values "backup-job" "enabled") }}
+      {{- $pvcs = omit $pvcs "backups" }}
+      {{- end }}
       {{- $combinedVolumes := .Values.volumes }}
       {{- range $pvcs }}
       {{- $newVolume := dict "name" .name "persistentVolumeClaim" (dict "claimName" .name) }}

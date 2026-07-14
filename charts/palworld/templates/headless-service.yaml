@@ -1,3 +1,4 @@
+{{- if not .Values.agones.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -19,3 +20,4 @@ spec:
       name: game-tcp
   selector:
     {{- include "palworld.selectorLabels" . | nindent 4 }}
+{{- end }}

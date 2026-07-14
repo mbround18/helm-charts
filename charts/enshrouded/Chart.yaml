@@ -5,9 +5,9 @@ type: application
 version: 0.3.16
 appVersion: latest
 dependencies:
-- name: gitops-tools
-  version: 0.1.1
-  repository: https://mbround18.github.io/helm-charts
-- name: backup-job
-  version: 0.1.0
-  repository: file://../backup-job
+  - name: gitops-tools
+    version: 0.1.1
+    repository: https://mbround18.github.io/helm-charts
+  - name: backup-job
+    version: 0.1.0
+    repository: file://../backup-job

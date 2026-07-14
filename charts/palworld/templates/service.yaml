@@ -1,10 +1,11 @@
+{{- if not .Values.agones.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "palworld.fullname" . }}
   labels:
     {{- include "palworld.labels" . | nindent 4 }}
-  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" (dict "argocd.argoproj.io/sync-options" "Replace=true")) }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress" "annotations" (dict "argocd.argoproj.io/sync-options" "ServerSideApply=true")) }}
   {{- if $annotations }}
   annotations:
     {{- $annotations | nindent 4 }}
@@ -30,3 +31,4 @@ spec:
     {{- end }}
   selector:
     {{- include "palworld.selectorLabels" . | nindent 4 }}
+{{- end }}

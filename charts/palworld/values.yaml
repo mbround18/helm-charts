@@ -63,6 +63,34 @@ endpoint:
   gameNodePort: 32285
   queryNodePort: 30764
 
+# Run as an Agones GameServer instead of a StatefulSet + NodePort Service.
+# When enabled, the StatefulSet, headless Service, and NodePort Service are
+# not rendered — Agones owns the pod lifecycle and external port allocation
+# instead. PVCs are still created and mounted the same way in both modes.
+#
+# Caveat: the mbround18/palworld-docker image has no Agones SDK integration,
+# so nothing inside the container ever calls the SDK's Ready()/Health() RPCs.
+# The GameServer will sit in "Scheduling"/"RequestReady" and never reach
+# "Ready" for allocation unless you supply a sidecar/wrapper that watches the
+# game port and then calls the local SDK (localhost:{sdkServer.httpPort}) to
+# mark it ready. `health.disabled: true` avoids Agones killing the pod for
+# never reporting health in the meantime.
+agones:
+  enabled: false
+  # Dynamic: Agones picks a free host port. Static: use the values below as-is.
+  # Passthrough: container reads the assigned port from env vars.
+  portPolicy: Dynamic
+  scheduling: Packed
+  health:
+    disabled: true
+    periodSeconds: 15
+    failureThreshold: 3
+    initialDelaySeconds: 90
+  sdkServer:
+    logLevel: Info
+    grpcPort: 9357
+    httpPort: 9358
+
 resources: &resources
   requests:
     cpu: 1000m
