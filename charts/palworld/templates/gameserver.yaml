@@ -52,6 +52,28 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if .Values.initContainer.enabled }}
+      {{- $initPvcs := .Values.pvcs }}
+      {{- if not (index .Values "backup-job" "enabled") }}
+      {{- $initPvcs = omit $initPvcs "backups" }}
+      {{- end }}
+      initContainers:
+        - name: {{ .Chart.Name }}-installer
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+          imagePullPolicy: {{ .Values.initContainer.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.initContainer.resources | nindent 12 }}
+          volumeMounts:
+          {{- range $initPvcs }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+          {{- end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

@@ -23,6 +23,16 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Runs before the game container to install/update the Palworld dedicated
+# server files onto the shared server-data volume.
+initContainer:
+  enabled: true
+  image:
+    repository: mbround18/palworld-docker-installer
+    tag: latest
+    pullPolicy: Always
+  resources: {}
+
 argoCd:
   mode: auto
   instanceLabel: ""
