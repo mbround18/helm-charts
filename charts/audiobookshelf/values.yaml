@@ -96,6 +96,6 @@ securityContext:
 initChown:
   # If enabled, an initContainer will chown the mounted volumes to the rootless UID/GID
   enabled: true
-  image: busybox:1.37.0
+  image: busybox:1.38.0
   # Extra directories the chown init container should ensure (optional)
   extraDirs: []
