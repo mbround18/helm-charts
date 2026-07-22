@@ -1,6 +1,6 @@
 image:
   repository: syncthing/syncthing
-  tag: 2.1.0
+  tag: 2.1.2
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -70,6 +70,6 @@ securityContext:
 initChown:
   # If enabled, an initContainer will chown the mounted volumes to the rootless UID/GID
   enabled: true
-  image: syncthing/syncthing:2.1.0
+  image: syncthing/syncthing:2.1.2
   # Extra directories the chown init container should ensure (optional)
   extraDirs: []
