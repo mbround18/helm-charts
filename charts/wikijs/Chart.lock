@@ -1,12 +1,12 @@
 dependencies:
 - name: postgres
   repository: https://mbround18.github.io/helm-charts
-  version: 0.1.24
+  version: 0.1.26
 - name: istio-ingress
   repository: https://mbround18.github.io/helm-charts
   version: 0.1.9
 - name: meilisearch
   repository: https://mbround18.github.io/helm-charts
   version: 0.1.22
-digest: sha256:8d0c78c3ea8fe69e01cc34d32dbcb603022f21f364d3fc48163685a0d125aa65
-generated: "2026-06-30T13:21:44.282207386-07:00"
+digest: sha256:b573a6f2c6ba191a32172bb22fc5fc1436e0b326e8a00827bde8d45e802f1807
+generated: "2026-07-22T05:59:36.648119103Z"
