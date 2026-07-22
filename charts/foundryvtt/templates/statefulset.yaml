@@ -77,6 +77,8 @@ spec:
           env:
             - name: HOSTNAME
               value: {{ .Values.network.host | quote }}
+            - name: APPLICATION_HOST
+              value: {{ .Values.network.host | quote }}
             - name: SSL_PROXY
               value: {{ .Values.sslProxy | quote }}
             {{- range .Values.env }}
