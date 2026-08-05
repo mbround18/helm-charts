@@ -1,9 +1,9 @@
 dependencies:
 - name: istio-ingress
   repository: file://../istio-ingress
-  version: 0.1.12
+  version: 0.1.13
 - name: gitops-tools
   repository: file://../gitops-tools
   version: 0.1.1
-digest: sha256:8feb3c8ed2f7aaa2f2c8d978a8fe0400bd4cc0b1d8e2c0b9657a79ef411fe721
-generated: "2026-07-14T23:49:37.770769438Z"
+digest: sha256:8e1a02ea4cbd8b55786135a4a577e4b9db757a34f825af2aa85a536eb387177e
+generated: "2026-08-05T18:35:04.895241288Z"
