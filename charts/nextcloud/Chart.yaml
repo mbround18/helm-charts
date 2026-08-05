@@ -1,14 +1,15 @@
 apiVersion: v2
 name: nextcloud
-description: Helm chart for Nextcloud (self-hosted file sync & collaboration platform) with a bundled MySQL database
+description: Helm chart for Nextcloud (self-hosted file sync & collaboration platform)
+  with a bundled MySQL database
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: production-apache
 dependencies:
-  - name: istio-ingress
-    version: 0.1.13
-    repository: https://mbround18.github.io/helm-charts
-    condition: istio-ingress.enabled
-  - name: gitops-tools
-    version: 0.1.1
-    repository: https://mbround18.github.io/helm-charts
+- name: istio-ingress
+  version: 0.1.13
+  repository: https://mbround18.github.io/helm-charts
+  condition: istio-ingress.enabled
+- name: gitops-tools
+  version: 0.1.1
+  repository: https://mbround18.github.io/helm-charts
