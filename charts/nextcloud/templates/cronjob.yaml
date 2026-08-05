@@ -1,0 +1,39 @@
+{{- if .Values.cron.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "nextcloud.fullname" . }}-cron
+  labels:
+    {{- include "nextcloud.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "supporting") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.cron.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      ttlSecondsAfterFinished: 600
+      template:
+        metadata:
+          labels:
+            sidecar.istio.io/inject: "false"
+        spec:
+          activeDeadlineSeconds: 100
+          containers:
+            - name: wget-container
+              imagePullPolicy: IfNotPresent
+              image: {{ .Values.cron.image | quote }}
+              args:
+                - -X
+                - GET
+                - {{ printf "http://%s.%s.svc.cluster.local/cron.php" .Values.nextcloud.name .Release.Namespace }}
+                - -H
+                - "Accept: application/json"
+          restartPolicy: OnFailure
+{{- end }}

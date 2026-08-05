@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.mysql.name }}
+  labels:
+    {{- include "nextcloud.mysqlLabels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "database") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "nextcloud.mysqlSelectorLabels" . | nindent 6 }}
+  serviceName: {{ .Values.mysql.name | quote }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "nextcloud.mysqlSelectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.mysql.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mysql
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+          {{- with .Values.mysql.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.mysql.name }}
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+          resources:
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        deletionGracePeriodSeconds: 3600
+        name: mysql-storage
+      spec:
+        storageClassName: {{ .Values.mysql.persistence.storageClassName }}
+        accessModes:
+          {{- toYaml .Values.mysql.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.mysql.persistence.size }}

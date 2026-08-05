@@ -1,0 +1,77 @@
+nextcloud:
+  name: nextcloud
+  persistence:
+    storageClassName: longhorn
+    size: 60Gi
+
+mysql:
+  name: mysql
+  persistence:
+    storageClassName: longhorn
+    size: 20Gi
+
+secrets:
+  mysql:
+    name: mysql-secret
+  nextcloud:
+    name: nextcloud-secret
+    adminPasswordKey: NEXTCLOUD_ADMIN_PASSWORD
+
+cron:
+  enabled: true
+  schedule: "*/5 * * * *"
+
+istio-ingress:
+  enabled: true
+  virtualService:
+    enabled: true
+    hosts:
+      - "cloud.boop.ninja"
+    http:
+      - match:
+          - uri:
+              prefix: "/.well-known/caldav"
+          - uri:
+              prefix: "/.well-known/carddav"
+        rewrite:
+          uri: "/remote.php/dav"
+        route:
+          - destination:
+              host: nextcloud
+              port:
+                number: 80
+      - name: nextcloud-web
+        match:
+          - uri:
+              prefix: "/"
+        route:
+          - destination:
+              host: nextcloud
+              port:
+                number: 80
+  gateway:
+    enabled: true
+    selector:
+      istio: ingress
+    servers:
+      - port:
+          number: 80
+          protocol: HTTP
+          name: http
+        hosts:
+          - "cloud.boop.ninja"
+      - port:
+          number: 443
+          protocol: HTTPS
+          name: https
+        hosts:
+          - "cloud.boop.ninja"
+  tls:
+    enabled: true
+    mode: SIMPLE
+    credentialName: "cloudflare-client-tls"
+  externalDns:
+    enabled: true
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: cloud.boop.ninja
+      external-dns.alpha.kubernetes.io/ttl: "300"
