@@ -1,6 +1,6 @@
 dependencies:
 - name: istio-ingress
   repository: https://mbround18.github.io/helm-charts
-  version: 0.1.12
-digest: sha256:1867c80f667ae4f1d83e553f3b143645af8125fea742c8e7e64444ec80bc4d5b
-generated: "2026-08-05T18:30:06.65607768Z"
+  version: 0.1.13
+digest: sha256:7b2539b7176325fdc25a5caa8a2750106abdd13fe9e7a44f9d59c60522493292
+generated: "2026-08-05T21:08:29.789884558Z"
