@@ -1,0 +1,10 @@
+Thank you for installing Nextcloud via Helm!
+
+- The nextcloud StatefulSet and its PVC (nextcloud-storage-{{ .Values.nextcloud.name }}-0) are named
+  to match the pre-existing raw-manifest deployment this chart replaces, so migrating in-place
+  reuses the existing Longhorn volume instead of provisioning an empty one.
+- Same applies to the mysql StatefulSet/PVC (mysql-storage-{{ .Values.mysql.name }}-0).
+- `secrets.mysql.name` and `secrets.nextcloud.name` must already exist in the target namespace;
+  this chart does not create them.
+- To enable the Istio VirtualService (Gateway + caldav/carddav routing), set
+  `istio-ingress.enabled=true` and configure `istio-ingress.virtualService.hosts`.

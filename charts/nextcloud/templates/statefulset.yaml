@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.nextcloud.name }}
+  labels:
+    {{- include "nextcloud.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  serviceName: {{ .Values.nextcloud.name | quote }}
+  selector:
+    matchLabels:
+      {{- include "nextcloud.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nextcloud.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.nextcloud.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: nextcloud
+          image: "{{ .Values.nextcloud.image.repository }}:{{ .Values.nextcloud.image.tag }}"
+          imagePullPolicy: {{ .Values.nextcloud.image.pullPolicy }}
+          {{- with .Values.nextcloud.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.mysql.name }}
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.mysql.name }}
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.mysql.name }}
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_HOST
+              value: {{ printf "%s-0.%s.%s.svc.cluster.local" .Values.mysql.name .Values.mysql.name .Release.Namespace }}
+            - name: APACHE_BODY_LIMIT
+              value: {{ .Values.nextcloud.apacheBodyLimit | quote }}
+            - name: NEXTCLOUD_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.nextcloud.name }}
+                  key: {{ .Values.secrets.nextcloud.adminPasswordKey }}
+          volumeMounts:
+            - name: nextcloud-storage
+              mountPath: /var/www/html
+          resources:
+            {{- toYaml .Values.nextcloud.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        deletionGracePeriodSeconds: 3600
+        name: nextcloud-storage
+      spec:
+        storageClassName: {{ .Values.nextcloud.persistence.storageClassName }}
+        accessModes:
+          {{- toYaml .Values.nextcloud.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.nextcloud.persistence.size }}

@@ -1,0 +1,79 @@
+nextcloud:
+  image:
+    repository: nextcloud
+    tag: production-apache
+    pullPolicy: Always
+
+  # Hardcoded to match the pre-existing raw-manifest deployment so the
+  # StatefulSet's generated PVC name (nextcloud-storage-nextcloud-0) is
+  # reused instead of orphaning the Longhorn volume.
+  name: nextcloud
+
+  apacheBodyLimit: "0"
+
+  persistence:
+    storageClassName: longhorn
+    accessModes: ["ReadWriteMany"]
+    size: 60Gi
+
+  resources: {}
+
+  # securityContext left empty by default: the upstream nextcloud:apache
+  # image expects to run as root to manage www-data ownership on startup.
+  podSecurityContext: {}
+  securityContext: {}
+
+mysql:
+  image:
+    repository: mysql
+    tag: "9"
+    pullPolicy: IfNotPresent
+
+  # Hardcoded to match the pre-existing raw-manifest deployment so the
+  # StatefulSet's generated PVC name (mysql-storage-mysql-0) is reused
+  # instead of orphaning the Longhorn volume.
+  name: mysql
+
+  persistence:
+    storageClassName: longhorn
+    accessModes: ["ReadWriteMany"]
+    size: 20Gi
+
+  resources: {}
+
+  podSecurityContext: {}
+  securityContext: {}
+
+# Secrets are provisioned out-of-band (external-secrets / manual) and
+# referenced by name only; this chart never creates them.
+secrets:
+  mysql:
+    name: mysql-secret
+  nextcloud:
+    name: nextcloud-secret
+    adminPasswordKey: NEXTCLOUD_ADMIN_PASSWORD
+
+cron:
+  enabled: true
+  schedule: "*/5 * * * *"
+  image: quay.io/curl/curl:latest
+
+service:
+  port: 80
+
+istio-ingress:
+  enabled: false
+  virtualService:
+    route:
+      host: nextcloud
+      port: 80
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
