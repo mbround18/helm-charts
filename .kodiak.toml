@@ -1,0 +1,15 @@
+version = 1
+
+[merge]
+automerge_label = "automerge"
+require_automerge_label = true
+blocking_labels = ["do not merge", "wip"]
+method = "squash"
+delete_branch_on_merge = true
+
+[update]
+always = false
+ignored_usernames = ["renovate[bot]"]
+
+[approve]
+auto_approve_usernames = ["renovate[bot]"]
