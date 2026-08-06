@@ -1,0 +1,31 @@
+Keygen is deploying. Once the migration Job has completed and the web
+Deployment is ready, the API will be reachable inside the cluster at:
+
+  http://{{ include "keygen.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+{{- if .Values.ingress.enabled }}
+
+and externally at:
+{{- range .Values.ingress.hosts }}
+  http://{{ .host }}
+{{- end }}
+{{- else }}
+
+Ingress is disabled. Set ingress.enabled=true (or front the Service with your
+own reverse proxy / load balancer) to expose it -- Keygen requires TLS
+termination and X-Forwarded-* headers from whatever sits in front of it.
+{{- end }}
+
+KEYGEN_HOST is set to "{{ .Values.keygen.host }}" -- this must be a real,
+resolvable domain name pointed at your ingress; Keygen refuses to boot with
+an IP address here.
+
+Check the API is healthy:
+
+  kubectl -n {{ .Release.Namespace }} exec deploy/{{ include "keygen.fullname" . }} -- wget -qO- http://localhost:{{ .Values.keygen.port }}/v1/health
+
+{{- if not .Values.worker.enabled }}
+
+worker.enabled is false: background jobs (webhooks, emails, license
+validation callbacks) will not run.
+{{- end }}

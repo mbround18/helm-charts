@@ -1,0 +1,60 @@
+global:
+  secret:
+    annotations: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+image:
+  repository: redis
+  tag: "7-alpine"
+  pullPolicy: IfNotPresent
+
+# Disabled by default to mirror a simple single-tenant/local cache-and-queue
+# setup. This chart never accepts the password as a Helm value -- create a
+# Secret out-of-band and point existingSecret at it:
+#   kubectl create secret generic redis-password \
+#     --from-literal=REDIS_PASSWORD=<value>
+# The consuming app's REDIS_URL then needs that same password folded in.
+auth:
+  enabled: false
+  existingSecret: ""
+  existingSecretKey: REDIS_PASSWORD
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 2Gi
+  storageClass: ""
+
+podSecurityContext:
+  fsGroup: 999
+
+securityContext:
+  runAsUser: 999
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+
+service:
+  type: ClusterIP
+  port: 6379
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

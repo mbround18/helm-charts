@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keygen.fullname" . }}
+  labels:
+    {{- include "keygen.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "keygen.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "keygen.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "keygen.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-postgres
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache postgresql-client
+              until pg_isready -h {{ include "keygen.postgresHost" . }} -p 5432 -U {{ .Values.postgres.postgresql.user | quote }}; do
+                echo "Waiting for PostgreSQL to be ready..."
+                sleep 5
+              done
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+        - name: wait-for-redis
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache redis
+              until redis-cli -h {{ include "keygen.redisHost" . }} -p 6379 ping; do
+                echo "Waiting for Redis to be ready..."
+                sleep 5
+              done
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      containers:
+        - name: keygen
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- include "keygen.entrypointCommand" (dict "root" . "process" "web") | nindent 10 }}
+          env:
+            {{- include "keygen.env" . | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.keygen.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.license.enabled }}
+          volumeMounts:
+            - name: license
+              mountPath: /etc/keygen
+              readOnly: true
+          {{- end }}
+      {{- if .Values.license.enabled }}
+      volumes:
+        - name: license
+          secret:
+            secretName: {{ .Values.license.secretName }}
+            items:
+              - key: {{ .Values.license.secretKey }}
+                path: ee.lic
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,143 @@
+global:
+  secret:
+    annotations: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+image:
+  repository: keygen/api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# https://keygen.sh/docs/self-hosting/
+keygen:
+  # Must be a domain name (never an IP) -- keygen enforces this and refuses
+  # to boot otherwise.
+  host: keygen.local
+  # Additional accessible domains, comma-separated.
+  hosts: ""
+  # CE (Community Edition, default) or EE (Enterprise Edition, requires a license).
+  edition: CE
+  # singleplayer (default, single-tenant) or multiplayer (multi-tenant).
+  mode: singleplayer
+  # Left empty, a UUID is generated once and stored in the app Secret.
+  accountId: ""
+  railsEnv: production
+  railsLogLevel: info
+  port: 3000
+
+# Required application secrets (SECRET_KEY_BASE, ENCRYPTION_*). Generated
+# once and persisted in this Secret; never accepted as plaintext Helm
+# values. Re-running helm upgrade reuses the existing Secret instead of
+# rotating it.
+secrets:
+  name: ""
+  create: true
+
+worker:
+  enabled: true
+  replicaCount: 1
+  sidekiqConcurrency: 10
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+migrations:
+  enabled: true
+
+# EE-only: mount a license file at /etc/keygen. Ignored for CE.
+license:
+  enabled: false
+  secretName: ""
+  secretKey: ee.lic
+
+postgres:
+  enabled: true
+  secrets:
+    password:
+      name: keygen-postgres-password
+      key: POSTGRES_PASSWORD
+      create: true
+    superuserPassword:
+      name: keygen-postgres-superuser-password
+      key: POSTGRES_PASSWORD
+      create: true
+  ha:
+    enabled: false
+  image:
+    repository: postgres
+    tag: "18.4"
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: 10Gi
+  postgresql:
+    db: keygen
+    user: keygen
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  persistence:
+    enabled: true
+    size: 2Gi
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podSecurityContext:
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: keygen.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+
+nodeSelector: {}
+affinity: {}
+tolerations: []

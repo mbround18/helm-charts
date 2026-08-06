@@ -1,0 +1,12 @@
+dependencies:
+- name: postgres
+  repository: file://../postgres
+  version: 0.1.27
+- name: redis
+  repository: file://../redis
+  version: 0.1.0
+- name: gitops-tools
+  repository: file://../gitops-tools
+  version: 0.1.1
+digest: sha256:b256c6bb1cef6fd1e3e00320f21fc4b2bcbb504784375ae0a619761c86f22252
+generated: "2026-08-06T10:20:15.752213227-07:00"

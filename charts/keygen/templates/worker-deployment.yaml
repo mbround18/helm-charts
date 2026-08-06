@@ -1,0 +1,80 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keygen.fullname" . }}-worker
+  labels:
+    {{- include "keygen.workerSelectorLabels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "keygen.workerSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "keygen.workerSelectorLabels" . | nindent 8 }}
+    spec:
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "keygen.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-postgres
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache postgresql-client
+              until pg_isready -h {{ include "keygen.postgresHost" . }} -p 5432 -U {{ .Values.postgres.postgresql.user | quote }}; do
+                echo "Waiting for PostgreSQL to be ready..."
+                sleep 5
+              done
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+        - name: wait-for-redis
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache redis
+              until redis-cli -h {{ include "keygen.redisHost" . }} -p 6379 ping; do
+                echo "Waiting for Redis to be ready..."
+                sleep 5
+              done
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      containers:
+        - name: keygen-worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- include "keygen.entrypointCommand" (dict "root" . "process" "worker") | nindent 10 }}
+          env:
+            {{- include "keygen.env" . | nindent 12 }}
+            - name: SIDEKIQ_CONCURRENCY
+              value: {{ .Values.worker.sidekiqConcurrency | quote }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

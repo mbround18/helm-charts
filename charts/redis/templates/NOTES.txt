@@ -1,0 +1,16 @@
+Redis is available inside the cluster at:
+
+  {{ include "redis.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+{{- if .Values.auth.enabled }}
+
+Authentication is enabled. The password is read from the "{{ .Values.auth.existingSecret }}" Secret
+(key: {{ .Values.auth.existingSecretKey }}). Build a connection URI with that password, e.g.:
+
+  redis://:<password>@{{ include "redis.fullname" . }}:{{ .Values.service.port }}
+{{- else }}
+
+Authentication is disabled (default). Connect with:
+
+  redis://{{ include "redis.fullname" . }}:{{ .Values.service.port }}
+{{- end }}
