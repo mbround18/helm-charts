@@ -13,7 +13,7 @@ argoCd:
 
 image:
   repository: redis
-  tag: "7-alpine"
+  tag: "8-alpine"
   pullPolicy: IfNotPresent
 
 # Disabled by default to mirror a simple single-tenant/local cache-and-queue
