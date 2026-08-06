@@ -45,14 +45,6 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /api/health
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /api/health
-              port: http
           env:
             - name: BACKEND_ADDR
               value: "0.0.0.0:{{ .Values.service.port }}"
