@@ -40,14 +40,15 @@ serviceAccount:
 podAnnotations: {}
 podLabels: {}
 
-# Per CLAUDE.md conventions: containers run as the non-root "bubbles" user
-# baked into the image (see repo Dockerfile), so these are safe defaults
-# rather than opt-in hardening.
 podSecurityContext:
   runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
 
 securityContext:
   runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
   allowPrivilegeEscalation: false
   capabilities:
     drop:
