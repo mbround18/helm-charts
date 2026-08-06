@@ -125,7 +125,7 @@ runner:
   enabled: true
   image:
     repository: code.forgejo.org/forgejo/runner
-    tag: "12.13.2"
+    tag: "13.0.0"
     pullPolicy: IfNotPresent
   labels: docker
   dockerSocket:
