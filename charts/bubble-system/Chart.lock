@@ -1,0 +1,9 @@
+dependencies:
+- name: gitops-tools
+  repository: file://../gitops-tools
+  version: 0.1.1
+- name: mongo
+  repository: file://../mongo
+  version: 0.1.0
+digest: sha256:2796b0788e004fe9801aeb7c51789a1cce28b97f739173967f5ee5877670d5bc
+generated: "2026-08-05T18:38:18.343642446-07:00"

@@ -1,0 +1,16 @@
+MongoDB is available inside the cluster at:
+
+  {{ include "mongo.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+{{- if .Values.auth.enabled }}
+
+Authentication is enabled. Root credentials are read from the "{{ .Values.auth.existingSecret }}" Secret
+(username: {{ .Values.auth.rootUsername }}). Build a connection URI with those credentials, e.g.:
+
+  mongodb://{{ .Values.auth.rootUsername }}:<password>@{{ include "mongo.fullname" . }}:{{ .Values.service.port }}/{{ .Values.mongodb.db }}?authSource=admin
+{{- else }}
+
+Authentication is disabled (default). Connect with:
+
+  mongodb://{{ include "mongo.fullname" . }}:{{ .Values.service.port }}
+{{- end }}

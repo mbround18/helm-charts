@@ -1,0 +1,65 @@
+global:
+  secret:
+    annotations: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+image:
+  repository: mongo
+  tag: "8"
+  pullPolicy: IfNotPresent
+
+# Disabled by default to mirror this app's docker-compose setup (an
+# unauthenticated single-instance Mongo). Enable for anything beyond local/
+# single-tenant use. This chart never accepts the root password as a Helm
+# value -- create a Secret out-of-band and point existingSecret at it:
+#   kubectl create secret generic mongo-root-password \
+#     --from-literal=MONGO_INITDB_ROOT_PASSWORD=<value>
+# The consuming app's MONGODB_URI then needs those same credentials folded in.
+auth:
+  enabled: false
+  rootUsername: root
+  existingSecret: ""
+  existingSecretKey: MONGO_INITDB_ROOT_PASSWORD
+
+mongodb:
+  db: bubbles
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  storageClass: ""
+
+podSecurityContext:
+  fsGroup: 999
+
+securityContext:
+  runAsUser: 999
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    memory: 1Gi
+
+service:
+  type: ClusterIP
+  port: 27017
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
