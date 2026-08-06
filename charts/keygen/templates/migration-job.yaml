@@ -1,0 +1,51 @@
+{{- if .Values.migrations.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "keygen.fullname" . }}-migrate-{{ .Release.Revision }}
+  labels:
+    {{- include "keygen.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "supporting" "annotations" (dict "helm.sh/hook" "pre-install,pre-upgrade" "helm.sh/hook-weight" "0" "helm.sh/hook-delete-policy" "before-hook-creation,hook-succeeded")) }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "keygen.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "keygen.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-postgres
+          image: alpine:3.22
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache postgresql-client
+              until pg_isready -h {{ include "keygen.postgresHost" . }} -p 5432 -U {{ .Values.postgres.postgresql.user | quote }}; do
+                echo "Waiting for PostgreSQL to be ready..."
+                sleep 5
+              done
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      containers:
+        - name: keygen-migrate
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- include "keygen.entrypointCommand" (dict "root" . "process" "release") | nindent 10 }}
+          env:
+            {{- include "keygen.env" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}
