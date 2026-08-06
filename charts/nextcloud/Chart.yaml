@@ -3,7 +3,7 @@ name: nextcloud
 description: Helm chart for Nextcloud (self-hosted file sync & collaboration platform)
   with a bundled MySQL database
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: production-apache
 dependencies:
 - name: istio-ingress

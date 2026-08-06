@@ -11,7 +11,7 @@ argoCd:
 
 image:
   repository: codeberg.org/forgejo/forgejo
-  tag: "15"
+  tag: "16"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
