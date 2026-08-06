@@ -5,7 +5,7 @@ version: 0.2.46
 appVersion: '2.5'
 dependencies:
 - name: postgres
-  version: 0.1.26
+  version: 0.1.27
   repository: https://mbround18.github.io/helm-charts
 - name: istio-ingress
   version: 0.1.13
