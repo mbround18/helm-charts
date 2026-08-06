@@ -1,0 +1,145 @@
+# Default values for bubble-system.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: mbround18/bubble-system
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart's appVersion.
+  tag: latest
+
+# Credentials for pulling mbround18/bubble-system from a private registry.
+# Points at a pre-existing `kubernetes.io/dockerconfigjson` Secret named
+# "docker-credentials" by default -- create it out-of-band (this chart does
+# not manage the Secret itself), e.g.:
+#   kubectl create secret docker-registry docker-credentials \
+#     --docker-username=... --docker-password=...
+imagePullSecrets:
+  - name: docker-credentials
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+# Per CLAUDE.md conventions: containers run as the non-root "bubbles" user
+# baked into the image (see repo Dockerfile), so these are safe defaults
+# rather than opt-in hardening.
+podSecurityContext:
+  runAsNonRoot: true
+
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: bubbles.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: bubbles-tls
+  #    hosts:
+  #      - bubbles.local
+
+# Non-sensitive app configuration, rendered directly as container env vars.
+# See backend/.env.example in the app repo for the full list this mirrors.
+env:
+  MONGODB_DB: bubbles
+  FRONTEND_URL: ""
+  DISCORD_CLIENT_ID: ""
+  DISCORD_REDIRECT_URI: ""
+  CORS_ORIGINS: ""
+  COOKIE_SECURE: "true"
+  # SUPER_ADMIN_DISCORD_ID: ""
+
+# Sensitive app config (Discord client secret, session secret, and MONGODB_URI
+# if it needs to point somewhere other than the bundled mongo subchart below).
+# This chart never accepts secret *values* here -- only the name/key of a
+# pre-existing Secret to read via secretKeyRef, created out-of-band (kubectl,
+# External Secrets Operator, sealed-secrets, etc.):
+#   kubectl create secret generic bubble-system-secrets \
+#     --from-literal=DISCORD_CLIENT_SECRET=... --from-literal=SESSION_SECRET=...
+# Leaving secretName empty skips that env var entirely.
+secretEnv:
+  MONGODB_URI:
+    secretName: ""
+    secretKey: MONGODB_URI
+  DISCORD_CLIENT_SECRET:
+    secretName: ""
+    secretKey: DISCORD_CLIENT_SECRET
+  SESSION_SECRET:
+    secretName: ""
+    secretKey: SESSION_SECRET
+
+# Bundled MongoDB (see ../mongo). Fixed fullnameOverride so the in-cluster
+# hostname is predictable ("mongo") regardless of release name -- one mongo
+# instance per bubble-system release. Set mongo.enabled=false and set
+# secretEnv.MONGODB_URI.secretName instead to point at an external/shared
+# Mongo (or one with auth -- see ../mongo's own secret-reference pattern).
+mongo:
+  enabled: true
+  fullnameOverride: mongo
+  mongodb:
+    db: bubbles
+  auth:
+    enabled: false
+  persistence:
+    enabled: true
+    size: 10Gi
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
