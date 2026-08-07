@@ -149,3 +149,8 @@ mirrorCronJob:
   forgejo_user: ""
   github_token: ""
   forgejo_token: ""
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 600

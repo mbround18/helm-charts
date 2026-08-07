@@ -186,3 +186,8 @@ backup_cleanup:
   enabled: true
   schedule: 0 2 * * *
   olderThanDays: 30
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 600

@@ -13,8 +13,13 @@ metadata:
   {{- end }}
 spec:
   schedule: {{ .Values.mirrorCronJob.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.mirrorCronJob.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.mirrorCronJob.failedJobsHistoryLimit | default 3 }}
   jobTemplate:
     spec:
+      backoffLimit: {{ .Values.mirrorCronJob.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.mirrorCronJob.ttlSecondsAfterFinished | default 300 }}
+      activeDeadlineSeconds: {{ .Values.mirrorCronJob.activeDeadlineSeconds | default 600 }}
       template:
         spec:
           restartPolicy: OnFailure

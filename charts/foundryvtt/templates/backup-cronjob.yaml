@@ -12,8 +12,13 @@ metadata:
   {{- end }}
 spec:
   schedule: {{ .Values.backup_cleanup.schedule | default "0 0 * * *" | quote }}
+  successfulJobsHistoryLimit: {{ .Values.backup_cleanup.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.backup_cleanup.failedJobsHistoryLimit | default 3 }}
   jobTemplate:
     spec:
+      backoffLimit: {{ .Values.backup_cleanup.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.backup_cleanup.ttlSecondsAfterFinished | default 300 }}
+      activeDeadlineSeconds: {{ .Values.backup_cleanup.activeDeadlineSeconds | default 600 }}
       template:
         spec:
           restartPolicy: OnFailure
@@ -48,5 +53,5 @@ spec:
           volumes:
             - name: backups-volume
               persistentVolumeClaim:
-                claimName: {{ include "foundryvtt.fullname" . }}-backups-0
+                claimName: backups-{{ include "foundryvtt.fullname" . }}-0
 {{- end }}
