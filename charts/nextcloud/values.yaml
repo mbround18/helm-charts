@@ -11,6 +11,15 @@ nextcloud:
 
   apacheBodyLimit: "0"
 
+  # Bare hostname (no scheme) this instance is reached at, e.g. behind a
+  # TLS-terminating gateway/ingress. Wires up NEXTCLOUD_TRUSTED_DOMAINS and
+  # the OVERWRITE* env vars so Nextcloud generates correct https:// links
+  # instead of rejecting the domain or falling back to the pod's internal
+  # http:// address. Left empty by default: unset means none of these env
+  # vars are set, matching the chart's previous (broken-behind-a-proxy)
+  # behavior.
+  trustedDomain: ""
+
   persistence:
     storageClassName: longhorn
     accessModes: ["ReadWriteMany"]
