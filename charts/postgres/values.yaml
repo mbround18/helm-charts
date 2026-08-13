@@ -11,7 +11,7 @@ authMethod: scram-sha-256
 
 image:
   repository: postgres
-  tag: "18.4"
+  tag: "18.6"
   pullPolicy: IfNotPresent
 
 podSecurityContext:
