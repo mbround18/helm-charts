@@ -3,7 +3,7 @@ name: keygen
 description: A Helm chart for Keygen, a self-hosted software licensing and distribution
   API.
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: latest
 icon: https://keygen.sh/favicon.ico
 keywords:
@@ -15,7 +15,7 @@ sources:
 - https://github.com/keygen-sh/keygen-api
 dependencies:
 - name: postgres
-  version: 0.1.29
+  version: 0.1.30
   repository: file://../postgres
   condition: postgres.enabled
 - name: redis

@@ -13,6 +13,6 @@ dependencies:
   repository: file://../istio-ingress
   condition: istio-ingress.enabled
 - name: postgres
-  version: 0.1.29
+  version: 0.1.30
   repository: file://../postgres
   condition: postgres.enabled
