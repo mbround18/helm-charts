@@ -6,18 +6,21 @@ PYTEST_ARGS ?= charts
 MANIFEST_PYTEST_ARGS ?= charts/tests/test_manifest_contracts.py
 CHART_TASKS := uv run python -m tools.chart_tasks --jobs $(JOBS)
 
-.PHONY: help lint lint-helm dump deps-update validate test build update-readme upgrade refresh prune-branches ci
+.PHONY: help install-paws lint lint-helm dump deps-update validate test build update-readme upgrade refresh prune-branches ci
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+install-paws: ## Install the paws CLI locally (needed by lint/lint-helm/build/publish)
+	@curl -fsSL https://raw.githubusercontent.com/mbround18/paws/main/scripts/install.sh | sh
+
 lint: ## Lint and format the code
 	@npx -y prettier --write .
-	@$(CHART_TASKS) lint
+	@paws helm
 	@uv run ruff format .
 
 lint-helm:
-	@$(CHART_TASKS) lint
+	@paws helm
 
 dump: ## Dump all chart templates to ./tmp
 	@$(CHART_TASKS) dump --output-dir ./tmp
@@ -38,7 +41,7 @@ update-readme:
 	@$(MAKE) lint
 
 build: deps-update ## Build all charts
-	@$(CHART_TASKS) build --output-dir ./tmp
+	@paws helm --package --output ./tmp
 
 upgrade: ## Upgrade container image tags in all charts
 	@uv run tools/upgrade.py $(CHART_DIRS)
