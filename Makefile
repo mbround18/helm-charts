@@ -13,11 +13,11 @@ help:
 
 lint: ## Lint and format the code
 	@npx -y prettier --write .
-	@$(CHART_TASKS) lint
+	@paws helm
 	@uv run ruff format .
 
 lint-helm:
-	@$(CHART_TASKS) lint
+	@paws helm
 
 dump: ## Dump all chart templates to ./tmp
 	@$(CHART_TASKS) dump --output-dir ./tmp
@@ -38,7 +38,7 @@ update-readme:
 	@$(MAKE) lint
 
 build: deps-update ## Build all charts
-	@$(CHART_TASKS) build --output-dir ./tmp
+	@paws helm --package --output ./tmp
 
 upgrade: ## Upgrade container image tags in all charts
 	@uv run tools/upgrade.py $(CHART_DIRS)

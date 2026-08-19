@@ -42,6 +42,9 @@ jobs:
       - name: Setup Helm
         uses: ./.github/actions/setup-helm
 
+      - name: Install paws
+        uses: mbround18/paws/actions/paws-up@main
+
       - name: Lint charts
         run: make lint
 
@@ -188,6 +191,9 @@ jobs:
 
       - name: Setup Helm
         uses: ./.github/actions/setup-helm
+
+      - name: Install paws
+        uses: mbround18/paws/actions/paws-up@main
 
       - name: Build Helm charts
         run: |

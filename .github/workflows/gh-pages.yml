@@ -124,6 +124,9 @@ jobs:
       - name: Setup Helm
         uses: ./.github/actions/setup-helm
 
+      - name: Install paws
+        uses: mbround18/paws/actions/paws-up@main
+
       - name: Build chart packages for release
         if: github.event_name != 'pull_request'
         run: |
