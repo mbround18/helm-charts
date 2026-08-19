@@ -13,6 +13,8 @@ Before developing charts, ensure you have:
 - Helm 3.2.0+
 - Python 3.12+
 - Node.js (for prettier)
+- [`paws`](https://github.com/mbround18/paws) (runs `lint`/`lint-helm`/`build`'s actual Helm
+  lint/package/publish steps — see Initial Setup below)
 - `git` and basic Kubernetes familiarity
 
 ### Initial Setup
@@ -24,7 +26,13 @@ Before developing charts, ensure you have:
    cd helm-charts
    ```
 
-2. Create a feature branch:
+2. Install `paws`:
+
+   ```bash
+   make install-paws
+   ```
+
+3. Create a feature branch:
 
    ```bash
    git checkout -b feature/my-chart-name
