@@ -127,22 +127,9 @@ jobs:
       - name: Install paws
         uses: mbround18/paws/actions/paws-up@main
 
-      - name: Build chart packages for release
+      - name: Publish charts
         if: github.event_name != 'pull_request'
-        run: |
-          rm -rf .cr-release-packages
-          mkdir -p .cr-release-packages
-          make build
-          cp tmp/*.tgz .cr-release-packages/
-
-      - name: Run chart-releaser
-        if: github.event_name != 'pull_request'
-        run: |
-          uv run python -m tools.release_charts \
-            --config cr.yaml \
-            --package-path .cr-release-packages \
-            --pages-branch gh-pages \
-            --skip-existing
+        run: paws helm --publish
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
