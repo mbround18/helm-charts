@@ -96,7 +96,7 @@ initImage:
   tag: 1.38.0
 cleanupImage:
   repository: alpine
-  tag: "20260127"
+  tag: "20260805"
 
 updateStrategy: {}
 
