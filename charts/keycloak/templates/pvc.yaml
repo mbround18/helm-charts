@@ -1,3 +1,6 @@
+{{- $enableBuildInit := and .Values.keycloak.production .Values.keycloak.buildInit.enabled }}
+{{- $needsWritableQuarkusLib := or $enableBuildInit (not .Values.keycloak.production) }}
+{{- $usePreDeployJobs := and .Values.keycloak.preDeployJobs.enabled $needsWritableQuarkusLib }}
 {{- if and .Values.persistence.enabled .Values.persistence.create (not .Values.persistence.existingClaim) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -9,6 +12,18 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   {{- $extraAnnotations := dict }}
+  {{- if $usePreDeployJobs }}
+  {{/*
+  The predeploy build Job mounts this PVC alongside the prebuild PVC.
+  Both must exist and be Bound before any predeploy Job pod is scheduled,
+  otherwise a multi-node cluster can schedule the Deployment pod and a
+  predeploy Job pod on different nodes and deadlock on the RWO volume.
+  Running this as a pre-install/pre-upgrade hook makes Helm create and
+  wait on it before any predeploy Job hook runs.
+  */}}
+  {{- $_ := set $extraAnnotations "helm.sh/hook" "pre-install,pre-upgrade" }}
+  {{- $_ := set $extraAnnotations "helm.sh/hook-weight" "-50" }}
+  {{- end }}
   {{- if .Values.persistence.keep }}
   {{- $_ := set $extraAnnotations "helm.sh/resource-policy" "keep" }}
   {{- end }}

@@ -10,6 +10,17 @@ metadata:
     {{- include "keycloak.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.seed | quote }}
+    {{- /*
+    Runs as a Helm hook (not a plain Job) so Helm waits for it to
+    complete before the sync-provider/build hooks or the main Deployment
+    are applied. Without this, Flux's helm-controller applies every
+    resource at once and a multi-node cluster can schedule this Job's
+    pod on a different node than the Deployment pod, deadlocking on the
+    shared RWO prebuild volume.
+    */}}
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-40"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
 spec:
   backoffLimit: {{ .Values.keycloak.preDeployJobs.backoffLimit }}
   ttlSecondsAfterFinished: {{ .Values.keycloak.preDeployJobs.ttlSecondsAfterFinished }}
@@ -50,6 +61,9 @@ metadata:
     {{- include "keycloak.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.providers | quote }}
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-30"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
 spec:
   backoffLimit: {{ .Values.keycloak.preDeployJobs.backoffLimit }}
   ttlSecondsAfterFinished: {{ .Values.keycloak.preDeployJobs.ttlSecondsAfterFinished }}
@@ -101,6 +115,9 @@ metadata:
     {{- include "keycloak.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.build | quote }}
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-20"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
 spec:
   backoffLimit: {{ .Values.keycloak.preDeployJobs.backoffLimit }}
   ttlSecondsAfterFinished: {{ .Values.keycloak.preDeployJobs.ttlSecondsAfterFinished }}

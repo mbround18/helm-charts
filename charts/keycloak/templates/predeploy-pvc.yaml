@@ -13,6 +13,15 @@ metadata:
     {{- end }}
   annotations:
     argocd.argoproj.io/sync-wave: {{ .Values.keycloak.preDeployJobs.waves.storage | quote }}
+    {{- /*
+    Pre-install/pre-upgrade hook: must exist and be Bound before the
+    seed-lib/sync-provider/build predeploy Jobs (also hooks, weight -40
+    through -20) mount it, otherwise the main Deployment pod and a
+    predeploy Job pod can land on different nodes and deadlock on this
+    RWO volume.
+    */}}
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-50"
     {{- with .Values.keycloak.preDeployJobs.persistence.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
