@@ -2,7 +2,7 @@ apiVersion: v2
 name: vtt-maps-portal
 description: A Helm chart for the VTT Maps Portal (Rust/actix-web API serving the built React frontend, Discord OAuth, Mongo, and RustFS/S3-compatible map storage)
 type: application
-version: 0.2.0
+version: 0.2.1
 appVersion: latest
 dependencies:
   - name: gitops-tools

@@ -185,22 +185,25 @@ externalSecrets:
       deletionPolicy: Retain
   generator:
     passwordLength: 48
+  # NOTE: keys here become part of a Kubernetes resource name
+  # (external-secret-resources.fullname + "-" + key) -- must be lowercase
+  # RFC 1123 (letters/digits/hyphens), or the ExternalSecret fails to apply.
   secrets:
-    jwtSecretCurrent:
+    jwt-secret-current:
       targetName: vtt-maps-portal-generated
       generator:
         name: vtt-maps-portal-jwt-secret
       target:
         data:
           JWT_SECRET_CURRENT: "{{ .password }}"
-    oauthStateSecret:
+    oauth-state-secret:
       targetName: vtt-maps-portal-generated
       generator:
         name: vtt-maps-portal-oauth-state-secret
       target:
         data:
           OAUTH_STATE_SECRET: "{{ .password }}"
-    rustfsAccessKey:
+    rustfs-access-key:
       targetName: vtt-maps-portal-generated
       generator:
         name: vtt-maps-portal-rustfs-access-key
@@ -209,7 +212,7 @@ externalSecrets:
       target:
         data:
           RUSTFS_ACCESS_KEY: "{{ .password }}"
-    rustfsSecretKey:
+    rustfs-secret-key:
       targetName: vtt-maps-portal-generated
       generator:
         name: vtt-maps-portal-rustfs-secret-key
