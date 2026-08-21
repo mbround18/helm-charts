@@ -10,6 +10,6 @@ dependencies:
   version: 0.1.0
 - name: external-secret-resources
   repository: file://../external-secret-resources
-  version: 0.1.4
-digest: sha256:ab9f4d33f8b7aa03f16d397ae5e8061030dd98070aca5764267af2ac2c3d869a
-generated: "2026-08-21T13:02:35.966866693-07:00"
+  version: 0.1.5
+digest: sha256:48647f0a54d7217d459b36169c026809cedc96e2ca4b84938b91afe88e929c66
+generated: "2026-08-21T20:12:35.513857589Z"

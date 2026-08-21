@@ -1,7 +1,7 @@
 dependencies:
 - name: external-secret-resources
   repository: file://../external-secret-resources
-  version: 0.1.4
+  version: 0.1.5
 - name: grafana
   repository: https://grafana.github.io/helm-charts
   version: 10.5.15
@@ -11,5 +11,5 @@ dependencies:
 - name: gitops-tools
   repository: file://../gitops-tools
   version: 0.1.1
-digest: sha256:dde72140c6a02f91f0653c465260d446484a6e83fe019b4ab48a76131dd07a2c
-generated: "2026-08-21T12:32:21.784865602-07:00"
+digest: sha256:894532fa576dcc89a289741e3d5c256141b98d96249b47c45cd11aca9f99b144
+generated: "2026-08-21T20:12:34.506524839Z"
