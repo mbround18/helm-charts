@@ -1,0 +1,40 @@
+{{- if .Values.preload.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "vtt-maps-portal.fullname" . }}-preload
+  labels:
+    {{- include "vtt-maps-portal.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "supporting") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.preload.schedule | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.preload.backoffLimit }}
+      activeDeadlineSeconds: {{ .Values.preload.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            {{- include "vtt-maps-portal.selectorLabels" . | nindent 12 }}
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ include "vtt-maps-portal.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: preload
+              securityContext:
+                {{- toYaml .Values.securityContext | nindent 16 }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["/app/mapper", "preload"]
+              env:
+                {{- include "vtt-maps-portal.env" . | nindent 16 }}
+              resources:
+                {{- toYaml .Values.preload.resources | nindent 16 }}
+{{- end }}
