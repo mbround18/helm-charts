@@ -1,23 +1,24 @@
 apiVersion: v2
 name: vtt-maps-portal
-description: A Helm chart for the VTT Maps Portal (Rust/actix-web API serving the
+description:
+  A Helm chart for the VTT Maps Portal (Rust/actix-web API serving the
   built React frontend, Discord OAuth, Mongo, and RustFS/S3-compatible map storage)
 type: application
-version: 0.2.4
+version: 0.2.5
 appVersion: latest
 dependencies:
-- name: gitops-tools
-  version: 0.1.1
-  repository: file://../gitops-tools
-- name: mongo
-  version: 0.1.0
-  repository: file://../mongo
-  condition: mongo.enabled
-- name: rustfs
-  version: 0.1.0
-  repository: file://../rustfs
-  condition: rustfs.enabled
-- name: external-secret-resources
-  version: 0.1.5
-  repository: file://../external-secret-resources
-  alias: externalSecrets
+  - name: gitops-tools
+    version: 0.1.1
+    repository: file://../gitops-tools
+  - name: mongo
+    version: 0.1.0
+    repository: file://../mongo
+    condition: mongo.enabled
+  - name: rustfs
+    version: 0.1.0
+    repository: file://../rustfs
+    condition: rustfs.enabled
+  - name: external-secret-resources
+    version: 0.1.5
+    repository: file://../external-secret-resources
+    alias: externalSecrets
