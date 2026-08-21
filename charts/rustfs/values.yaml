@@ -1,0 +1,66 @@
+# Default values for rustfs.
+
+replicaCount: 1
+
+image:
+  repository: rustfs/rustfs
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+service:
+  type: ClusterIP
+  port: 9000
+
+# Root access/secret key. This chart never accepts credential *values* here.
+# Leave auth.existingSecret empty (the default) and this chart generates its
+# own Secret ("generatedSecretName" below) using the same lookup+randAlphaNum
+# trick as the keygen chart -- stable across upgrades, no setup required. Set
+# auth.existingSecret to point at a pre-existing Secret instead (out-of-band,
+# ExternalSecrets Operator, or -- when used as a subchart -- the parent app's
+# own generated-secrets mechanism):
+#   kubectl create secret generic rustfs-credentials \
+#     --from-literal=RUSTFS_ACCESS_KEY=... --from-literal=RUSTFS_SECRET_KEY=...
+auth:
+  existingSecret: ""
+  accessKeyKey: RUSTFS_ACCESS_KEY
+  secretKeyKey: RUSTFS_SECRET_KEY
+
+generatedSecretName: rustfs-credentials
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 20Gi
+  storageClass: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,256 @@
+# Default values for vtt-maps-portal.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: mbround18/vtt-maps-portal
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart's appVersion.
+  tag: latest
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: vtt-maps.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# Non-sensitive app configuration, rendered directly as container env vars.
+# See apps/api/.env.example in the vtt-maps-portal repo for the full list this mirrors.
+env:
+  GITHUB_BRANCH: main
+  JWT_ISSUER: vtt-maps-site
+  JWT_AUDIENCE: vtt-maps-web
+  COOKIE_SECURE: "true"
+  ALLOWED_ORIGIN: ""
+  SESSION_IDLE_MINUTES: "720"
+  SESSION_ABSOLUTE_HOURS: "168"
+  KOFI_URL: ""
+  # Non-secret RustFS config. RUSTFS_BUCKET just names the bucket the app
+  # creates/uses on startup. RUSTFS_PUBLIC_URL_BASE is the externally-reachable
+  # URL map images get served from -- set this to wherever you route the
+  # bundled rustfs Service (see rustfs.enabled below); it's meaningless when
+  # rustfs isn't bundled and you haven't set one up yourself.
+  RUSTFS_BUCKET: vtt-maps
+  RUSTFS_PUBLIC_URL_BASE: ""
+
+# Sensitive app config that vtt-maps-portal cannot generate on its own --
+# credentials issued by an external provider (Discord, GitHub), plus
+# MONGO_URI/RUSTFS_ENDPOINT if they need to point somewhere other than the
+# bundled mongo/rustfs subcharts below. JWT_SECRET_CURRENT, OAUTH_STATE_SECRET,
+# RUSTFS_ACCESS_KEY, and RUSTFS_SECRET_KEY are NOT listed here -- this chart
+# generates those itself, see generatedSecretName / externalSecrets below.
+# This chart never accepts secret *values* here -- only the name/key of a
+# pre-existing Secret to read via secretKeyRef, created out-of-band (kubectl,
+# External Secrets Operator, etc.):
+#   kubectl create secret generic vtt-maps-portal-secrets \
+#     --from-literal=DISCORD_CLIENT_SECRET=... --from-literal=GITHUB_TOKEN=...
+# Leaving secretName empty skips that env var entirely.
+secretEnv:
+  MONGO_URI:
+    secretName: ""
+    secretKey: MONGO_URI
+  RUSTFS_ENDPOINT:
+    secretName: ""
+    secretKey: RUSTFS_ENDPOINT
+  DISCORD_CLIENT_ID:
+    secretName: ""
+    secretKey: DISCORD_CLIENT_ID
+  DISCORD_CLIENT_SECRET:
+    secretName: ""
+    secretKey: DISCORD_CLIENT_SECRET
+  DISCORD_REDIRECT_URI:
+    secretName: ""
+    secretKey: DISCORD_REDIRECT_URI
+  SUPER_ADMIN_DISCORD_ID:
+    secretName: ""
+    secretKey: SUPER_ADMIN_DISCORD_ID
+  GITHUB_URL:
+    secretName: ""
+    secretKey: GITHUB_URL
+  GITHUB_TOKEN:
+    secretName: ""
+    secretKey: GITHUB_TOKEN
+
+# Bundled MongoDB (see ../mongo). Fixed fullnameOverride so the in-cluster
+# hostname is predictable ("mongo") regardless of release name -- one mongo
+# instance per vtt-maps-portal release. Set mongo.enabled=false and set
+# secretEnv.MONGO_URI.secretName instead to point at an external/shared Mongo.
+mongo:
+  enabled: true
+  fullnameOverride: mongo
+  mongodb:
+    db: vttmaps
+  auth:
+    enabled: false
+  persistence:
+    enabled: true
+    size: 10Gi
+
+# Bundled RustFS (see ../rustfs), the S3-compatible store map assets live in.
+# Fixed fullnameOverride so the in-cluster hostname is predictable ("rustfs")
+# regardless of release name. Credentials come from the same generated Secret
+# as JWT/OAuth below (RUSTFS_ACCESS_KEY/RUSTFS_SECRET_KEY keys) so nothing
+# needs to be supplied out-of-band. Set rustfs.enabled=false and set
+# secretEnv.RUSTFS_ENDPOINT.secretName instead to point at an external RustFS/
+# S3-compatible store.
+rustfs:
+  enabled: true
+  fullnameOverride: rustfs
+  auth:
+    existingSecret: vtt-maps-portal-generated
+  persistence:
+    enabled: true
+    size: 20Gi
+
+# vtt-maps-portal signs JWTs/OAuth state and authenticates to its own bundled
+# RustFS with random secrets it can safely generate itself (unlike the
+# externally-issued credentials in secretEnv above). Both mechanisms below
+# write into the SAME Secret name so secretEnv or a manually-managed Secret
+# can carry the rest of the app's config alongside them -- if you override
+# generatedSecretName, update externalSecrets.secrets.*.targetName and
+# rustfs.auth.existingSecret to match.
+generatedSecretName: vtt-maps-portal-generated
+
+# Fallback used when the ExternalSecrets Operator isn't present (see
+# externalSecrets.mode below): a plain Secret populated with `lookup` +
+# `randAlphaNum` (same trick as the keygen chart) so the values stay stable
+# across upgrades instead of rotating on every `helm upgrade`.
+# Set enabled: false to fully opt out of the generated secrets (e.g. you
+# manage them entirely externally); if you do, add JWT_SECRET_CURRENT,
+# OAUTH_STATE_SECRET, RUSTFS_ACCESS_KEY, and RUSTFS_SECRET_KEY to secretEnv
+# above yourself -- don't do both, or the container gets duplicate env vars.
+generatedSecrets:
+  enabled: true
+  length: 48
+
+# ExternalSecrets Operator integration for the generated secrets above.
+# mode: "auto" (default) detects the ESO CRDs via .Capabilities and, when
+# found, generates them with ESO's Password generator (real entropy that
+# lives in the cluster/secret backend, not baked into Helm release state)
+# instead of the plain-Secret fallback. Set mode to "enabled"/"disabled" to
+# override the auto-detection. This does NOT apply to secretEnv above --
+# those are externally-issued credentials ESO/Helm cannot generate, only
+# reference.
+externalSecrets:
+  mode: auto
+  defaults:
+    target:
+      creationPolicy: Merge
+      deletionPolicy: Retain
+  generator:
+    passwordLength: 48
+  secrets:
+    jwtSecretCurrent:
+      targetName: vtt-maps-portal-generated
+      generator:
+        name: vtt-maps-portal-jwt-secret
+      target:
+        data:
+          JWT_SECRET_CURRENT: "{{ .password }}"
+    oauthStateSecret:
+      targetName: vtt-maps-portal-generated
+      generator:
+        name: vtt-maps-portal-oauth-state-secret
+      target:
+        data:
+          OAUTH_STATE_SECRET: "{{ .password }}"
+    rustfsAccessKey:
+      targetName: vtt-maps-portal-generated
+      generator:
+        name: vtt-maps-portal-rustfs-access-key
+        length: 20
+        noUpper: false
+      target:
+        data:
+          RUSTFS_ACCESS_KEY: "{{ .password }}"
+    rustfsSecretKey:
+      targetName: vtt-maps-portal-generated
+      generator:
+        name: vtt-maps-portal-rustfs-secret-key
+      target:
+        data:
+          RUSTFS_SECRET_KEY: "{{ .password }}"
+
+# Runs `mapper preload` on a schedule to pick up new maps from the
+# configured GitHub repo without waiting for the API server's own
+# in-process nightly loop (or as the only sync path if that loop is
+# disabled). It clones the full maps repo and re-derives/uploads every image
+# to RustFS, which can take on the order of an hour -- size the schedule and
+# activeDeadlineSeconds accordingly. Uses the same image/secretEnv/env as the
+# api Deployment.
+preload:
+  enabled: false
+  schedule: "0 3 * * *"
+  backoffLimit: 1
+  activeDeadlineSeconds: 21600
+  resources: {}
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

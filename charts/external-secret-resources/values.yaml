@@ -1,3 +1,8 @@
+# "auto" detects the ExternalSecrets Operator CRDs via .Capabilities and
+# enables this chart's resources only when ESO is actually installed;
+# "enabled"/"disabled" force the outcome. Leave unset ("") to fall back to
+# the legacy `enabled` boolean below for backward compatibility.
+mode: ""
 enabled: false
 annotations: {}
 defaults:

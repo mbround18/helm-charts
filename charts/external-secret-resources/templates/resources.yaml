@@ -1,4 +1,4 @@
-{{- if .Values.enabled }}
+{{- if eq (trim (include "external-secret-resources.enabled" .)) "true" }}
 {{- $root := . -}}
 {{- $secretNames := keys .Values.secrets | sortAlpha -}}
 {{- range $secretNameIndex, $secretName := $secretNames }}
