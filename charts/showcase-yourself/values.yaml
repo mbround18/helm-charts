@@ -58,14 +58,6 @@ frontend:
     type: ClusterIP
     port: 8080
   resources: {}
-  # Optional per-deployment content override. When set, rendered into a
-  # ConfigMap and mounted over /usr/share/nginx/html/showcase.json,
-  # replacing the image's own baked-in default content -- e.g. to run a
-  # different person's profile from the same image. See the app repo's
-  # frontend/src/schema.json for the shape (name, profile, links, skills,
-  # and either pinned_repositories/top_repositories for a GitHub-portfolio
-  # profile or experience/education for a resume-style one).
-  content: {}
 
 # The Actix API: owns Mongo, sessions, CSRF, and the generic OIDC auth flow
 # backing the owner-only admin portal. See the app repo's README and
@@ -81,6 +73,16 @@ backend:
     type: ClusterIP
     port: 8080
   resources: {}
+
+  # Optional per-deployment content override, served at GET /api/showcase
+  # (the frontend fetches from there, not from the image directly). When
+  # set, rendered into a ConfigMap and mounted over
+  # /etc/showcase/showcase.json, replacing the image's own baked-in default
+  # -- e.g. to run a different person's profile from the same image. See
+  # the app repo's frontend/src/schema.json for the shape (name, profile,
+  # links, skills, and either pinned_repositories/top_repositories for a
+  # GitHub-portfolio profile or experience/education for a resume-style one).
+  content: {}
 
   # Non-sensitive app config, rendered directly as container env vars.
   env:

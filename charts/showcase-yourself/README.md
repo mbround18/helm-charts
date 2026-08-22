@@ -9,10 +9,10 @@ gating an owner-only admin portal for contact submissions. Bundles a [mongo](../
 app repo's own `ingress/` (a local nginx reverse proxy for `docker compose`) is not published as an image or used
 here -- this chart's own `Ingress` resource does that job in-cluster instead.
 
-Since v0.1.0 the frontend fetches its profile content from `/showcase.json` at runtime rather than baking it into
-the image at build time, so the same image can serve different people/content per release. Set `frontend.content`
-(shape: the app repo's `frontend/src/schema.json`) to override the image's default content via a mounted
-ConfigMap; leave it unset (`{}`) to use the image's own baked-in default.
+Since v0.1.0 the backend serves the site's profile content at `GET /api/showcase` (the frontend fetches from
+there at runtime, rather than it being baked into the frontend build), so the same images can serve different
+people/content per release. Set `backend.content` (shape: the app repo's `frontend/src/schema.json`) to override
+the backend's baked-in default content via a mounted ConfigMap; leave it unset (`{}`) to use the default.
 
 ## Installation
 
@@ -65,13 +65,13 @@ helm -n ${NAMESPACE} test showcase
 | Key                             | Type   | Default                                  | Description                                                                                                                    |
 | ------------------------------- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | affinity                        | object | `{}`                                     |                                                                                                                                |
+| backend.content                 | object | `{}`                                     | Optional profile content override, served at `GET /api/showcase`; unset uses the image's own default                           |
 | backend.env                     | object | see `values.yaml`                        | Non-sensitive app config, rendered as plain container env vars                                                                 |
 | backend.image.repository        | string | `"mbround18/showcase-yourself-backend"`  |                                                                                                                                |
 | backend.image.tag               | string | `"latest"`                               |                                                                                                                                |
 | backend.replicaCount            | int    | `1`                                      |                                                                                                                                |
 | backend.secretEnv               | object | see `values.yaml`                        | For each sensitive var: name/key of a pre-existing Secret to read via `secretKeyRef`. No secret values are ever accepted here. |
 | backend.service.port            | int    | `8080`                                   |                                                                                                                                |
-| frontend.content                | object | `{}`                                     | Optional profile content override, mounted as `/usr/share/nginx/html/showcase.json`; unset uses the image's own default        |
 | frontend.image.repository       | string | `"mbround18/showcase-yourself-frontend"` |                                                                                                                                |
 | frontend.image.tag              | string | `"latest"`                               |                                                                                                                                |
 | frontend.replicaCount           | int    | `1`                                      |                                                                                                                                |

@@ -67,8 +67,20 @@ spec:
                   key: {{ $ref.secretKey }}
             {{- end }}
             {{- end }}
+          {{- if .Values.backend.content }}
+          volumeMounts:
+            - name: content
+              mountPath: /etc/showcase/showcase.json
+              subPath: showcase.json
+          {{- end }}
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
+      {{- if .Values.backend.content }}
+      volumes:
+        - name: content
+          configMap:
+            name: {{ include "showcase-yourself.fullname" . }}-backend-content
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

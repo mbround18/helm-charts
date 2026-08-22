@@ -43,20 +43,8 @@ spec:
             - name: http
               containerPort: {{ .Values.frontend.service.port }}
               protocol: TCP
-          {{- if .Values.frontend.content }}
-          volumeMounts:
-            - name: content
-              mountPath: /usr/share/nginx/html/showcase.json
-              subPath: showcase.json
-          {{- end }}
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
-      {{- if .Values.frontend.content }}
-      volumes:
-        - name: content
-          configMap:
-            name: {{ include "showcase-yourself.fullname" . }}-frontend-content
-      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
