@@ -1,0 +1,14 @@
+apiVersion: v2
+name: showcase-yourself
+description: A Helm chart for showcase-yourself (React/Vite portfolio frontend + Actix backend with OIDC-gated admin portal for contact submissions)
+type: application
+version: 0.1.0
+appVersion: latest
+dependencies:
+  - name: gitops-tools
+    version: 0.1.1
+    repository: file://../gitops-tools
+  - name: mongo
+    version: 0.1.0
+    repository: file://../mongo
+    condition: mongo.enabled
