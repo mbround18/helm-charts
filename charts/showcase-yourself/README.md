@@ -9,6 +9,11 @@ gating an owner-only admin portal for contact submissions. Bundles a [mongo](../
 app repo's own `ingress/` (a local nginx reverse proxy for `docker compose`) is not published as an image or used
 here -- this chart's own `Ingress` resource does that job in-cluster instead.
 
+Since v0.1.0 the frontend fetches its profile content from `/showcase.json` at runtime rather than baking it into
+the image at build time, so the same image can serve different people/content per release. Set `frontend.content`
+(shape: the app repo's `frontend/src/schema.json`) to override the image's default content via a mounted
+ConfigMap; leave it unset (`{}`) to use the image's own baked-in default.
+
 ## Installation
 
 1. Add the helm repo: `helm repo add mbround18 https://mbround18.github.io/helm-charts/`
@@ -66,6 +71,7 @@ helm -n ${NAMESPACE} test showcase
 | backend.replicaCount            | int    | `1`                                      |                                                                                                                                |
 | backend.secretEnv               | object | see `values.yaml`                        | For each sensitive var: name/key of a pre-existing Secret to read via `secretKeyRef`. No secret values are ever accepted here. |
 | backend.service.port            | int    | `8080`                                   |                                                                                                                                |
+| frontend.content                | object | `{}`                                     | Optional profile content override, mounted as `/usr/share/nginx/html/showcase.json`; unset uses the image's own default        |
 | frontend.image.repository       | string | `"mbround18/showcase-yourself-frontend"` |                                                                                                                                |
 | frontend.image.tag              | string | `"latest"`                               |                                                                                                                                |
 | frontend.replicaCount           | int    | `1`                                      |                                                                                                                                |
