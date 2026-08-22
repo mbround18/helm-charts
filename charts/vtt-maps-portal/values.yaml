@@ -190,17 +190,20 @@ externalSecrets:
   # RFC 1123 (letters/digits/hyphens), or the ExternalSecret fails to apply.
   #
   # All four write into the same targetName (generatedSecretName above), so
-  # exactly one must use creationPolicy: Owner to actually create it --
-  # ESO's default Merge policy only merges into an *already-existing*
-  # Secret and never creates one, so leaving all four on the Merge default
-  # deadlocks (every ExternalSecret waits on a Secret none of them create).
+  # exactly one must use creationPolicy: Orphan to actually create it -- ESO's
+  # default Merge policy only merges into an *already-existing* Secret and
+  # never creates one, so leaving all four on Merge deadlocks (every
+  # ExternalSecret waits on a Secret none of them create). It must be Orphan,
+  # not Owner: Owner sets an ownerReference on the Secret, and ESO's Merge
+  # policy refuses to write into a Secret owned by a *different*
+  # ExternalSecret ("secret is owned by another ExternalSecret").
   secrets:
     jwt-secret-current:
       targetName: vtt-maps-portal-generated
       generator:
         name: vtt-maps-portal-jwt-secret
       target:
-        creationPolicy: Owner
+        creationPolicy: Orphan
         data:
           JWT_SECRET_CURRENT: "{{ .password }}"
     oauth-state-secret:
