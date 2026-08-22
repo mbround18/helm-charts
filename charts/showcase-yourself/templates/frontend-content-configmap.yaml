@@ -1,0 +1,11 @@
+{{- if .Values.frontend.content }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "showcase-yourself.fullname" . }}-frontend-content
+  labels:
+    {{- include "showcase-yourself.componentLabels" (dict "context" . "component" "frontend") | nindent 4 }}
+data:
+  showcase.json: |
+    {{- .Values.frontend.content | toJson | nindent 4 }}
+{{- end }}
