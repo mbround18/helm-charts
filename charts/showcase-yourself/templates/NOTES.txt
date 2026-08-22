@@ -1,0 +1,31 @@
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "showcase-yourself.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=frontend" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:{{ .Values.frontend.service.port }}
+{{- end }}
+
+2. This chart expects a pre-existing image pull secret (default name: "docker-credentials").
+   Create it before installing if mbround18/showcase-yourself-* is a private image:
+     kubectl -n {{ .Release.Namespace }} create secret docker-registry docker-credentials \
+       --docker-username=<username> --docker-password=<token>
+
+3. OIDC_CLIENT_SECRET and SESSION_SECRET are not set by default. This chart never accepts
+   secret values via Helm values -- create a Secret out-of-band and point
+   backend.secretEnv.<VAR>.secretName at it:
+     kubectl -n {{ .Release.Namespace }} create secret generic showcase-yourself-secrets \
+       --from-literal=OIDC_CLIENT_SECRET=<value> --from-literal=SESSION_SECRET=<value>
+   then set (e.g. via --set or a values file):
+     backend.secretEnv.OIDC_CLIENT_SECRET.secretName=showcase-yourself-secrets
+     backend.secretEnv.SESSION_SECRET.secretName=showcase-yourself-secrets
+   DATABASE_URL is wired to the bundled mongo subchart automatically; set
+   backend.secretEnv.DATABASE_URL.secretName the same way to point at an external Mongo instead.
+
+4. backend.env.OWNER_EMAIL_ADDRESS, OIDC_ISSUER_URL, OIDC_CLIENT_ID, OIDC_REDIRECT_URL, and
+   FRONTEND_URL are required for sign-in to work -- see values.yaml for what each does.

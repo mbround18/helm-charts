@@ -1,0 +1,158 @@
+# Default values for showcase-yourself.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+# Credentials for pulling mbround18/showcase-yourself-* from a private registry.
+# Points at a pre-existing `kubernetes.io/dockerconfigjson` Secret named
+# "docker-credentials" by default -- create it out-of-band (this chart does
+# not manage the Secret itself), e.g.:
+#   kubectl create secret docker-registry docker-credentials \
+#     --docker-username=... --docker-password=...
+imagePullSecrets:
+  - name: docker-credentials
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# The static, nginx-served React/Vite frontend. Stateless, no runtime env vars.
+frontend:
+  replicaCount: 1
+  image:
+    repository: mbround18/showcase-yourself-frontend
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart's appVersion.
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8080
+  resources: {}
+
+# The Actix API: owns Mongo, sessions, CSRF, and the generic OIDC auth flow
+# backing the owner-only admin portal. See the app repo's README and
+# compose.env.example for the full picture this mirrors.
+backend:
+  replicaCount: 1
+  image:
+    repository: mbround18/showcase-yourself-backend
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart's appVersion.
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8080
+  resources: {}
+
+  # Non-sensitive app config, rendered directly as container env vars.
+  env:
+    # Email that, once signed in via OIDC, grants the owner role and access
+    # to /admin. Required.
+    OWNER_EMAIL_ADDRESS: ""
+    # OIDC discovery issuer, reachable from the backend pod. Any OIDC-compliant
+    # provider works -- this is a config change only, not a code change.
+    OIDC_ISSUER_URL: ""
+    OIDC_CLIENT_ID: ""
+    # The backend's own callback, reachable from the browser, e.g.
+    # "https://showcase.example.com/api/auth/callback".
+    OIDC_REDIRECT_URL: ""
+    # Used for CORS and post-login redirects, e.g. "https://showcase.example.com".
+    FRONTEND_URL: ""
+    # Should stay "true" for any real (HTTPS) deployment.
+    SESSION_COOKIE_SECURE: "true"
+
+  # Sensitive app config (OIDC client secret, session secret, and DATABASE_URL
+  # if it needs to point somewhere other than the bundled mongo subchart below).
+  # This chart never accepts secret *values* here -- only the name/key of a
+  # pre-existing Secret to read via secretKeyRef, created out-of-band (kubectl,
+  # External Secrets Operator, sealed-secrets, etc.):
+  #   kubectl create secret generic showcase-yourself-secrets \
+  #     --from-literal=OIDC_CLIENT_SECRET=... --from-literal=SESSION_SECRET=...
+  # Leaving secretName empty skips that env var entirely.
+  secretEnv:
+    DATABASE_URL:
+      secretName: ""
+      secretKey: DATABASE_URL
+    OIDC_CLIENT_SECRET:
+      secretName: ""
+      secretKey: OIDC_CLIENT_SECRET
+    SESSION_SECRET:
+      secretName: ""
+      secretKey: SESSION_SECRET
+
+# Bundled MongoDB (see ../mongo). Fixed fullnameOverride so the in-cluster
+# hostname is predictable ("mongo") regardless of release name -- one mongo
+# instance per showcase-yourself release. Set mongo.enabled=false and set
+# backend.secretEnv.DATABASE_URL.secretName instead to point at an
+# external/shared Mongo (or one with auth -- see ../mongo's own
+# secret-reference pattern).
+mongo:
+  enabled: true
+  fullnameOverride: mongo
+  mongodb:
+    db: showcase
+  auth:
+    enabled: false
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# Single Ingress fronting both services: "/" to the frontend, "/api(/|$)(.*)"
+# to the backend with the prefix stripped (mirrors the app's own local nginx
+# ingress, ../ingress in the app repo -- which is dev/local-only and not
+# published as an image). The default annotation assumes an nginx ingress
+# controller; adjust for others (Traefik, Istio Gateway API, etc.).
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  hosts:
+    - host: showcase.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api(/|$)(.*)
+          pathType: ImplementationSpecific
+          service: backend
+  tls: []
+  #  - secretName: showcase-yourself-tls
+  #    hosts:
+  #      - showcase.local
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "showcase-yourself.fullname" . }}-frontend
+  labels:
+    {{- include "showcase-yourself.componentLabels" (dict "context" . "component" "frontend") | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "ingress") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "showcase-yourself.componentSelectorLabels" (dict "context" . "component" "frontend") | nindent 4 }}

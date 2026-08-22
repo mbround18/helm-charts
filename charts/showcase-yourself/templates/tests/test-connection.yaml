@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "showcase-yourself.fullname" . }}-test-frontend"
+  labels:
+    {{- include "showcase-yourself.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ["wget"]
+      args: ["{{ include "showcase-yourself.fullname" . }}-frontend:{{ .Values.frontend.service.port }}/"]
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "showcase-yourself.fullname" . }}-test-backend"
+  labels:
+    {{- include "showcase-yourself.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ["wget"]
+      args: ["{{ include "showcase-yourself.fullname" . }}-backend:{{ .Values.backend.service.port }}/csrf"]
+  restartPolicy: Never
