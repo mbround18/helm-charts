@@ -71,13 +71,11 @@ env:
   SESSION_IDLE_MINUTES: "720"
   SESSION_ABSOLUTE_HOURS: "168"
   KOFI_URL: ""
-  # Non-secret RustFS config. RUSTFS_BUCKET just names the bucket the app
-  # creates/uses on startup. RUSTFS_PUBLIC_URL_BASE is the externally-reachable
-  # URL map images get served from -- set this to wherever you route the
-  # bundled rustfs Service (see rustfs.enabled below); it's meaningless when
-  # rustfs isn't bundled and you haven't set one up yourself.
+  # Non-secret RustFS config. Just names the bucket the app creates/uses on
+  # startup -- RustFS itself is never reachable from outside the cluster,
+  # the app proxies every read through its own API (see docs/architecture.md
+  # in the vtt-maps-portal repo), so no public URL/route/DNS is needed here.
   RUSTFS_BUCKET: vtt-maps
-  RUSTFS_PUBLIC_URL_BASE: ""
 
 # Sensitive app config that vtt-maps-portal cannot generate on its own --
 # credentials issued by an external provider (Discord, GitHub), plus
