@@ -9,6 +9,11 @@ gating an owner-only admin portal for contact submissions. Bundles a [mongo](../
 app repo's own `ingress/` (a local nginx reverse proxy for `docker compose`) is not published as an image or used
 here -- this chart's own `Ingress` resource does that job in-cluster instead.
 
+Since v0.1.0 the backend serves the site's profile content at `GET /api/showcase` (the frontend fetches from
+there at runtime, rather than it being baked into the frontend build), so the same images can serve different
+people/content per release. Set `backend.content` (shape: the app repo's `frontend/src/schema.json`) to override
+the backend's baked-in default content via a mounted ConfigMap; leave it unset (`{}`) to use the default.
+
 ## Installation
 
 1. Add the helm repo: `helm repo add mbround18 https://mbround18.github.io/helm-charts/`
@@ -60,6 +65,7 @@ helm -n ${NAMESPACE} test showcase
 | Key                             | Type   | Default                                  | Description                                                                                                                    |
 | ------------------------------- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | affinity                        | object | `{}`                                     |                                                                                                                                |
+| backend.content                 | object | `{}`                                     | Optional profile content override, served at `GET /api/showcase`; unset uses the image's own default                           |
 | backend.env                     | object | see `values.yaml`                        | Non-sensitive app config, rendered as plain container env vars                                                                 |
 | backend.image.repository        | string | `"mbround18/showcase-yourself-backend"`  |                                                                                                                                |
 | backend.image.tag               | string | `"latest"`                               |                                                                                                                                |
