@@ -3,7 +3,7 @@ name: changedetection-io
 description: A Helm chart for changedetection.io - the best tool for monitoring website
   changes.
 type: application
-version: 0.1.5
+version: 0.1.6
 appVersion: 0.49.3
 dependencies:
 - name: gitops-tools
