@@ -77,7 +77,7 @@ image:
   repository: mbround18/valheim
   pullPolicy: Always
   # Overrides the image tag, default is the chart appVersion.
-  tag: "3.7"
+  tag: "3.8"
 
 # The secrets to use for pulling images
 imagePullSecrets: []
