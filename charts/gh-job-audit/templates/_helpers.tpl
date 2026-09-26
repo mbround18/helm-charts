@@ -33,6 +33,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
     secretKeyRef:
       name: {{ .name | required (printf "existing secret name for %s is required" .env) }}
       key: {{ .key }}
+      {{- if .optional }}
+      optional: true
+      {{- end }}
 {{- end -}}
 
 {{/* Env shared by the web deployment and both cronjobs. */}}
@@ -74,7 +77,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- fail "existingSecrets.mail.provider must be resend or smtp" }}
 {{- end }}
 {{- if $s.githubToken.name }}
-{{ include "gh-job-audit.secretEnv" (dict "env" "GITHUB_TOKEN" "name" $s.githubToken.name "key" $s.githubToken.key) }}
+{{ include "gh-job-audit.secretEnv" (dict "env" "GITHUB_TOKEN" "name" $s.githubToken.name "key" $s.githubToken.key "optional" true) }}
 {{- end }}
 {{- with .Values.extraEnv }}
 {{ toYaml . }}
