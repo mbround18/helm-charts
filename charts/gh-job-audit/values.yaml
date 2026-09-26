@@ -1,0 +1,103 @@
+image:
+  repository: mbround18/gh-job-audit
+  tag: ""            # defaults to Chart.appVersion
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# GitHub account to audit.
+owner: example
+# Public URL of the web UI; must match the GitHub App callback URL ($baseUrl/callback).
+baseUrl: https://gh-job-audit.example.com
+
+# All secrets are pre-existing (never created by this chart).
+existingSecrets:
+  # GitHub App credentials.
+  githubApp:
+    name: gh-job-audit-github-app
+    appIdKey: app-id
+    clientIdKey: client-id
+    clientSecretKey: client-secret
+    privateKeyKey: private-key
+  # Postgres connection URI (e.g. the CloudNativePG "<cluster>-app" secret, key "uri").
+  database:
+    name: gh-job-audit-db-app
+    key: uri
+  # Random string used to sign session cookies.
+  session:
+    name: gh-job-audit-session
+    key: session-secret
+  # Mail. provider: resend | smtp
+  mail:
+    provider: resend
+    name: gh-job-audit-mail
+    resendApiKeyKey: resend-api-key
+    smtpUsernameKey: smtp-username
+    smtpPasswordKey: smtp-password
+  # Optional classic PAT with `user` scope, for real billing numbers.
+  githubToken:
+    name: ""
+    key: github-token
+
+mail:
+  to: you@example.com
+  from: gh-job-audit@example.com
+  smtp:
+    host: smtp.example.com
+    port: 587
+    starttls: true
+
+# JetStream-enabled NATS the action worker uses. Empty = run actions inline.
+nats:
+  url: ""
+
+# Thresholds (env-var names in comments).
+thresholds:
+  archiveIdleDays: 365        # ARCHIVE_IDLE_DAYS
+  archivePopularScore: 5      # ARCHIVE_POPULAR_SCORE
+  ciOffRuns30d: 5             # CI_OFF_RUNS_30D
+  privateMinutes30d: 60       # PRIVATE_MINUTES_30D
+  heavyMinutes30d: 500        # HEAVY_MINUTES_30D
+  botRuns30d: 40              # BOT_RUNS_30D
+  reportMinItems: 1           # REPORT_MIN_ITEMS
+  # Must be a little under the report interval or a weekly cron would skip every other run.
+  renotifyDays: 6             # RENOTIFY_DAYS
+  usageAlertPcts: "50,75,90"  # USAGE_ALERT_PCTS
+  actionsQuotaMinutes: 2000   # ACTIONS_QUOTA_MINUTES
+  actionTtlHours: 72          # ACTION_TTL_HOURS
+
+extraEnv: []
+
+report:
+  enabled: true
+  schedule: "0 14 * * 1"   # weekly, Mondays 14:00 UTC
+usage:
+  enabled: true
+  schedule: "0 */6 * * *"
+
+web:
+  enabled: true
+  replicas: 1
+  port: 8080
+
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits: { cpu: 500m, memory: 256Mi }
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

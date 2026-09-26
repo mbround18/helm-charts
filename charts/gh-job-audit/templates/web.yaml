@@ -1,0 +1,58 @@
+{{- if .Values.web.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gh-job-audit.fullname" . }}
+  labels:
+    {{- include "gh-job-audit.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      {{- include "gh-job-audit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        {{- include "gh-job-audit.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: web
+    spec:
+      {{- include "gh-job-audit.podBits" . | nindent 6 }}
+      containers:
+        - name: web
+          image: {{ include "gh-job-audit.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["serve"]
+          ports:
+            - { name: http, containerPort: {{ .Values.web.port }} }
+          env:
+            {{- include "gh-job-audit.env" . | nindent 12 }}
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - { name: gh-app, mountPath: /var/run/gh-app, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "gh-job-audit.fullname" . }}
+  labels:
+    {{- include "gh-job-audit.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  selector:
+    {{- include "gh-job-audit.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+  ports:
+    - { name: http, port: 80, targetPort: http }
+{{- end }}
