@@ -1,0 +1,46 @@
+{{- range $job := list "report" "usage" }}
+{{- $cfg := index $.Values $job }}
+{{- if $cfg.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "gh-job-audit.fullname" $ }}-{{ $job }}
+  labels:
+    {{- include "gh-job-audit.labels" $ | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  schedule: {{ $cfg.schedule | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            {{- include "gh-job-audit.selectorLabels" $ | nindent 12 }}
+            app.kubernetes.io/component: {{ $job }}
+        spec:
+          restartPolicy: Never
+          {{- include "gh-job-audit.podBits" $ | nindent 10 }}
+          containers:
+            - name: {{ $job }}
+              image: {{ include "gh-job-audit.image" $ | quote }}
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+              args: [{{ if eq $job "report" }}"daily"{{ else }}"usage"{{ end }}]
+              env:
+                {{- include "gh-job-audit.env" $ | nindent 16 }}
+              securityContext:
+                {{- toYaml $.Values.securityContext | nindent 16 }}
+              resources:
+                {{- toYaml $.Values.resources | nindent 16 }}
+              volumeMounts:
+                - { name: gh-app, mountPath: /var/run/gh-app, readOnly: true }
+                - { name: tmp, mountPath: /tmp }
+{{- end }}
+{{- end }}

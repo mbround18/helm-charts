@@ -1,0 +1,69 @@
+{{- if .Values.nats.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "gh-job-audit.fullname" . }}-nats
+  labels:
+    {{- include "gh-job-audit.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  clusterIP: None
+  selector:
+    {{- include "gh-job-audit.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: nats
+  ports:
+    - { name: client, port: 4222 }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "gh-job-audit.fullname" . }}-nats
+  labels:
+    {{- include "gh-job-audit.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  replicas: 1
+  serviceName: {{ include "gh-job-audit.fullname" . }}-nats
+  selector:
+    matchLabels:
+      {{- include "gh-job-audit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: nats
+  template:
+    metadata:
+      labels:
+        {{- include "gh-job-audit.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: nats
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: nats
+          image: {{ .Values.nats.image | quote }}
+          args: ["-js", "-sd", "/data"]
+          ports:
+            - { name: client, containerPort: 4222 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          readinessProbe:
+            tcpSocket: { port: client }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        {{- with .Values.nats.storage.storageClassName }}
+        storageClassName: {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.nats.storage.size }}
+{{- end }}
