@@ -92,15 +92,39 @@ triage:
   assign:                  # daily: assigns (or logs, in dry-run) via the NATS assigner
     enabled: true
     schedule: "0 13 * * *"
-  report:                  # weekly: emails the unassigned / recently-assigned summary
-    enabled: true
+  report:                  # weekly email; off by default, the Monday rollup already includes this
+    enabled: false
     schedule: "30 14 * * 1"
 # Stale digest: one email of open issues/PRs (not yours/bots') idle for staleDays, tracked in Postgres.
 stale:
-  enabled: true
+  enabled: false
   schedule: "0 15 * * 1"   # weekly, Mondays 15:00 UTC
   days: 14                 # STALE_DAYS
   renotifyDays: 7          # STALE_RENOTIFY_DAYS
+# Governance sweeps: read-only API queries, each emails one digest when it finds something.
+# Schedules are staggered (UTC) so they never hit the API rate limit together. Extra App
+# permissions: Dependabot alerts / Code scanning alerts / Secret scanning alerts (read),
+# Administration (read), Actions (read), Contents (read), Pull requests (read).
+governance:
+  thresholds:
+    keyMaxAgeDays: 365       # GOV_KEY_MAX_AGE_DAYS deploy key age to flag
+    workflowIdleDays: 90     # GOV_WORKFLOW_IDLE_DAYS
+    cacheMb: 1024            # GOV_CACHE_MB per repo
+    artifactMb: 512          # GOV_ARTIFACT_MB per repo
+    depsStaleDays: 30        # GOV_DEPS_STALE_DAYS
+    releaseAheadCommits: 10  # GOV_RELEASE_AHEAD
+    releaseDays: 30          # GOV_RELEASE_DAYS
+    branchStaleDays: 90      # GOV_BRANCH_STALE_DAYS
+  security:  { enabled: true, schedule: "15 4 * * *" }   # daily; exposed secrets email immediately
+  hygiene:   { enabled: true, schedule: "0 5 * * 2" }    # Tue
+  workflows: { enabled: true, schedule: "0 5 * * 3" }    # Wed
+  storage:   { enabled: true, schedule: "0 7 * * 3" }    # Wed
+  deps:      { enabled: true, schedule: "0 5 * * 4" }    # Thu
+  releases:  { enabled: true, schedule: "0 5 * * 5" }    # Fri
+  branches:  { enabled: true, schedule: "0 8 * * 5" }    # Fri
+  prflow:    { enabled: true, schedule: "0 9 * * 0" }    # Sun
+  access:    { enabled: true, schedule: "30 5 1 * *" }   # monthly
+  rollup:    { enabled: true, schedule: "0 16 * * 1" }   # Mon, after the other Monday jobs
 # Trigger-only (suspended): emails sandbox buttons that test sign-in + the NATS worker.
 #   kubectl -n <ns> create job --from=cronjob/<release>-gh-job-audit-selftest selftest-$(date +%s)
 selftest:
@@ -128,8 +152,13 @@ podSecurityContext:
   fsGroup: 65532
   seccompProfile:
     type: RuntimeDefault
+# Email buttons that change repos (archive, disable Actions). Set false to make the service
+# read-only even though the GitHub App can write; the buttons vanish and the worker refuses.
+destructiveActions: true
+
 securityContext:
   runAsNonRoot: true
+  seccompProfile: { type: RuntimeDefault }
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
   capabilities:
