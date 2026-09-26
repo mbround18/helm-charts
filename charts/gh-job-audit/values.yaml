@@ -81,6 +81,20 @@ report:
 usage:
   enabled: true
   schedule: "0 */6 * * *"
+# Triage: finds open issues/PRs with no assignee across the owner's repos (public + private).
+# Assignees come from CODEOWNERS @users, falling back to the owner. Needs the GitHub App to have
+# Issues + Pull requests read/write to actually assign.
+#   mode: off | dry-run (log/email what would happen) | apply (really assign)
+triage:
+  mode: dry-run            # TRIAGE_MODE
+  includeBots: false       # TRIAGE_INCLUDE_BOTS
+  maxAssign: 50            # TRIAGE_MAX_ASSIGN per run
+  assign:                  # daily: assigns (or logs, in dry-run) via the NATS assigner
+    enabled: true
+    schedule: "0 13 * * *"
+  report:                  # weekly: emails the unassigned / recently-assigned summary
+    enabled: true
+    schedule: "30 14 * * 1"
 # Trigger-only (suspended): emails sandbox buttons that test sign-in + the NATS worker.
 #   kubectl -n <ns> create job --from=cronjob/<release>-gh-job-audit-selftest selftest-$(date +%s)
 selftest:
