@@ -1,6 +1,7 @@
 {{- $jobs := dict
   "report"        (dict "cfg" .Values.report        "args" "daily")
   "usage"         (dict "cfg" .Values.usage         "args" "usage")
+  "stale"         (dict "cfg" .Values.stale         "args" "stale")
   "selftest"      (dict "cfg" .Values.selftest      "args" "selftest")
   "triage-assign" (dict "cfg" .Values.triage.assign "args" "triage --assign")
   "triage-report" (dict "cfg" .Values.triage.report "args" "triage --report") }}
