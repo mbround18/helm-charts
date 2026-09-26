@@ -3,5 +3,5 @@ name: gh-job-audit
 description: GitHub audit + Actions-usage watcher (weekly report, usage alerts, email
   action buttons backed by NATS)
 type: application
-version: 0.6.0
-appVersion: "0.6.0"
+version: 0.6.1
+appVersion: 0.6.0
