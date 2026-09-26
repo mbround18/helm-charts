@@ -56,6 +56,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - { name: USAGE_ALERT_PCTS, value: {{ .Values.thresholds.usageAlertPcts | quote }} }
 - { name: ACTIONS_QUOTA_MINUTES, value: {{ .Values.thresholds.actionsQuotaMinutes | quote }} }
 - { name: ACTION_TTL_HOURS, value: {{ .Values.thresholds.actionTtlHours | quote }} }
+- { name: TRIAGE_MODE, value: {{ .Values.triage.mode | quote }} }
+- { name: TRIAGE_INCLUDE_BOTS, value: {{ .Values.triage.includeBots | quote }} }
+- { name: TRIAGE_MAX_ASSIGN, value: {{ .Values.triage.maxAssign | quote }} }
 - { name: GITHUB_APP_PRIVATE_KEY_FILE, value: /var/run/gh-app/private-key }
 {{- if include "gh-job-audit.natsUrl" . }}
 - { name: NATS_URL, value: {{ include "gh-job-audit.natsUrl" . | quote }} }
