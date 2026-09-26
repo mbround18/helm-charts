@@ -5,6 +5,9 @@
   "selftest"      (dict "cfg" .Values.selftest      "args" "selftest")
   "triage-assign" (dict "cfg" .Values.triage.assign "args" "triage --assign")
   "triage-report" (dict "cfg" .Values.triage.report "args" "triage --report") }}
+{{- range $g := list "security" "hygiene" "workflows" "storage" "deps" "releases" "branches" "prflow" "access" "rollup" }}
+{{- $_ := set $jobs (printf "gov-%s" $g) (dict "cfg" (index $.Values.governance $g) "args" (printf "gov %s" $g)) }}
+{{- end }}
 {{- range $job, $spec := $jobs }}
 {{- $cfg := $spec.cfg }}
 {{- if $cfg.enabled }}

@@ -60,6 +60,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - { name: TRIAGE_INCLUDE_BOTS, value: {{ .Values.triage.includeBots | quote }} }
 - { name: STALE_DAYS, value: {{ .Values.stale.days | quote }} }
 - { name: STALE_RENOTIFY_DAYS, value: {{ .Values.stale.renotifyDays | quote }} }
+- { name: GOV_KEY_MAX_AGE_DAYS, value: {{ .Values.governance.thresholds.keyMaxAgeDays | quote }} }
+- { name: GOV_WORKFLOW_IDLE_DAYS, value: {{ .Values.governance.thresholds.workflowIdleDays | quote }} }
+- { name: GOV_CACHE_MB, value: {{ .Values.governance.thresholds.cacheMb | quote }} }
+- { name: GOV_ARTIFACT_MB, value: {{ .Values.governance.thresholds.artifactMb | quote }} }
+- { name: GOV_DEPS_STALE_DAYS, value: {{ .Values.governance.thresholds.depsStaleDays | quote }} }
+- { name: GOV_RELEASE_AHEAD, value: {{ .Values.governance.thresholds.releaseAheadCommits | quote }} }
+- { name: GOV_RELEASE_DAYS, value: {{ .Values.governance.thresholds.releaseDays | quote }} }
+- { name: GOV_BRANCH_STALE_DAYS, value: {{ .Values.governance.thresholds.branchStaleDays | quote }} }
 - { name: TRIAGE_MAX_ASSIGN, value: {{ .Values.triage.maxAssign | quote }} }
 - { name: GITHUB_APP_PRIVATE_KEY_FILE, value: /var/run/gh-app/private-key }
 {{- if include "gh-job-audit.natsUrl" . }}
