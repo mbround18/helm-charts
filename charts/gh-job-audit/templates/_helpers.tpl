@@ -58,6 +58,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - { name: ACTION_TTL_HOURS, value: {{ .Values.thresholds.actionTtlHours | quote }} }
 - { name: TRIAGE_MODE, value: {{ .Values.triage.mode | quote }} }
 - { name: TRIAGE_INCLUDE_BOTS, value: {{ .Values.triage.includeBots | quote }} }
+- { name: DESTRUCTIVE_ACTIONS, value: {{ .Values.destructiveActions | quote }} }
 - { name: STALE_DAYS, value: {{ .Values.stale.days | quote }} }
 - { name: STALE_RENOTIFY_DAYS, value: {{ .Values.stale.renotifyDays | quote }} }
 - { name: GOV_KEY_MAX_AGE_DAYS, value: {{ .Values.governance.thresholds.keyMaxAgeDays | quote }} }

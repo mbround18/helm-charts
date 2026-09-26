@@ -152,8 +152,13 @@ podSecurityContext:
   fsGroup: 65532
   seccompProfile:
     type: RuntimeDefault
+# Email buttons that change repos (archive, disable Actions). Set false to make the service
+# read-only even though the GitHub App can write; the buttons vanish and the worker refuses.
+destructiveActions: true
+
 securityContext:
   runAsNonRoot: true
+  seccompProfile: { type: RuntimeDefault }
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
   capabilities:
