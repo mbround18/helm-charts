@@ -81,6 +81,11 @@ report:
 usage:
   enabled: true
   schedule: "0 */6 * * *"
+# Trigger-only (suspended): emails sandbox buttons that test sign-in + the NATS worker.
+#   kubectl -n <ns> create job --from=cronjob/<release>-gh-job-audit-selftest selftest-$(date +%s)
+selftest:
+  enabled: true
+  schedule: "0 0 1 1 *"
 
 web:
   enabled: true

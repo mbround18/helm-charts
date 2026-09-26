@@ -1,4 +1,4 @@
-{{- range $job := list "report" "usage" }}
+{{- range $job := list "report" "usage" "selftest" }}
 {{- $cfg := index $.Values $job }}
 {{- if $cfg.enabled }}
 ---
@@ -12,6 +12,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "20"
 spec:
   schedule: {{ $cfg.schedule | quote }}
+  suspend: {{ if eq $job "selftest" }}true{{ else }}false{{ end }}   # selftest is trigger-only
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 3600
   successfulJobsHistoryLimit: 3
@@ -32,7 +33,7 @@ spec:
             - name: {{ $job }}
               image: {{ include "gh-job-audit.image" $ | quote }}
               imagePullPolicy: {{ $.Values.image.pullPolicy }}
-              args: [{{ if eq $job "report" }}"daily"{{ else }}"usage"{{ end }}]
+              args: [{{ get (dict "report" "daily" "usage" "usage" "selftest" "selftest") $job | quote }}]
               env:
                 {{- include "gh-job-audit.env" $ | nindent 16 }}
               securityContext:
