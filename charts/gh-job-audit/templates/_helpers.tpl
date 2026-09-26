@@ -57,8 +57,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - { name: ACTIONS_QUOTA_MINUTES, value: {{ .Values.thresholds.actionsQuotaMinutes | quote }} }
 - { name: ACTION_TTL_HOURS, value: {{ .Values.thresholds.actionTtlHours | quote }} }
 - { name: GITHUB_APP_PRIVATE_KEY_FILE, value: /var/run/gh-app/private-key }
-{{- if .Values.nats.url }}
-- { name: NATS_URL, value: {{ .Values.nats.url | quote }} }
+{{- if include "gh-job-audit.natsUrl" . }}
+- { name: NATS_URL, value: {{ include "gh-job-audit.natsUrl" . | quote }} }
 {{- end }}
 {{ include "gh-job-audit.secretEnv" (dict "env" "GITHUB_APP_ID" "name" $s.githubApp.name "key" $s.githubApp.appIdKey) }}
 {{ include "gh-job-audit.secretEnv" (dict "env" "GITHUB_APP_CLIENT_ID" "name" $s.githubApp.name "key" $s.githubApp.clientIdKey) }}
@@ -109,4 +109,12 @@ volumes:
       defaultMode: 0440
   - name: tmp
     emptyDir: {}
+{{- end -}}
+
+{{- define "gh-job-audit.natsUrl" -}}
+{{- if .Values.nats.url -}}
+{{- .Values.nats.url -}}
+{{- else if .Values.nats.enabled -}}
+{{- printf "nats://%s-nats.%s.svc:4222" (include "gh-job-audit.fullname" .) .Release.Namespace -}}
+{{- end -}}
 {{- end -}}

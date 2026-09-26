@@ -48,9 +48,15 @@ mail:
     port: 587
     starttls: true
 
-# JetStream-enabled NATS the action worker uses. Empty = run actions inline.
+# JetStream NATS bundled with the chart (the email-button work queue). Set enabled=false and
+# point url at your own JetStream server, or leave both empty to run actions inline.
 nats:
-  url: ""
+  enabled: true
+  url: ""                     # default: the bundled service
+  image: nats:2.11-alpine
+  storage:
+    size: 1Gi
+    storageClassName: ""
 
 # Thresholds (env-var names in comments).
 thresholds:
