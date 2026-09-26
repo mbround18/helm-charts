@@ -1,0 +1,39 @@
+{{- if and .Values.mailer.enabled (include "gh-job-audit.natsUrl" .) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gh-job-audit.fullname" . }}-mailer
+  labels:
+    {{- include "gh-job-audit.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "gh-job-audit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mailer
+  template:
+    metadata:
+      labels:
+        {{- include "gh-job-audit.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mailer
+    spec:
+      {{- include "gh-job-audit.podBits" . | nindent 6 }}
+      containers:
+        - name: mailer
+          image: {{ include "gh-job-audit.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["mailer"]
+          env:
+            {{- include "gh-job-audit.env" . | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - { name: gh-app, mountPath: /var/run/gh-app, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+{{- end }}

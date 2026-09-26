@@ -87,6 +87,11 @@ selftest:
   enabled: true
   schedule: "0 0 1 1 *"
 
+# Consumes queued email from NATS and sends it (retries with backoff, dedupe by key).
+# Needs NATS (bundled or nats.url); without it jobs send mail directly.
+mailer:
+  enabled: true
+
 web:
   enabled: true
   replicas: 1
