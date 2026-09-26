@@ -95,6 +95,12 @@ triage:
   report:                  # weekly: emails the unassigned / recently-assigned summary
     enabled: true
     schedule: "30 14 * * 1"
+# Stale digest: one email of open issues/PRs (not yours/bots') idle for staleDays, tracked in Postgres.
+stale:
+  enabled: true
+  schedule: "0 15 * * 1"   # weekly, Mondays 15:00 UTC
+  days: 14                 # STALE_DAYS
+  renotifyDays: 7          # STALE_RENOTIFY_DAYS
 # Trigger-only (suspended): emails sandbox buttons that test sign-in + the NATS worker.
 #   kubectl -n <ns> create job --from=cronjob/<release>-gh-job-audit-selftest selftest-$(date +%s)
 selftest:
