@@ -4,6 +4,6 @@ dependencies:
   version: 0.1.1
 - name: mongo
   repository: file://../mongo
-  version: 0.1.0
-digest: sha256:2796b0788e004fe9801aeb7c51789a1cce28b97f739173967f5ee5877670d5bc
-generated: "2026-08-22T15:09:48.293794572-07:00"
+  version: 0.1.1
+digest: sha256:75a45ff24a50394c68a355edb326eb530f8e1a9bfecb7969ce154a3531d264ea
+generated: "2026-10-01T21:24:00.821553304Z"

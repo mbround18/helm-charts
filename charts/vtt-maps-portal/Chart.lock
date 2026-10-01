@@ -4,12 +4,12 @@ dependencies:
   version: 0.1.1
 - name: mongo
   repository: file://../mongo
-  version: 0.1.0
+  version: 0.1.1
 - name: rustfs
   repository: file://../rustfs
   version: 0.1.0
 - name: external-secret-resources
   repository: file://../external-secret-resources
   version: 0.1.5
-digest: sha256:48647f0a54d7217d459b36169c026809cedc96e2ca4b84938b91afe88e929c66
-generated: "2026-08-21T20:12:35.513857589Z"
+digest: sha256:7a38319b55b03cb74c17fbdf6d24b468a63ab26f4e98688745a55a9d16763bfa
+generated: "2026-10-01T21:24:01.236024283Z"

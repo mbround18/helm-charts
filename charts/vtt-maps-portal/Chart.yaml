@@ -10,7 +10,7 @@ dependencies:
   version: 0.1.1
   repository: file://../gitops-tools
 - name: mongo
-  version: 0.1.0
+  version: 0.1.1
   repository: file://../mongo
   condition: mongo.enabled
 - name: rustfs
