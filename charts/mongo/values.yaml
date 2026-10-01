@@ -13,7 +13,7 @@ argoCd:
 
 image:
   repository: mongo
-  tag: "8"
+  tag: "9"
   pullPolicy: IfNotPresent
 
 # Disabled by default to mirror this app's docker-compose setup (an
