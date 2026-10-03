@@ -198,7 +198,19 @@ class Registry:
     # -- token-auth registries (ghcr, codeberg, forgejo, ...) ------------
     def _bearer_tags(self, host: str, repo: str) -> list[str]:
         url = f"https://{host}/v2/{repo}/tags/list?n=1000"
-        r = self.session.get(url, timeout=TIMEOUT)
+        tags: list[str] = []
+        token: str | None = None
+        while url and len(tags) < 20000:
+            page, token, nxt = self._bearer_page(host, repo, url, token)
+            tags += page
+            url = nxt
+        return tags
+
+    def _bearer_page(
+        self, host: str, repo: str, url: str, token: str | None
+    ) -> tuple[list[str], str | None, str | None]:
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
+        r = self.session.get(url, headers=headers, timeout=TIMEOUT)
         if r.status_code in (401, 403):
             realm = re.search(r'realm="([^"]+)"', r.headers.get("Www-Authenticate", ""))
             svc = re.search(r'service="([^"]+)"', r.headers.get("Www-Authenticate", ""))
@@ -212,12 +224,17 @@ class Registry:
             tr = self.session.get(turl, auth=auth, timeout=TIMEOUT)
             tr.raise_for_status()
             body = tr.json()
-            tok = body.get("token") or body.get("access_token")
+            token = body.get("token") or body.get("access_token")
             r = self.session.get(
-                url, headers={"Authorization": f"Bearer {tok}"}, timeout=TIMEOUT
+                url, headers={"Authorization": f"Bearer {token}"}, timeout=TIMEOUT
             )
         r.raise_for_status()
-        return r.json().get("tags") or []
+        nxt = None
+        link = r.headers.get("Link", "")
+        m = re.search(r'<([^>]+)>\s*;\s*rel="?next"?', link)
+        if m:
+            nxt = requests.compat.urljoin(f"https://{host}/", m.group(1))
+        return (r.json().get("tags") or []), token, nxt
 
     # -- quay -----------------------------------------------------------
     def _quay_tags(self, repo: str) -> list[str]:
@@ -288,7 +305,13 @@ def newest_same_shape(tags: list[str], current: str) -> tuple[str | None, str]:
     ranked = [(k, t) for k, t in ranked if k is not None]
     if not ranked:
         return None, f"no tag shaped like {current!r} among {len(tags)}"
-    best = max(ranked)[1]
+    best_key, best = max(ranked)
+    cur_key = version_key(current, shape)
+    if cur_key is not None and best_key <= cur_key:
+        note = f"{len(tags)} tags, {len(ranked)} comparable"
+        if best_key < cur_key:
+            note += f"; registry's newest ({best}) is OLDER than yours"
+        return current, note
     return best, f"{len(tags)} tags, {len(ranked)} comparable"
 
 
@@ -416,6 +439,7 @@ def cmd_scan(args) -> int:
                 newest, note = None, f"{exc.__class__.__name__}: {exc}"
                 failures += 1
             is_behind = bool(newest and newest != tag)
+            unpinned = newest is None and shape_of(tag) is None
             behind += is_behind
             rows.append(
                 {
@@ -425,6 +449,7 @@ def cmd_scan(args) -> int:
                     "current": tag,
                     "newest": newest,
                     "behind": is_behind,
+                    "unpinned": unpinned,
                     "note": note,
                 }
             )
@@ -434,14 +459,24 @@ def cmd_scan(args) -> int:
     else:
         width = max([len(r["image"]) for r in rows] + [5])
         for r in rows:
-            mark = "BEHIND" if r["behind"] else ("ERROR" if not r["newest"] else "ok")
+            if r["behind"]:
+                mark = "BEHIND"
+            elif r["unpinned"]:
+                # Not a failure, but not a pass either: a floating tag is what
+                # moved mongo's data to FCV 8.2 without anyone deciding to.
+                mark = "FLOATS"
+            elif not r["newest"]:
+                mark = "ERROR"
+            else:
+                mark = "ok"
             print(
                 f"{mark:<7} {r['chart']:<24} {r['image']:<{width}} "
                 f"{r['current']:<14} {r['newest'] or '-':<14} {r['note']}"
             )
+        floats = sum(1 for r in rows if r["unpinned"])
         print(
             f"\n{len(rows)} images: {behind} behind, {failures} unresolved, "
-            f"{len(rows) - behind - failures} current"
+            f"{floats} unpinned, {len(rows) - behind - failures - floats} current"
         )
 
     # Unresolved is a failure, not a pass. That conflation is the bug this
