@@ -1,5 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "labels": ["automerge"]
+  "labels": ["automerge"],
+  "packageRules": [
+    {
+      "description": "Datastore majors are migrations, not bumps -- never automerge them. These images read an on-disk format written by the previous major, and a new binary will refuse data it considers too old rather than converting it. On 2026-10-02 PR #242 ('Update mongo Docker tag to v9') was opened by Renovate, auto-approved, and merged by kodiak with no human in the loop; mongo 9 then exited 62 on data at featureCompatibilityVersion 8.2 and took vtt-maps, joanna-showcase and michael-showcase down for 17 hours. Dropping the automerge label is what blocks the merge, because .kodiak.toml sets require_automerge_label = true. The PR still opens, so the upgrade stays visible -- it just waits for someone to run the migration first.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "mongo",
+        "postgres",
+        "mysql",
+        "mariadb",
+        "redis",
+        "getmeili/meilisearch"
+      ],
+      "matchUpdateTypes": ["major"],
+      "labels": ["needs-migration"],
+      "automerge": false,
+      "minimumReleaseAge": "30 days"
+    }
+  ]
 }
