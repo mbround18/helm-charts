@@ -6,7 +6,7 @@ PYTEST_ARGS ?= charts
 MANIFEST_PYTEST_ARGS ?= charts/tests/test_manifest_contracts.py
 CHART_TASKS := uv run python -m tools.chart_tasks --jobs $(JOBS)
 
-.PHONY: help install-paws lint lint-helm dump deps-update validate test build update-readme upgrade refresh prune-branches ci
+.PHONY: help install-paws lint lint-helm dump deps-update validate test build update-readme upgrade registry-whoami scan-images refresh prune-branches ci
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -45,6 +45,12 @@ build: deps-update ## Build all charts
 
 upgrade: ## Upgrade container image tags in all charts
 	@uv run tools/upgrade.py $(CHART_DIRS)
+
+registry-whoami: ## Show which Docker Hub credential the tooling would use
+	@uv run python -m tools.registry whoami
+
+scan-images: ## Report every chart image against its registry (authenticated)
+	@uv run python -m tools.registry scan $(CHART_DIRS)
 
 refresh: ## Refresh dependency locks, image tags, and generated README content
 	@$(MAKE) deps-update
