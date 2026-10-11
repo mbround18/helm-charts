@@ -76,7 +76,7 @@ prometheusRule:
     release: kube-prometheus-stack
 ```
 
-`ReaperDown` matches `up{job="<service name>"}`; the Service is named after the release (`k8s-reaper` when the release is called `k8s-reaper`).
+`ReaperDown` matches `up{job="<service name>"}`; the Service is named after the release (`k8s-reaper` when the release is called `k8s-reaper`). It is only installed when `serviceMonitor.enabled` is `true`, since without the ServiceMonitor nothing scrapes the reaper. If the ServiceMonitor is enabled but your Prometheus does not select it, `ReaperDown` fires.
 
 ### Notifications
 

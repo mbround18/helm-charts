@@ -65,6 +65,9 @@ spec:
           annotations:
             summary: "The latest ReaperConfig generation is invalid; the last valid one is still in use"
             runbook_url: {{ $runbook | quote }}
+        {{- /* Without the ServiceMonitor nothing scrapes the reaper, so
+               ReaperDown would fire forever. */}}
+        {{- if .Values.serviceMonitor.enabled }}
         - alert: ReaperDown
           expr: absent(up{job={{ $job | quote }}} == 1)
           for: 10m
@@ -73,4 +76,5 @@ spec:
           annotations:
             summary: "k8s-reaper has not been scraped for 10 minutes"
             runbook_url: {{ $runbook | quote }}
+        {{- end }}
 {{- end }}
