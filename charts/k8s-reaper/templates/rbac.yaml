@@ -1,0 +1,65 @@
+{{- if .Values.rbac.create }}
+# Per k8s-reaper contracts/config.md: no delete, no Secrets, no escalate/bind/impersonate.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "k8s-reaper.fullname" . }}
+  labels:
+    {{- include "k8s-reaper.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+rules:
+  - apiGroups: [""]
+    resources: [pods, namespaces]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [replicasets]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets]
+    verbs: [get, list, watch, patch]
+  - apiGroups: [apps]
+    resources: [deployments/scale, statefulsets/scale]
+    verbs: [get, patch, update]
+  - apiGroups: [batch]
+    resources: [cronjobs]
+    verbs: [get, list, watch, patch]
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [get, list, watch]
+  - apiGroups: [autoscaling]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list, watch]
+  - apiGroups: [keda.sh]
+    resources: [scaledobjects]
+    verbs: [get, list, watch]
+  - apiGroups: [helm.toolkit.fluxcd.io]
+    resources: [helmreleases]
+    verbs: [get, list, watch, patch]
+  - apiGroups: [events.k8s.io]
+    resources: [events]
+    verbs: [create, patch]
+  - apiGroups: [reaper.boop.ninja]
+    resources: [reaperconfigs]
+    verbs: [get, list, watch]
+  - apiGroups: [reaper.boop.ninja]
+    resources: [reaperconfigs/status]
+    verbs: [get, patch, update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "k8s-reaper.fullname" . }}
+  labels:
+    {{- include "k8s-reaper.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "k8s-reaper.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "k8s-reaper.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
