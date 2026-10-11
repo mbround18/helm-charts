@@ -265,7 +265,12 @@ def test_service_monitor_scrapes_the_service_and_keeps_workload_labels():
 
 
 def test_prometheus_rule_ships_the_contract_alerts():
-    rule = _one(_render({"prometheusRule": {"enabled": True}}), "PrometheusRule")
+    rule = _one(
+        _render(
+            {"serviceMonitor": {"enabled": True}, "prometheusRule": {"enabled": True}}
+        ),
+        "PrometheusRule",
+    )
     alerts = {
         item["alert"]: item
         for group in rule["spec"]["groups"]
@@ -282,19 +287,41 @@ def test_prometheus_rule_ships_the_contract_alerts():
     assert alerts["ReaperDown"]["expr"] == 'absent(up{job="k8s-reaper"} == 1)'
 
 
-def test_reaper_down_tracks_the_service_name_for_other_release_names():
-    documents = _render({"prometheusRule": {"enabled": True}}, release_name="ops")
-    rule = _one(documents, "PrometheusRule")
-    service = _one(documents, "Service")
-    down = next(
-        item
+def _alerts(rule):
+    return {
+        item["alert"]: item
         for group in rule["spec"]["groups"]
         for item in group["rules"]
-        if item["alert"] == "ReaperDown"
-    )
+    }
 
-    assert service["metadata"]["name"] == "ops-k8s-reaper"
-    assert down["expr"] == 'absent(up{job="ops-k8s-reaper"} == 1)'
+
+def test_reaper_down_tracks_the_service_name_for_other_release_names():
+    documents = _render(
+        {"serviceMonitor": {"enabled": True}, "prometheusRule": {"enabled": True}},
+        release_name="other-name",
+    )
+    down = _alerts(_one(documents, "PrometheusRule"))["ReaperDown"]
+    service = _one(documents, "Service")
+
+    assert service["metadata"]["name"] == "other-name-k8s-reaper"
+    assert down["expr"] == 'absent(up{job="other-name-k8s-reaper"} == 1)'
+
+
+def test_reaper_down_absent_without_the_service_monitor():
+    documents = _render(
+        {"serviceMonitor": {"enabled": False}, "prometheusRule": {"enabled": True}}
+    )
+    alerts = _alerts(_one(documents, "PrometheusRule"))
+
+    assert "ReaperDown" not in alerts
+    assert set(alerts) == set(EXPECTED_ALERTS) - {"ReaperDown"}
+
+
+def test_memory_request_covers_observed_use():
+    resources = _container(_one(_render(), "Deployment"))["resources"]
+
+    assert resources["requests"]["memory"] == "64Mi"
+    assert resources["limits"]["memory"] == "128Mi"
 
 
 def test_sync_waves_follow_the_repo_phase_model():
