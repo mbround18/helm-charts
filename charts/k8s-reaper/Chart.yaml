@@ -1,0 +1,16 @@
+apiVersion: v2
+name: k8s-reaper
+description: Kubernetes controller that reports, and in full mode stops, workloads that have been crash-looping for a long time.
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+keywords:
+  - kubernetes
+  - crashloop
+  - controller
+  - flux
+home: https://github.com/mbround18/k8s-reaper
+sources:
+  - https://github.com/mbround18/k8s-reaper
+maintainers:
+  - name: mbround18

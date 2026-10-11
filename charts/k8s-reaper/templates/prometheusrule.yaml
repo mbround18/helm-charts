@@ -1,0 +1,76 @@
+{{- if .Values.prometheusRule.enabled }}
+{{- $runbook := .Values.prometheusRule.runbookUrl }}
+{{- /* The scrape job is the Service name (ServiceMonitor default jobLabel). */}}
+{{- $job := include "k8s-reaper.fullname" . }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "k8s-reaper.fullname" . }}
+  labels:
+    {{- include "k8s-reaper.labels" . | nindent 4 }}
+    {{- with .Values.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  groups:
+    - name: k8s-reaper
+      rules:
+        - alert: ReaperCrashLoopPlanned
+          expr: reaper_workload_state{state="candidate"} == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: {{ `"{{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} is a reap candidate"` }}
+            runbook_url: {{ $runbook | quote }}
+        - alert: ReaperWorkloadReaped
+          expr: reaper_workload_state{state="reaped"} == 1
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: {{ `"{{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} was reaped"` }}
+            runbook_url: {{ $runbook | quote }}
+        - alert: ReaperWorkloadSkipped
+          expr: reaper_workload_skipped == 1
+          for: 30m
+          labels:
+            severity: info
+          annotations:
+            summary: {{ `"{{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} is a skipped candidate ({{ $labels.reason }})"` }}
+            runbook_url: {{ $runbook | quote }}
+        - alert: ReaperActionFailed
+          expr: increase(reaper_actions_total{result="error"}[15m]) > 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: {{ `"k8s-reaper action {{ $labels.action }} failed"` }}
+            runbook_url: {{ $runbook | quote }}
+        - alert: ReaperStalled
+          expr: time() - reaper_last_cycle_timestamp_seconds > 600
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "k8s-reaper has not finished a cycle in 10 minutes"
+            runbook_url: {{ $runbook | quote }}
+        - alert: ReaperConfigInvalid
+          expr: reaper_config_valid == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "The latest ReaperConfig generation is invalid; the last valid one is still in use"
+            runbook_url: {{ $runbook | quote }}
+        - alert: ReaperDown
+          expr: absent(up{job={{ $job | quote }}} == 1)
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "k8s-reaper has not been scraped for 10 minutes"
+            runbook_url: {{ $runbook | quote }}
+{{- end }}

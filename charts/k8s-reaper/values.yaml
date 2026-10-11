@@ -1,0 +1,102 @@
+# k8s-reaper runs as a single instance (no leader election), so the chart
+# always renders one replica with the Recreate strategy. Neither is a value.
+
+image:
+  repository: mbround18/k8s-reaper
+  # Defaults to the chart's appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  # Defaults to the fullname.
+  name: ""
+  annotations: {}
+
+rbac:
+  # ClusterRole + ClusterRoleBinding per the reaper's RBAC contract.
+  create: true
+
+# The cluster-scoped ReaperConfig the reaper reads (--config-name).
+reaperConfig:
+  # Render ReaperConfig/<name> from `spec` below. Set false to manage it yourself.
+  create: true
+  name: default
+  # Free-form ReaperConfig spec; every CRD field can be set here (see the
+  # k8s-reaper configuration guide). Unset fields take the CRD defaults.
+  spec:
+    mode: report
+
+# Notification channel URLs come from a Secret you create (one key per channel).
+# The chart only mounts it, `optional: true`, so a missing Secret leaves
+# notifications off. Set secretName to "" to drop the mount entirely.
+notifications:
+  secretName: k8s-reaper-notifications
+  mountPath: /etc/k8s-reaper/notifications
+
+# Process settings (none change reaping behaviour).
+logFormat: json # REAPER_LOG_FORMAT: json | text
+logLevel: info # RUST_LOG
+# OTLP export; empty keeps OTLP off (OTEL_EXPORTER_OTLP_ENDPOINT).
+otel:
+  endpoint: ""
+  serviceName: k8s-reaper
+
+extraEnv: []
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+# Requires the Prometheus Operator CRDs.
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: ""
+  # Keep the reaper's own `namespace` label (the workload's namespace) instead
+  # of renaming it to `exported_namespace`.
+  honorLabels: true
+  labels: {}
+
+# Alert rules from the reaper's metrics contract. Requires the Prometheus Operator CRDs.
+prometheusRule:
+  enabled: false
+  labels: {}
+  runbookUrl: https://github.com/mbround18/k8s-reaper/blob/main/docs/guides/restoring-a-workload.md
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 128Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+  seccompProfile:
+    type: RuntimeDefault
+
+priorityClassName: ""
+nodeSelector: {}
+tolerations: []
+affinity: {}

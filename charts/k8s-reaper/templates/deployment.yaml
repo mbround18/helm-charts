@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-reaper.fullname" . }}
+  labels:
+    {{- include "k8s-reaper.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  # Single instance, no leader election: never more than one, never overlapping.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "k8s-reaper.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "k8s-reaper.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "k8s-reaper.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: k8s-reaper
+          image: {{ include "k8s-reaper.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["run"]
+          env:
+            - name: REAPER_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REAPER_CONFIG_NAME
+              value: {{ .Values.reaperConfig.name | quote }}
+            - name: REAPER_HTTP_ADDR
+              value: "0.0.0.0:8080"
+            - name: REAPER_LOG_FORMAT
+              value: {{ .Values.logFormat | quote }}
+            - name: RUST_LOG
+              value: {{ .Values.logLevel | quote }}
+            {{- if .Values.notifications.secretName }}
+            - name: REAPER_NOTIFICATIONS_DIR
+              value: {{ .Values.notifications.mountPath | quote }}
+            {{- end }}
+            {{- if .Values.otel.endpoint }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.otel.endpoint | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ .Values.otel.serviceName | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.notifications.secretName }}
+          volumeMounts:
+            - name: notifications
+              mountPath: {{ .Values.notifications.mountPath }}
+              readOnly: true
+          {{- end }}
+      {{- if .Values.notifications.secretName }}
+      volumes:
+        # Channel URLs; a missing Secret leaves notifications off.
+        - name: notifications
+          secret:
+            secretName: {{ .Values.notifications.secretName }}
+            optional: true
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

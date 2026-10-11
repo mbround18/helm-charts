@@ -1,0 +1,14 @@
+{{- if .Values.reaperConfig.create }}
+apiVersion: reaper.boop.ninja/v1alpha1
+kind: ReaperConfig
+metadata:
+  name: {{ .Values.reaperConfig.name }}
+  labels:
+    {{- include "k8s-reaper.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    # The CRD ships in this chart's crds/, so it may not exist at dry-run time.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  {{- toYaml (default (dict "mode" "report") .Values.reaperConfig.spec) | nindent 2 }}
+{{- end }}
