@@ -53,6 +53,27 @@ spec:
                     nullable: true
                     pattern: ^([0-9]+[hms])+$
                     type: string
+                  failureRate:
+                    description: Also pause a CronJob that fails most of its recent runs, even with the odd success.
+                    nullable: true
+                    properties:
+                      enabled:
+                        description: The failure-rate rule (default true).
+                        nullable: true
+                        type: boolean
+                      threshold:
+                        description: Share of failed runs that makes a candidate, "80%" or "80" (51–100, default 80%).
+                        nullable: true
+                        pattern: ^(5[1-9]|[6-9][0-9]|100)%?$
+                        type: string
+                      windowRuns:
+                        description: Finished runs in the window; it must be full before it is judged (3–100, default 10).
+                        format: int64
+                        maximum: 100.0
+                        minimum: 3.0
+                        nullable: true
+                        type: integer
+                    type: object
                   minFailedRuns:
                     description: And at least this many failed runs (1–1000, default 3).
                     format: int64
