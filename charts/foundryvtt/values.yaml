@@ -189,5 +189,7 @@ backup_cleanup:
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   backoffLimit: 2
-  ttlSecondsAfterFinished: 300
+  # Keep finished Jobs (and their logs) for a day; the history limits above
+  # still cap how many are kept.
+  ttlSecondsAfterFinished: 86400
   activeDeadlineSeconds: 600
