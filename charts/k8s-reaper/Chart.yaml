@@ -3,7 +3,7 @@ name: k8s-reaper
 description: Kubernetes controller that reports, and in full mode stops, workloads
   that have been crash-looping for a long time.
 type: application
-version: 0.1.4
+version: 0.1.5
 appVersion: 0.2.0
 keywords:
 - kubernetes
