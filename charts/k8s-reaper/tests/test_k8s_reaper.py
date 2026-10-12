@@ -353,3 +353,16 @@ def test_crd_ships_in_crds_directory_and_is_marked_generated():
     assert crd["metadata"]["name"] == "reaperconfigs.reaper.boop.ninja"
     assert crd["spec"]["scope"] == "Cluster"
     assert [version["name"] for version in crd["spec"]["versions"]] == ["v1alpha1"]
+
+
+def test_crd_carries_the_cron_job_failure_rate_settings():
+    crd = yaml.safe_load(
+        (CHART_PATH / "crds" / "reaperconfigs.reaper.boop.ninja.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    spec = crd["spec"]["versions"][0]["schema"]["openAPIV3Schema"]["properties"]["spec"]
+    failure_rate = spec["properties"]["cronJobs"]["properties"]["failureRate"]
+    assert set(failure_rate["properties"]) == {"enabled", "threshold", "windowRuns"}
+    assert failure_rate["properties"]["windowRuns"]["minimum"] == 3
+    assert failure_rate["properties"]["windowRuns"]["maximum"] == 100
