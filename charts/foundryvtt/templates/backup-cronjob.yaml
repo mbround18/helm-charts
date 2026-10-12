@@ -17,7 +17,7 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: {{ .Values.backup_cleanup.backoffLimit | default 2 }}
-      ttlSecondsAfterFinished: {{ .Values.backup_cleanup.ttlSecondsAfterFinished | default 300 }}
+      ttlSecondsAfterFinished: {{ .Values.backup_cleanup.ttlSecondsAfterFinished | default 86400 }}
       activeDeadlineSeconds: {{ .Values.backup_cleanup.activeDeadlineSeconds | default 600 }}
       template:
         spec:
@@ -34,9 +34,7 @@ spec:
               image: "{{ .Values.cleanupImage.repository }}:{{ .Values.cleanupImage.tag }}"
               command: ["/bin/sh", "-c"]
               args:
-                - >
-                  apk add --no-cache findutils &&
-                  find /foundrydata/Backups -type f -mtime +{{ .Values.backup_cleanup.olderThanDays }} -delete
+                - find /foundrydata/Backups -type f -mtime +{{ .Values.backup_cleanup.olderThanDays }} -delete
               {{- if .Values.securityContext.enabled }}
               securityContext:
                 runAsUser: {{ .Values.securityContext.runAsUser }}

@@ -83,3 +83,30 @@ def test_argocd_force_mode_applies_expected_phase_annotations(
         resource["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"]
         == expected_wave
     )
+
+
+def _backup_cleanup_job(values=None):
+    documents = _render({"backup_cleanup": {"enabled": True, **(values or {})}})
+    return _document_by_kind(documents, "CronJob")["spec"]["jobTemplate"]["spec"]
+
+
+def test_backup_cleanup_runs_as_non_root_without_installing_packages():
+    job = _backup_cleanup_job()
+    container = job["template"]["spec"]["containers"][0]
+    script = " ".join(container["args"])
+
+    # apk needs root; the container runs as uid 1000, so `apk add` fails
+    # before the cleanup starts. BusyBox's find has -mtime and -delete.
+    assert container["securityContext"]["runAsNonRoot"] is True
+    assert "apk" not in script
+    assert "find /foundrydata/Backups -type f -mtime +30 -delete" in script
+
+
+def test_backup_cleanup_keeps_finished_jobs_for_a_day():
+    # A 5-minute TTL deleted failed Jobs, and their logs, long before
+    # anyone could read them; failedJobsHistoryLimit never got a say.
+    assert _backup_cleanup_job()["ttlSecondsAfterFinished"] == 86400
+    assert (
+        _backup_cleanup_job({"ttlSecondsAfterFinished": 600})["ttlSecondsAfterFinished"]
+        == 600
+    )
