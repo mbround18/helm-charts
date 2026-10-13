@@ -35,7 +35,9 @@ helm install foundryvtt mbround18/foundryvtt --namespace foundryvtt --create-nam
 | service.type        | Service type (NodePort/LoadBalancer) | "NodePort"              |
 | persistence.enabled | Enable persistent storage            | true                    |
 | persistence.size    | PVC size for data                    | "10Gi"                  |
-| backup.enabled      | Enable automated backups             | true                    |
+| backup.enabled      | Nightly archive of the Data volume   | true                    |
+| backup.schedule     | Cron schedule for the archive        | "0 1 * * *"             |
+| backup.keep         | Archives to keep                     | 7                       |
 | ingress.enabled     | Enable ingress resource              | true                    |
 
 ## Usage Examples
@@ -57,8 +59,14 @@ resources:
 ```yaml
 backup:
   enabled: true
-  schedule: "0 2 * * *"
+  schedule: "0 1 * * *"
+  keep: 7
 ```
+
+Each run writes `Backups/chart/data-<UTC timestamp>.tar.gz` from the Data
+volume and removes all but the newest `keep` archives. Config is not included.
+The archive is taken while Foundry runs, so a world saved at that moment may be
+caught mid-write; restore from an older archive if one is inconsistent.
 
 ### Enable Istio Ingress
 

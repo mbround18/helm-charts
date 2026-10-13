@@ -182,6 +182,20 @@ extraContainers: []
 ########################################################
 # Backup settings
 ########################################################
+# Nightly archive of the Data volume (worlds, modules, systems) into
+# Backups/<directory>/data-<UTC timestamp>.tar.gz, keeping the newest `keep`.
+# Config is ReadWriteOnce and is not included. The copy is taken while Foundry
+# runs, so a world being written at that moment may be caught mid-save.
+backup:
+  enabled: true
+  schedule: 0 1 * * *
+  keep: 7
+  directory: chart
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  activeDeadlineSeconds: 3600
 backup_cleanup:
   enabled: true
   schedule: 0 2 * * *

@@ -1,0 +1,79 @@
+{{- $vct := .Values.volumeClaimTemplates }}
+{{- if and .Values.backup .Values.backup.enabled $vct.data.enabled $vct.backups.enabled }}
+{{- $fullname := include "foundryvtt.fullname" . }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $fullname }}-backup
+  labels:
+    {{- include "foundryvtt.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "supporting") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.backup.schedule | default "0 1 * * *" | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.backup.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.backup.failedJobsHistoryLimit | default 3 }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.backup.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.backup.ttlSecondsAfterFinished | default 86400 }}
+      activeDeadlineSeconds: {{ .Values.backup.activeDeadlineSeconds | default 3600 }}
+      template:
+        spec:
+          restartPolicy: OnFailure
+          {{- if .Values.podSecurityContext.enabled }}
+          securityContext:
+            fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+            fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy | quote }}
+            seccompProfile:
+              type: {{ .Values.podSecurityContext.seccompProfile.type }}
+          {{- end }}
+          containers:
+            - name: backup
+              image: "{{ .Values.cleanupImage.repository }}:{{ .Values.cleanupImage.tag }}"
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  KEEP={{ int (.Values.backup.keep | default 7) }}
+                  DEST=/foundrydata/Backups/{{ .Values.backup.directory | default "chart" }}
+                  mkdir -p "$DEST"
+                  STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+                  PARTIAL="$DEST/.data-$STAMP.tar.gz.partial"
+                  trap 'rm -f "$PARTIAL"' EXIT
+                  tar -czf "$PARTIAL" -C /foundrydata Data
+                  mv "$PARTIAL" "$DEST/data-$STAMP.tar.gz"
+                  echo "wrote $DEST/data-$STAMP.tar.gz ($(du -h "$DEST/data-$STAMP.tar.gz" | cut -f1))"
+                  ls -1t "$DEST"/data-*.tar.gz | tail -n +$((KEEP + 1)) | while read -r old; do
+                    echo "removing $old"
+                    rm -f "$old"
+                  done
+              {{- if .Values.securityContext.enabled }}
+              securityContext:
+                runAsUser: {{ .Values.securityContext.runAsUser }}
+                runAsGroup: {{ .Values.securityContext.runAsGroup }}
+                runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+                allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+                readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+                capabilities:
+                  drop: {{ toYaml .Values.securityContext.capabilities.drop | nindent 18 }}
+              {{- end }}
+              volumeMounts:
+                - name: data
+                  mountPath: /foundrydata/Data
+                  readOnly: true
+                - name: backups
+                  mountPath: /foundrydata/Backups
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: data-{{ $fullname }}-0
+                readOnly: true
+            - name: backups
+              persistentVolumeClaim:
+                claimName: backups-{{ $fullname }}-0
+{{- end }}

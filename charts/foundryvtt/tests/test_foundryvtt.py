@@ -110,3 +110,60 @@ def test_backup_cleanup_keeps_finished_jobs_for_a_day():
         _backup_cleanup_job({"ttlSecondsAfterFinished": 600})["ttlSecondsAfterFinished"]
         == 600
     )
+
+
+def _backup_cron_job(values=None):
+    documents = _render(values)
+    return next(
+        (
+            d
+            for d in documents
+            if d.get("kind") == "CronJob" and d["metadata"]["name"].endswith("-backup")
+        ),
+        None,
+    )
+
+
+def test_backup_archives_data_nightly_by_default():
+    cron = _backup_cron_job()
+    assert cron is not None
+    assert cron["spec"]["schedule"] == "0 1 * * *"
+    assert cron["spec"]["concurrencyPolicy"] == "Forbid"
+
+    job = cron["spec"]["jobTemplate"]["spec"]
+    assert job["ttlSecondsAfterFinished"] == 86400
+    pod = job["template"]["spec"]
+    container = pod["containers"][0]
+    script = " ".join(container["args"])
+    assert container["securityContext"]["runAsNonRoot"] is True
+    assert "apk" not in script
+    assert "tar -czf" in script
+    assert "KEEP=7" in script
+
+    mounts = {m["name"]: m["mountPath"] for m in container["volumeMounts"]}
+    assert mounts == {"data": "/foundrydata/Data", "backups": "/foundrydata/Backups"}
+    claims = {
+        v["name"]: v["persistentVolumeClaim"]["claimName"] for v in pod["volumes"]
+    }
+    assert claims["data"].startswith("data-") and claims["data"].endswith("-0")
+    assert claims["backups"].startswith("backups-") and claims["backups"].endswith("-0")
+
+
+def test_backup_follows_its_values():
+    cron = _backup_cron_job({"backup": {"schedule": "30 3 * * *", "keep": 3}})
+    assert cron["spec"]["schedule"] == "30 3 * * *"
+    script = " ".join(
+        cron["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["args"]
+    )
+    assert "KEEP=3" in script
+
+
+def test_backup_is_not_rendered_when_disabled_or_without_its_volumes():
+    assert _backup_cron_job({"backup": {"enabled": False}}) is None
+    assert (
+        _backup_cron_job({"volumeClaimTemplates": {"data": {"enabled": False}}}) is None
+    )
+    assert (
+        _backup_cron_job({"volumeClaimTemplates": {"backups": {"enabled": False}}})
+        is None
+    )
