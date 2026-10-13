@@ -1,6 +1,7 @@
 {{- $vct := .Values.volumeClaimTemplates }}
 {{- if and .Values.backup .Values.backup.enabled $vct.data.enabled $vct.backups.enabled }}
 {{- $fullname := include "foundryvtt.fullname" . }}
+{{- $config := and (ne .Values.backup.includeConfig false) $vct.config.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -25,6 +26,17 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          {{- if $config }}
+          # Config is ReadWriteOnce: run beside the Foundry pod so the volume
+          # can be mounted from the same node.
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - topologyKey: kubernetes.io/hostname
+                  labelSelector:
+                    matchLabels:
+                      {{- include "foundryvtt.selectorLabels" . | nindent 22 }}
+          {{- end }}
           {{- if .Values.podSecurityContext.enabled }}
           securityContext:
             fsGroup: {{ .Values.podSecurityContext.fsGroup }}
@@ -45,7 +57,7 @@ spec:
                   STAMP=$(date -u +%Y%m%dT%H%M%SZ)
                   PARTIAL="$DEST/.data-$STAMP.tar.gz.partial"
                   trap 'rm -f "$PARTIAL"' EXIT
-                  tar -czf "$PARTIAL" -C /foundrydata Data
+                  tar -czf "$PARTIAL" -C /foundrydata --exclude=lost+found --exclude=options.json.lock Data{{ if $config }} Config{{ end }}
                   mv "$PARTIAL" "$DEST/data-$STAMP.tar.gz"
                   echo "wrote $DEST/data-$STAMP.tar.gz ($(du -h "$DEST/data-$STAMP.tar.gz" | cut -f1))"
                   ls -1t "$DEST"/data-*.tar.gz | tail -n +$((KEEP + 1)) | while read -r old; do
@@ -66,6 +78,11 @@ spec:
                 - name: data
                   mountPath: /foundrydata/Data
                   readOnly: true
+                {{- if $config }}
+                - name: config
+                  mountPath: /foundrydata/Config
+                  readOnly: true
+                {{- end }}
                 - name: backups
                   mountPath: /foundrydata/Backups
           volumes:
@@ -73,6 +90,12 @@ spec:
               persistentVolumeClaim:
                 claimName: data-{{ $fullname }}-0
                 readOnly: true
+            {{- if $config }}
+            - name: config
+              persistentVolumeClaim:
+                claimName: config-{{ $fullname }}-0
+                readOnly: true
+            {{- end }}
             - name: backups
               persistentVolumeClaim:
                 claimName: backups-{{ $fullname }}-0

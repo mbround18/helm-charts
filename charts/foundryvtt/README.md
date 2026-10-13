@@ -27,18 +27,19 @@ helm install foundryvtt mbround18/foundryvtt --namespace foundryvtt --create-nam
 
 ## Configuration
 
-| Parameter           | Description                          | Default                 |
-| ------------------- | ------------------------------------ | ----------------------- |
-| image.repository    | Container image repository           | "foundryvtt/foundryvtt" |
-| image.tag           | Image tag/version                    | "latest"                |
-| resources           | CPU/memory requests/limits           | See values.yaml         |
-| service.type        | Service type (NodePort/LoadBalancer) | "NodePort"              |
-| persistence.enabled | Enable persistent storage            | true                    |
-| persistence.size    | PVC size for data                    | "10Gi"                  |
-| backup.enabled      | Nightly archive of the Data volume   | true                    |
-| backup.schedule     | Cron schedule for the archive        | "0 1 * * *"             |
-| backup.keep         | Archives to keep                     | 7                       |
-| ingress.enabled     | Enable ingress resource              | true                    |
+| Parameter            | Description                            | Default                 |
+| -------------------- | -------------------------------------- | ----------------------- |
+| image.repository     | Container image repository             | "foundryvtt/foundryvtt" |
+| image.tag            | Image tag/version                      | "latest"                |
+| resources            | CPU/memory requests/limits             | See values.yaml         |
+| service.type         | Service type (NodePort/LoadBalancer)   | "NodePort"              |
+| persistence.enabled  | Enable persistent storage              | true                    |
+| persistence.size     | PVC size for data                      | "10Gi"                  |
+| backup.enabled       | Nightly archive of the Data volume     | true                    |
+| backup.includeConfig | Also archive Config (license, options) | true                    |
+| backup.schedule      | Cron schedule for the archive          | "0 1 * * *"             |
+| backup.keep          | Archives to keep                       | 7                       |
+| ingress.enabled      | Enable ingress resource                | true                    |
 
 ## Usage Examples
 
@@ -64,7 +65,10 @@ backup:
 ```
 
 Each run writes `Backups/chart/data-<UTC timestamp>.tar.gz` from the Data
-volume and removes all but the newest `keep` archives. Config is not included.
+volume, and the Config volume when `includeConfig` is on, then removes all but
+the newest `keep` archives. Config is ReadWriteOnce, so the job is scheduled on
+the node running the Foundry pod; it holds `license.json`, so treat the archives
+as secrets.
 The archive is taken while Foundry runs, so a world saved at that moment may be
 caught mid-write; restore from an older archive if one is inconsistent.
 

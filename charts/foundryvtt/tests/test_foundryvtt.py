@@ -141,12 +141,17 @@ def test_backup_archives_data_nightly_by_default():
     assert "KEEP=7" in script
 
     mounts = {m["name"]: m["mountPath"] for m in container["volumeMounts"]}
-    assert mounts == {"data": "/foundrydata/Data", "backups": "/foundrydata/Backups"}
+    assert mounts == {
+        "data": "/foundrydata/Data",
+        "config": "/foundrydata/Config",
+        "backups": "/foundrydata/Backups",
+    }
     claims = {
         v["name"]: v["persistentVolumeClaim"]["claimName"] for v in pod["volumes"]
     }
     assert claims["data"].startswith("data-") and claims["data"].endswith("-0")
     assert claims["backups"].startswith("backups-") and claims["backups"].endswith("-0")
+    assert claims["config"].startswith("config-") and claims["config"].endswith("-0")
 
 
 def test_backup_follows_its_values():
@@ -167,3 +172,36 @@ def test_backup_is_not_rendered_when_disabled_or_without_its_volumes():
         _backup_cron_job({"volumeClaimTemplates": {"backups": {"enabled": False}}})
         is None
     )
+
+
+def test_backup_archives_config_beside_foundry_and_skips_lost_and_found():
+    cron = _backup_cron_job()
+    pod = cron["spec"]["jobTemplate"]["spec"]["template"]["spec"]
+    script = " ".join(pod["containers"][0]["args"])
+    assert "Data Config" in script
+    assert "--exclude=lost+found" in script
+    assert "--exclude=options.json.lock" in script
+
+    # Config is ReadWriteOnce, so the job must land on Foundry's node.
+    terms = pod["affinity"]["podAffinity"][
+        "requiredDuringSchedulingIgnoredDuringExecution"
+    ]
+    assert terms[0]["topologyKey"] == "kubernetes.io/hostname"
+    labels = terms[0]["labelSelector"]["matchLabels"]
+    assert labels["app.kubernetes.io/name"] == "foundryvtt"
+    assert "app.kubernetes.io/instance" in labels
+
+
+def test_backup_without_config_needs_no_affinity():
+    for values in (
+        {"backup": {"includeConfig": False}},
+        {"volumeClaimTemplates": {"config": {"enabled": False}}},
+    ):
+        pod = _backup_cron_job(values)["spec"]["jobTemplate"]["spec"]["template"][
+            "spec"
+        ]
+        script = " ".join(pod["containers"][0]["args"])
+        assert "Config" not in script
+        assert "affinity" not in pod
+        names = {m["name"] for m in pod["containers"][0]["volumeMounts"]}
+        assert names == {"data", "backups"}
