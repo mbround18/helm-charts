@@ -1,10 +1,11 @@
 apiVersion: v2
 name: thanos
-description: Thanos store gateway, compactor and query for long-term Prometheus metrics in object storage
+description: Thanos store gateway, compactor and query for long-term Prometheus metrics
+  in object storage
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: v0.42.4
 dependencies:
-  - name: gitops-tools
-    version: 0.1.1
-    repository: file://../gitops-tools
+- name: gitops-tools
+  version: 0.1.1
+  repository: file://../gitops-tools
