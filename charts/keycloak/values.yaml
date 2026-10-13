@@ -5,7 +5,7 @@ fullnameOverride: ""
 
 image:
   repository: quay.io/keycloak/keycloak
-  tag: "26.8.0"
+  tag: "26.8.1"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
