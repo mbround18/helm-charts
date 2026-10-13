@@ -58,13 +58,9 @@ spec:
               protocol: TCP
             {{- end }}
           livenessProbe:
-            httpGet:
-              path: /healthz
-              port: metrics
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
-            httpGet:
-              path: /readyz
-              port: metrics
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           env:
             - name: DATABASE_URL
               {{- if .Values.postgres.enabled }}

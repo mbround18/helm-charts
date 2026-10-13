@@ -98,6 +98,23 @@ ingress:
           pathType: Prefix
   tls: []
 
+# The probe port also serves metrics; /readyz checks the database, so it can
+# take more than the 1s default when the node's disk is busy.
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: metrics
+  timeoutSeconds: 3
+  periodSeconds: 20
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: metrics
+  timeoutSeconds: 3
+  periodSeconds: 10
+  failureThreshold: 3
+
 resources:
   requests:
     cpu: 100m
