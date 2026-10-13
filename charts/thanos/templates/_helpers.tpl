@@ -69,6 +69,18 @@ app.kubernetes.io/component: {{ .component }}
   readOnly: true
 {{- end }}
 
+{{/* Environment for the components that open the bucket (store, compactor). */}}
+{{- define "thanos.objstoreEnv" -}}
+{{- with .Values.objstore.extraEnvFrom }}
+envFrom:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- with .Values.objstore.extraEnv }}
+env:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}
+
 {{- define "thanos.probes" -}}
 readinessProbe:
   httpGet:
