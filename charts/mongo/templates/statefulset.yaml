@@ -55,21 +55,19 @@ spec:
                   mongosh --quiet
                   {{- if .Values.auth.enabled }} --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin{{ end }}
                   --eval "db.adminCommand('ping')"
+            # mongosh is a Node.js process; starting it costs a second or more
+            # of CPU, so the ping runs rarely and gets time to finish.
             initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 10
             failureThreshold: 3
+          # Ready once mongod accepts connections. A mongosh ping every 5s
+          # timed out under load and kept the pod busy at idle.
           readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - >-
-                  mongosh --quiet
-                  {{- if .Values.auth.enabled }} --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin{{ end }}
-                  --eval "db.adminCommand('ping')"
+            tcpSocket:
+              port: mongo
             initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
           resources:
