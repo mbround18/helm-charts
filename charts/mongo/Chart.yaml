@@ -3,7 +3,7 @@ name: mongo
 description: MongoDB Helm chart with persistent storage and optional root-credential
   secret management
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: '8'
 dependencies:
 - name: gitops-tools
