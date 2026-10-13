@@ -1,0 +1,138 @@
+# Default values for thanos.
+#
+# Long-term storage for an existing Prometheus that runs the Thanos sidecar
+# (kube-prometheus-stack: prometheus.prometheusSpec.thanos). The sidecar
+# uploads 2h blocks to the bucket; this chart reads and maintains them:
+#   store     serves the blocks in the bucket over gRPC
+#   compactor compacts, downsamples (5m, 1h) and applies retention
+#   query     one PromQL endpoint over the sidecar(s) and the store
+# There is no receive, ruler or query-frontend.
+
+image:
+  repository: quay.io/thanos/thanos
+  # Defaults to the chart's appVersion when empty.
+  tag: v0.42.4
+  # Optional "sha256:..." appended to the tag to pin the exact image.
+  digest: ""
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+# Bucket configuration in Thanos' objstore format
+# (https://thanos.io/tip/thanos/storage.md), e.g. for any S3 API:
+#   type: S3
+#   config:
+#     bucket: metrics
+#     endpoint: s3.us-west-002.backblazeb2.com
+#     access_key: ...
+#     secret_key: ...
+# This chart never accepts it as a value because it holds credentials. Create
+# the Secret out of band (SOPS, ExternalSecrets, kubectl) and name it here:
+#   kubectl create secret generic thanos-objstore --from-file=objstore.yml
+objstore:
+  existingSecret: thanos-objstore
+  key: objstore.yml
+
+store:
+  enabled: true
+  replicas: 1
+  # Index headers and a small chunk cache; rebuilt from the bucket if lost.
+  persistence:
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    storageClass: ""
+  extraArgs: []
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+compactor:
+  enabled: true
+  # Always one: two compactors on the same bucket corrupt it. Kept as a value
+  # only so a setting of 0 or more than 1 is visibly ignored.
+  replicas: 1
+  # How long blocks of each resolution are kept. Raw blocks are downsampled to
+  # 5m after 40h and 5m to 1h after 10d, so keep 5m and 1h at least as long
+  # as raw. "0d" keeps forever.
+  retention:
+    raw: 30d
+    fiveMinutes: 90d
+    oneHour: 395d
+  # Scratch space for compaction; size it for the largest two weeks of blocks.
+  persistence:
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    storageClass: ""
+  extraArgs: []
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 2Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+query:
+  enabled: true
+  replicas: 1
+  # Store API endpoints besides this chart's store, usually the Prometheus
+  # sidecar(s), e.g.
+  #   dnssrv+_grpc._tcp.kube-prometheus-stack-thanos-discovery.monitoring.svc
+  extraEndpoints: []
+  # Labels that tell HA Prometheus replicas apart, deduplicated in queries.
+  replicaLabels: []
+  extraArgs: []
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 1Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Used to build the store's DNS SRV endpoint for query.
+clusterDomain: cluster.local
+
+service:
+  type: ClusterIP
+  grpcPort: 10901
+  httpPort: 10902
+
+serviceMonitor:
+  enabled: false
+  labels: {}
+  interval: 60s
+  scrapeTimeout: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL

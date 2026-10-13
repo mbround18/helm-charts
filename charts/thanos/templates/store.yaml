@@ -1,0 +1,96 @@
+{{- if .Values.store.enabled }}
+{{- $component := dict "context" . "component" "store" }}
+{{- with .Values.store }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "thanos.fullname" $ }}-store
+  labels:
+    {{- include "thanos.componentLabels" $component | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" $ "phase" "database") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "thanos.fullname" $ }}-store
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      {{- include "thanos.componentSelectorLabels" $component | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "thanos.componentSelectorLabels" $component | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: store
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          image: {{ include "thanos.image" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args:
+            - store
+            - --data-dir=/data
+            - --objstore.config-file=/etc/thanos/objstore.yml
+            - --grpc-address=0.0.0.0:{{ $.Values.service.grpcPort }}
+            - --http-address=0.0.0.0:{{ $.Values.service.httpPort }}
+            {{- with .extraArgs }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: grpc
+              containerPort: {{ $.Values.service.grpcPort }}
+            - name: http
+              containerPort: {{ $.Values.service.httpPort }}
+          {{- include "thanos.probes" $ | nindent 10 }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            {{- include "thanos.objstoreMount" $ | nindent 12 }}
+      volumes:
+        {{- include "thanos.objstoreVolume" $ | nindent 8 }}
+      {{- with .nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    {{- include "thanos.volumeClaim" .persistence | nindent 4 }}
+---
+# Headless, so query's DNS SRV lookup returns every store replica.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "thanos.fullname" $ }}-store
+  labels:
+    {{- include "thanos.componentLabels" $component | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" $ "phase" "ingress") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  clusterIP: None
+  ports:
+    - name: grpc
+      port: {{ $.Values.service.grpcPort }}
+      targetPort: grpc
+    - name: http
+      port: {{ $.Values.service.httpPort }}
+      targetPort: http
+  selector:
+    {{- include "thanos.componentSelectorLabels" $component | nindent 4 }}
+{{- end }}
+{{- end }}
