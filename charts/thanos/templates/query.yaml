@@ -1,0 +1,93 @@
+{{- if .Values.query.enabled }}
+{{- $component := dict "context" . "component" "query" }}
+{{- with .Values.query }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "thanos.fullname" $ }}-query
+  labels:
+    {{- include "thanos.componentLabels" $component | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" $ "phase" "release") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      {{- include "thanos.componentSelectorLabels" $component | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "thanos.componentSelectorLabels" $component | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: query
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          image: {{ include "thanos.image" $ | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args:
+            - query
+            - --grpc-address=0.0.0.0:{{ $.Values.service.grpcPort }}
+            - --http-address=0.0.0.0:{{ $.Values.service.httpPort }}
+            {{- if $.Values.store.enabled }}
+            - --endpoint=dnssrv+_grpc._tcp.{{ include "thanos.fullname" $ }}-store.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}
+            {{- end }}
+            {{- range .extraEndpoints }}
+            - --endpoint={{ . }}
+            {{- end }}
+            {{- range .replicaLabels }}
+            - --query.replica-label={{ . }}
+            {{- end }}
+            {{- with .extraArgs }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: grpc
+              containerPort: {{ $.Values.service.grpcPort }}
+            - name: http
+              containerPort: {{ $.Values.service.httpPort }}
+          {{- include "thanos.probes" $ | nindent 10 }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+      {{- with .nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "thanos.fullname" $ }}-query
+  labels:
+    {{- include "thanos.componentLabels" $component | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" $ "phase" "ingress") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - name: grpc
+      port: {{ $.Values.service.grpcPort }}
+      targetPort: grpc
+    - name: http
+      port: {{ $.Values.service.httpPort }}
+      targetPort: http
+  selector:
+    {{- include "thanos.componentSelectorLabels" $component | nindent 4 }}
+{{- end }}
+{{- end }}
