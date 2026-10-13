@@ -182,12 +182,16 @@ extraContainers: []
 ########################################################
 # Backup settings
 ########################################################
-# Nightly archive of the Data volume (worlds, modules, systems) into
+# Nightly archive of the Data volume (worlds, modules, systems) and, with
+# includeConfig, the Config volume (license.json, options.json) into
 # Backups/<directory>/data-<UTC timestamp>.tar.gz, keeping the newest `keep`.
-# Config is ReadWriteOnce and is not included. The copy is taken while Foundry
-# runs, so a world being written at that moment may be caught mid-save.
+# Config is ReadWriteOnce, so with includeConfig the job runs on the Foundry
+# pod's node and waits if that pod is not running. The archive then holds the
+# license key. The copy is taken while Foundry runs, so a world being written
+# at that moment may be caught mid-save.
 backup:
   enabled: true
+  includeConfig: true
   schedule: 0 1 * * *
   keep: 7
   directory: chart
