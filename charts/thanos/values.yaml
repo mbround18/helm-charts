@@ -39,6 +39,16 @@ argoCd:
 objstore:
   existingSecret: thanos-objstore
   key: objstore.yml
+  # Environment for the store and compactor, the two components that open the
+  # bucket. Thanos expands $(NAME) in the objstore file, and with an empty
+  # access_key the S3 client reads AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+  # from the environment, so the credentials can live in their own Secret and
+  # objstore.yml holds none:
+  #   extraEnvFrom:
+  #     - secretRef:
+  #         name: s3-credentials
+  extraEnv: []
+  extraEnvFrom: []
 
 store:
   enabled: true

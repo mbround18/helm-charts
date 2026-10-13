@@ -158,3 +158,27 @@ def test_service_monitor_scrapes_every_component():
     selector = monitor["spec"]["selector"]["matchLabels"]
     assert "app.kubernetes.io/component" not in selector
     assert [e["port"] for e in monitor["spec"]["endpoints"]] == ["http"]
+
+
+def test_bucket_credentials_come_from_env_on_bucket_components_only():
+    docs = _render(
+        {
+            "objstore": {
+                "extraEnvFrom": [{"secretRef": {"name": "s3-credentials"}}],
+                "extraEnv": [{"name": "S3_ENDPOINT", "value": "s3.example.test"}],
+            }
+        }
+    )
+    for name in ("thanos-store", "thanos-compactor"):
+        container = _container(_find(docs, "StatefulSet", name))
+        assert container["envFrom"] == [{"secretRef": {"name": "s3-credentials"}}]
+        assert container["env"] == [{"name": "S3_ENDPOINT", "value": "s3.example.test"}]
+    query = _container(_find(docs, "Deployment", "thanos-query"))
+    assert "envFrom" not in query and "env" not in query
+
+
+def test_no_env_by_default():
+    for doc in _render():
+        if doc["kind"] in ("StatefulSet", "Deployment"):
+            container = _container(doc)
+            assert "envFrom" not in container and "env" not in container
