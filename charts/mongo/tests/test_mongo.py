@@ -99,3 +99,13 @@ def test_argocd_sync_waves_render_when_application_api_is_available():
         statefulset["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "10"
     )
     assert service["metadata"]["annotations"]["argocd.argoproj.io/sync-wave"] == "10"
+
+
+def test_probes_are_light():
+    statefulset = _document_by_kind(_render(), "StatefulSet")
+    container = statefulset["spec"]["template"]["spec"]["containers"][0]
+
+    assert container["readinessProbe"]["tcpSocket"]["port"] == "mongo"
+    assert "exec" not in container["readinessProbe"]
+    assert container["livenessProbe"]["periodSeconds"] >= 30
+    assert container["livenessProbe"]["timeoutSeconds"] >= 10
