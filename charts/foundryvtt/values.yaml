@@ -6,7 +6,7 @@ fullnameOverride: foundryvtt-dnd-boop-ninja
 ########################################################
 image:
   repository: mbround18/foundryvtt-docker
-  tag: v3.0.56
+  tag: v3.0.57
   pullPolicy: IfNotPresent
 
 sslProxy: false
