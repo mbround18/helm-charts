@@ -1,0 +1,7 @@
+static-pull-thru is caching http://{{ .Values.upstream.host }}:{{ .Values.upstream.port }}.
+
+Point your route or ingress at the Service instead of the origin:
+
+  {{ include "static-pull-thru.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}
+
+Every response carries X-Cache-Status (MISS, HIT, STALE, UPDATING, BYPASS).

@@ -1,0 +1,106 @@
+# Default values for static-pull-thru.
+
+image:
+  repository: nginxinc/nginx-unprivileged
+  pullPolicy: IfNotPresent
+  tag: 1.31.7-alpine
+
+nameOverride: ""
+fullnameOverride: ""
+
+argoCd:
+  mode: auto
+  instanceLabel: ""
+  commonAnnotations: {}
+  commonLabels: {}
+
+# The origin to pull from. Set `host` (the default is a placeholder). nginx
+# resolves it once at startup, so point it at something that always resolves
+# (a ClusterIP Service is ideal): the origin being down is fine, its name not
+# resolving is not, and empty fails the render.
+upstream:
+  host: origin
+  port: 80
+  # Host header sent to the origin. Empty forwards the client's Host.
+  hostHeader: ""
+  # Kept short: when the origin is unreachable, every request waits this long
+  # before the stale copy is served.
+  connectTimeout: 3s
+  readTimeout: 60s
+  # Read timeout on bypassPaths, long so idle websockets stay open.
+  bypassReadTimeout: 1h
+
+cache:
+  # How long a cached response counts as fresh. Past this nginx revalidates in
+  # the background while still answering from the cache.
+  validFor: 5m
+  # How long an entry survives without being requested. This is the longest
+  # outage the cache can cover.
+  inactive: 30d
+  # nginx's own cap. Keep it below persistence.size.
+  maxSize: 900m
+  # Response codes to cache (with validFor).
+  statuses: [200, 301, 302]
+  persistence:
+    # false keeps the cache in an emptyDir, which is lost on every pod restart.
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+
+# Path prefixes proxied straight to the origin, never cached: APIs, auth,
+# websockets. Websocket upgrades work on every path.
+bypassPaths: []
+#  - /graphql
+#  - /auth/
+
+toast:
+  # Inject /__pull-thru/toast.js into HTML responses. It polls the origin and
+  # shows a toast while it is down. Served from the same origin, so a
+  # `script-src 'self'` CSP allows it.
+  enabled: true
+  message: The server is offline. You are seeing a cached copy.
+  # Seconds between origin checks.
+  checkInterval: 30
+  # Path on the origin probed by /__pull-thru/upstream. Any status below 500
+  # counts as up.
+  healthPath: /
+  background: "#1f1a15"
+  color: "#f3e9d8"
+
+# Served with status 503 when the origin is down and the path was never cached.
+offlinePage:
+  title: Server offline
+  message: The server is offline and this page has not been cached yet. Try again later.
+
+service:
+  type: ClusterIP
+  port: 8080
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+
+securityContext:
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
