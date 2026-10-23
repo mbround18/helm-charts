@@ -1,0 +1,186 @@
+{{- if not .Values.upstream.host }}
+{{- fail "static-pull-thru: upstream.host is required" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "static-pull-thru.fullname" . }}
+  labels:
+    {{- include "static-pull-thru.labels" . | nindent 4 }}
+  {{- $annotations := include "gitops-tools.argocd.annotations" (dict "context" . "phase" "foundation") }}
+  {{- if $annotations }}
+  annotations:
+    {{- $annotations | nindent 4 }}
+  {{- end }}
+data:
+  nginx.conf: |
+    worker_processes 1;
+    pid /tmp/nginx.pid;
+    error_log /dev/stderr warn;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+      server_tokens off;
+      access_log /dev/stdout;
+
+      client_body_temp_path /tmp/client_temp;
+      proxy_temp_path /tmp/proxy_temp;
+      fastcgi_temp_path /tmp/fastcgi_temp;
+      uwsgi_temp_path /tmp/uwsgi_temp;
+      scgi_temp_path /tmp/scgi_temp;
+
+      proxy_cache_path /var/cache/nginx/pull-thru levels=1:2 keys_zone=pull_thru:10m
+        max_size={{ .Values.cache.maxSize }} inactive={{ .Values.cache.inactive }} use_temp_path=off;
+
+      map $http_upgrade $connection_upgrade {
+        default upgrade;
+        "" "";
+      }
+
+      # Keep the scheme the edge saw, so the origin's own redirects stay https.
+      map $http_x_forwarded_proto $forwarded_proto {
+        default $http_x_forwarded_proto;
+        "" $scheme;
+      }
+
+      upstream origin {
+        server {{ .Values.upstream.host }}:{{ .Values.upstream.port }};
+        keepalive 8;
+      }
+
+      server {
+        listen {{ .Values.service.port }};
+
+        location = /__pull-thru/healthz {
+          access_log off;
+          return 204;
+        }
+
+        {{- if .Values.toast.enabled }}
+
+        # Uncached origin probe for toast.js. Any status below 500 means up.
+        location = /__pull-thru/upstream {
+          access_log off;
+          {{- include "static-pull-thru.proxyHeaders" . | nindent 10 }}
+          proxy_read_timeout 5s;
+          proxy_pass_request_body off;
+          proxy_set_header Content-Length "";
+          add_header Cache-Control "no-store" always;
+          proxy_pass http://origin{{ .Values.toast.healthPath }};
+        }
+        {{- end }}
+
+        location /__pull-thru/ {
+          alias /etc/static-pull-thru/;
+          add_header Cache-Control "no-cache" always;
+        }
+
+        {{- range .Values.bypassPaths }}
+
+        location ^~ {{ . }} {
+          {{- include "static-pull-thru.proxyHeaders" $ | nindent 10 }}
+          proxy_read_timeout {{ $.Values.upstream.bypassReadTimeout }};
+          proxy_pass http://origin;
+        }
+        {{- end }}
+
+        location / {
+          {{- include "static-pull-thru.proxyHeaders" . | nindent 10 }}
+          proxy_read_timeout {{ .Values.upstream.readTimeout }};
+
+          proxy_cache pull_thru;
+          proxy_cache_key $host$request_uri;
+          proxy_cache_valid {{ join " " .Values.cache.statuses }} {{ .Values.cache.validFor }};
+          proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+          proxy_cache_background_update on;
+          proxy_cache_lock on;
+          # Origins often send no-cache on their HTML shell; the cache must
+          # keep it anyway. Responses that set a cookie are still never cached.
+          proxy_ignore_headers Cache-Control Expires;
+          proxy_cache_bypass $http_authorization;
+          proxy_no_cache $http_authorization;
+          add_header X-Cache-Status $upstream_cache_status always;
+
+          # Never cached and the origin unreachable: explain instead of a bare 502.
+          error_page 502 504 =503 /__pull-thru/offline.html;
+
+          {{- if .Values.toast.enabled }}
+
+          # sub_filter cannot rewrite compressed bodies.
+          proxy_set_header Accept-Encoding "";
+          sub_filter_once on;
+          sub_filter "</body>" "<script src=\"/__pull-thru/toast.js\" defer></script></body>";
+          {{- end }}
+
+          proxy_pass http://origin;
+        }
+      }
+    }
+  offline.html: |
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{{ .Values.offlinePage.title | html }}</title>
+      </head>
+      <body style="margin:0;min-height:100vh;display:grid;place-items:center;background:{{ .Values.toast.background }};color:{{ .Values.toast.color }};font:16px/1.5 system-ui,sans-serif">
+        <main style="max-width:32rem;padding:1rem">
+          <h1 style="font-size:1.4rem">{{ .Values.offlinePage.title | html }}</h1>
+          <p>{{ .Values.offlinePage.message | html }}</p>
+        </main>
+      </body>
+    </html>
+  {{- if .Values.toast.enabled }}
+  toast.js: |
+    (function () {
+      var config = {{ dict "message" .Values.toast.message "interval" .Values.toast.checkInterval "background" .Values.toast.background "color" .Values.toast.color | toJson }};
+      var toast = null;
+
+      function show() {
+        if (toast) return;
+        toast = document.createElement("div");
+        toast.setAttribute("role", "status");
+        toast.textContent = config.message;
+        // CSSOM, not a style attribute, so a strict style-src CSP allows it.
+        Object.assign(toast.style, {
+          position: "fixed",
+          left: "50%",
+          bottom: "1.5rem",
+          transform: "translateX(-50%)",
+          zIndex: "2147483647",
+          maxWidth: "calc(100vw - 2rem)",
+          padding: "0.75rem 1.1rem",
+          borderRadius: "8px",
+          background: config.background,
+          color: config.color,
+          font: "14px/1.4 system-ui, sans-serif",
+          boxShadow: "0 6px 24px rgba(0, 0, 0, 0.4)",
+        });
+        document.body.appendChild(toast);
+      }
+
+      function hide() {
+        if (!toast) return;
+        toast.remove();
+        toast = null;
+      }
+
+      function check() {
+        fetch("/__pull-thru/upstream", { cache: "no-store", credentials: "omit" }).then(
+          function (response) {
+            response.status < 500 ? hide() : show();
+          },
+          show,
+        );
+      }
+
+      check();
+      setInterval(check, config.interval * 1000);
+    })();
+  {{- end }}
