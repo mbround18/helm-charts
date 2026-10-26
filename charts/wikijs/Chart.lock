@@ -7,6 +7,6 @@ dependencies:
   version: 0.1.13
 - name: meilisearch
   repository: https://mbround18.github.io/helm-charts
-  version: 0.1.39
-digest: sha256:28d7df6757f56bd86febc4ec298d82630bb915164f4aa7507b5ca3b7397c5e9d
-generated: "2026-10-12T13:31:05.884072075Z"
+  version: 0.1.40
+digest: sha256:8ed593cb46e82fb1fdcaa3f4d105d1b22f325ee07715a38c5a87f19e5074efb5
+generated: "2026-10-26T13:10:57.117720086Z"
