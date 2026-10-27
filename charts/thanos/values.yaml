@@ -11,7 +11,7 @@
 image:
   repository: quay.io/thanos/thanos
   # Defaults to the chart's appVersion when empty.
-  tag: v0.42.4
+  tag: v0.42.5
   # Optional "sha256:..." appended to the tag to pin the exact image.
   digest: ""
   pullPolicy: IfNotPresent
