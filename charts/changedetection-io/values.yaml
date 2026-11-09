@@ -5,7 +5,7 @@ strategy:
 
 image:
   repository: ghcr.io/dgtlmoon/changedetection.io
-  tag: 0.70.2
+  tag: 0.70.3
   pullPolicy: IfNotPresent
 
 service:
