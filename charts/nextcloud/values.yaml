@@ -27,10 +27,39 @@ nextcloud:
 
   resources: {}
 
-  # securityContext left empty by default: the upstream nextcloud:apache
-  # image expects to run as root to manage www-data ownership on startup.
-  podSecurityContext: {}
-  securityContext: {}
+  # The upstream nextcloud:apache image starts as root (its entrypoint chowns
+  # /var/www/html and Apache binds :80 before dropping to www-data), so it
+  # cannot run as non-root. What it can do without: every capability outside
+  # this set, privilege escalation via setuid binaries, and syscalls outside
+  # the runtime's default seccomp profile. Tested against a fresh install and
+  # a restart (the upgrade path) of production-apache.
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+      add:
+        - CHOWN
+        - DAC_OVERRIDE
+        - FOWNER
+        - FSETID
+        - SETGID
+        - SETUID
+        - NET_BIND_SERVICE
+        - KILL
+
+  # Stop advertising the Apache, OS and PHP versions: ServerTokens Prod,
+  # ServerSignature Off, TraceEnable Off and expose_php=Off, mounted from a
+  # chart-owned ConfigMap after the image's own conf-enabled/security.conf.
+  hardening:
+    enabled: true
+
+  # Extra volumes and mounts for the nextcloud container, e.g. an Apache
+  # conf-enabled override from a ConfigMap.
+  extraVolumes: []
+  extraVolumeMounts: []
 
 mysql:
   image:
@@ -50,8 +79,20 @@ mysql:
 
   resources: {}
 
-  podSecurityContext: {}
-  securityContext: {}
+  # The mysql image runs mysqld as uid 999 and only needs root to chown an
+  # empty data dir on first boot; fsGroup covers that on a fresh volume.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
 
 # Secrets are provisioned out-of-band (external-secrets / manual) and
 # referenced by name only; this chart never creates them.
@@ -65,7 +106,9 @@ secrets:
 cron:
   enabled: true
   schedule: "*/5 * * * *"
-  image: quay.io/curl/curl:latest
+  # Pinned by digest: a floating tag here runs whatever was pushed last,
+  # every five minutes.
+  image: quay.io/curl/curl:8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
 
 service:
   port: 80
