@@ -20,6 +20,7 @@ spec:
       labels:
         {{- include "nextcloud.mysqlSelectorLabels" . | nindent 8 }}
     spec:
+      automountServiceAccountToken: false
       {{- with .Values.mysql.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

@@ -1,0 +1,17 @@
+{{- if .Values.nextcloud.hardening.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.nextcloud.name }}-hardening
+  labels:
+    {{- include "nextcloud.labels" . | nindent 4 }}
+data:
+  # Loaded after the image's conf-enabled/security.conf (ServerTokens OS,
+  # ServerSignature On), so these win.
+  apache-hardening.conf: |
+    ServerTokens Prod
+    ServerSignature Off
+    TraceEnable Off
+  php-hardening.ini: |
+    expose_php = Off
+{{- end }}

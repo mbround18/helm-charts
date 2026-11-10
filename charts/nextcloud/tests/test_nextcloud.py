@@ -150,3 +150,78 @@ def test_cron_job_hits_cron_php():
         "http://nextcloud.contract-tests.svc.cluster.local/cron.php"
         in container["args"]
     )
+
+
+def test_workloads_are_hardened_by_default():
+    documents = _render()
+    workloads = {workload.name: workload for workload in iter_workloads(documents)}
+
+    for workload in workloads.values():
+        spec = workload.pod_spec
+        assert spec["automountServiceAccountToken"] is False, workload.name
+        assert spec["securityContext"]["seccompProfile"]["type"] == "RuntimeDefault"
+        for container in spec["containers"]:
+            context = container["securityContext"]
+            assert context["allowPrivilegeEscalation"] is False, workload.name
+            assert context["capabilities"]["drop"] == ["ALL"], workload.name
+
+    mysql = workloads["mysql"].pod_spec
+    assert mysql["securityContext"]["runAsNonRoot"] is True
+    assert mysql["securityContext"]["runAsUser"] == 999
+    assert "add" not in mysql["containers"][0]["securityContext"]["capabilities"]
+
+    cron = workloads["release-name-nextcloud-cron"].pod_spec
+    assert cron["securityContext"]["runAsNonRoot"] is True
+    assert "@sha256:" in cron["containers"][0]["image"]
+    assert cron["containers"][0]["args"][0] == "-fsS"
+
+
+def test_hardening_config_hides_versions_and_mounts_after_image_defaults():
+    documents = _render()
+    config_map = _document_by_name(documents, "ConfigMap", "nextcloud-hardening")
+    assert "ServerTokens Prod" in config_map["data"]["apache-hardening.conf"]
+    assert "ServerSignature Off" in config_map["data"]["apache-hardening.conf"]
+    assert "expose_php = Off" in config_map["data"]["php-hardening.ini"]
+
+    statefulset = _document_by_name(documents, "StatefulSet", "nextcloud")
+    template = statefulset["spec"]["template"]
+    assert "checksum/hardening" in template["metadata"]["annotations"]
+    mounts = {
+        mount["mountPath"]: mount
+        for mount in template["spec"]["containers"][0]["volumeMounts"]
+    }
+    assert mounts["/etc/apache2/conf-enabled/zz-hardening.conf"]["subPath"] == (
+        "apache-hardening.conf"
+    )
+    assert mounts["/usr/local/etc/php/conf.d/zz-hardening.ini"]["readOnly"] is True
+
+
+def test_hardening_can_be_disabled():
+    documents = _render({"nextcloud": {"hardening": {"enabled": False}}})
+    assert not any(document.get("kind") == "ConfigMap" for document in documents)
+    statefulset = _document_by_name(documents, "StatefulSet", "nextcloud")
+    assert "volumes" not in statefulset["spec"]["template"]["spec"]
+
+
+def test_extra_volumes_and_mounts_are_appended():
+    documents = _render(
+        {
+            "nextcloud": {
+                "extraVolumes": [
+                    {"name": "remoteip", "configMap": {"name": "remoteip-conf"}}
+                ],
+                "extraVolumeMounts": [
+                    {
+                        "name": "remoteip",
+                        "mountPath": "/etc/apache2/conf-enabled/zz-remoteip.conf",
+                        "subPath": "remoteip.conf",
+                    }
+                ],
+            }
+        }
+    )
+    spec = _document_by_name(documents, "StatefulSet", "nextcloud")["spec"]["template"][
+        "spec"
+    ]
+    assert [volume["name"] for volume in spec["volumes"]] == ["hardening", "remoteip"]
+    assert spec["containers"][0]["volumeMounts"][-1]["name"] == "remoteip"

@@ -19,7 +19,13 @@ spec:
     metadata:
       labels:
         {{- include "nextcloud.selectorLabels" . | nindent 8 }}
+      {{- if .Values.nextcloud.hardening.enabled }}
+      annotations:
+        checksum/hardening: {{ include (print $.Template.BasePath "/hardening-configmap.yaml") . | sha256sum }}
+      {{- end }}
     spec:
+      # Nextcloud never calls the Kubernetes API.
+      automountServiceAccountToken: false
       {{- with .Values.nextcloud.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -72,8 +78,32 @@ spec:
           volumeMounts:
             - name: nextcloud-storage
               mountPath: /var/www/html
+            {{- if .Values.nextcloud.hardening.enabled }}
+            - name: hardening
+              mountPath: /etc/apache2/conf-enabled/zz-hardening.conf
+              subPath: apache-hardening.conf
+              readOnly: true
+            - name: hardening
+              mountPath: /usr/local/etc/php/conf.d/zz-hardening.ini
+              subPath: php-hardening.ini
+              readOnly: true
+            {{- end }}
+            {{- with .Values.nextcloud.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           resources:
             {{- toYaml .Values.nextcloud.resources | nindent 12 }}
+      {{- if or .Values.nextcloud.hardening.enabled .Values.nextcloud.extraVolumes }}
+      volumes:
+        {{- if .Values.nextcloud.hardening.enabled }}
+        - name: hardening
+          configMap:
+            name: {{ .Values.nextcloud.name }}-hardening
+        {{- end }}
+        {{- with .Values.nextcloud.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

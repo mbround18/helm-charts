@@ -25,11 +25,25 @@ spec:
             sidecar.istio.io/inject: "false"
         spec:
           activeDeadlineSeconds: 100
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            runAsGroup: 101
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: wget-container
               imagePullPolicy: IfNotPresent
               image: {{ .Values.cron.image | quote }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
               args:
+                # -f: an HTTP error fails the job instead of passing silently.
+                - -fsS
                 - -X
                 - GET
                 - {{ printf "http://%s.%s.svc.cluster.local/cron.php" .Values.nextcloud.name .Release.Namespace }}
