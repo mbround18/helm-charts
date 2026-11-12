@@ -1,12 +1,12 @@
 dependencies:
 - name: postgres
   repository: file://../postgres
-  version: 0.1.30
+  version: 0.1.31
 - name: redis
   repository: file://../redis
   version: 0.1.0
 - name: gitops-tools
   repository: file://../gitops-tools
   version: 0.1.1
-digest: sha256:01dd9c0931a0b7bea0ad43e2f36bbbd7ce24c8910a062924eea00d339a912bb9
-generated: "2026-08-13T23:40:36.813386199Z"
+digest: sha256:49af3b5b392bced5ec0893f6277a4cf8e5768ae4c9d08b4cdb699d4b7b8dc6cf
+generated: "2026-11-12T23:54:08.8165807Z"
